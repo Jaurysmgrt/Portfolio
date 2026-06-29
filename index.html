@@ -1253,7 +1253,7 @@ var imgSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wi
 function openProject(group){
   var c=CAMPAIGNS[group];
   if(!c)return;
-  var imgs=groupItems(group).map(function(it){return {src:it.querySelector('img').src,title:it.dataset.title};});
+  var imgs=groupItems(group).filter(function(it){return !it.classList.contains('brand-secondary')}).map(function(it){return {src:it.querySelector('img').src,title:it.dataset.title};});
   ppBarLogo.src=c.logo;
   ppBarLogo.alt=c.name;
   var metaHtml='';
