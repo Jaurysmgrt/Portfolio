@@ -252,10 +252,10 @@ body.loaded .hn2 span{transition-delay:.58s;transform:translateY(0)}
 /* visuels — grille compacte de vignettes (clic = agrandir) */
 .pp-vis-label{font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(240,234,216,.4);margin-bottom:1.3rem;display:flex;align-items:center;gap:1rem}
 .pp-vis-label::after{content:'';flex:1;height:1px;background:var(--border)}
-.pp-visuals{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-.pp-visual{position:relative;background:#0a0a08;border:1px solid var(--border);overflow:hidden;opacity:0;transform:translateY(20px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}
+.pp-visuals{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.pp-visual{position:relative;background:#0a0a08;overflow:hidden;opacity:0;transform:translateY(20px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}
 .pp-visual.in{opacity:1;transform:none}
-.pp-visual img{width:100%;height:auto;display:block;transition:transform .5s cubic-bezier(.16,1,.3,1)}
+.pp-visual img{width:100%;height:220px;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.16,1,.3,1)}
 .pp-visual:not(.pp-slot){cursor:pointer}
 .pp-visual:not(.pp-slot):hover img{transform:scale(1.06)}
 /* loupe au survol */
