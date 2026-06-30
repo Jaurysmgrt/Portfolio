@@ -128,7 +128,7 @@ body.loaded .hn2 span{transition-delay:.58s;transform:translateY(0)}
 .sec-title em{font-style:normal;-webkit-text-stroke:1.5px rgba(240,234,216,.15);color:transparent}
 
 /* À PROPOS */
-.about-intro{display:grid;grid-template-columns:380px 1fr;border-top:1px solid var(--border);min-height:75vh}
+.about-intro{display:grid;grid-template-columns:380px 1fr;border-top:1px solid var(--border);min-height:85vh}
 .ai-left{background:var(--bg2);border-right:1px solid var(--border);padding:4rem 3rem;display:flex;flex-direction:column;gap:2rem}
 .ai-photo{flex:1;min-height:380px;background:#161614;border:1.5px dashed rgba(240,234,216,.12);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
 .ai-photo::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 18px,rgba(240,234,216,.015) 18px,rgba(240,234,216,.015) 36px)}
@@ -139,8 +139,8 @@ body.loaded .hn2 span{transition-delay:.58s;transform:translateY(0)}
 .ai-label{background:var(--paper2);padding:1rem 1.4rem;position:relative;transform:rotate(-.4deg);box-shadow:2px 3px 10px rgba(0,0,0,.4)}
 .ai-label strong{font-family:'Anton',sans-serif;font-size:1.1rem;color:var(--ink);display:block;line-height:1}
 .ai-label em{font-size:.6rem;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:rgba(28,20,8,.45);font-style:normal;display:block;margin-top:.3rem}
-.ai-right{padding:4rem;display:flex;align-items:flex-start}
-.ai-inner{width:100%}
+.ai-right{padding:4rem;display:flex;align-items:stretch;flex-direction:column;justify-content:center;gap:2rem}
+.ai-inner{width:100%;display:flex;flex-direction:column;gap:0;height:100%;justify-content:center}
 .ai-num{display:inline-block;font-family:'Anton',sans-serif;font-size:.9rem;letter-spacing:.2em;background:var(--paper2);color:var(--ink);padding:.2rem .8rem;transform:rotate(-1deg);box-shadow:2px 2px 8px rgba(0,0,0,.35);margin-bottom:1.5rem}
 .ai-title{font-family:'Anton',sans-serif;font-size:clamp(2.8rem,4.5vw,4.5rem);line-height:1.28;color:var(--cream);margin-bottom:1.8rem}
 .ai-title .word{display:block;overflow:hidden;padding-bottom:.12em}
@@ -151,7 +151,7 @@ body.loaded .hn2 span{transition-delay:.58s;transform:translateY(0)}
 .rvr.in .ai-title .word:nth-child(3)>span{transition-delay:.45s}
 .ai-fade{transform:none!important;filter:none!important;transition:opacity 1s cubic-bezier(.16,1,.3,1)!important}
 .ai-title em{font-style:normal;color:var(--red)}
-.ai-txt{font-size:.95rem;line-height:1.9;color:var(--muted);margin-bottom:2.5rem}
+.ai-txt{font-size:.95rem;line-height:1.9;color:var(--muted);margin-bottom:3rem}
 /* encadré alternance */
 .ai-paper{background:var(--paper);padding:2rem;position:relative;transform:rotate(-.3deg);box-shadow:3px 5px 16px rgba(0,0,0,.5)}
 .ai-paper::before{content:'';position:absolute;top:-8px;left:0;right:0;height:10px;background:var(--paper);clip-path:polygon(0% 100%,2% 20%,4% 80%,6% 10%,8% 75%,10% 25%,12% 85%,14% 10%,16% 72%,18% 28%,20% 85%,22% 8%,24% 75%,26% 25%,28% 88%,30% 10%,32% 72%,34% 28%,36% 90%,38% 8%,40% 75%,42% 22%,44% 85%,46% 10%,48% 78%,50% 25%,52% 85%,54% 8%,56% 72%,58% 30%,60% 88%,62% 8%,64% 75%,66% 22%,68% 85%,70% 8%,72% 72%,74% 28%,76% 90%,78% 8%,80% 75%,82% 22%,84% 88%,86% 8%,88% 72%,90% 25%,92% 85%,94% 8%,96% 72%,98% 28%,100% 85%,100% 100%)}
@@ -159,6 +159,10 @@ body.loaded .hn2 span{transition-delay:.58s;transform:translateY(0)}
 .ai-paper-txt{font-size:.9rem;line-height:1.85;color:rgba(28,20,8,.65);margin-bottom:1.2rem}
 .ai-paper-txt strong{font-weight:700;color:var(--ink)}
 .ai-tags{display:flex;flex-wrap:wrap;gap:.4rem}
+.ai-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem;margin-top:2rem;padding-top:2rem;border-top:1px solid var(--border)}
+.ai-stat{display:flex;flex-direction:column;gap:.4rem}
+.ai-stat-val{font-family:'Anton',sans-serif;font-size:.85rem;letter-spacing:.08em;color:var(--cream);text-transform:uppercase}
+.ai-stat-lbl{font-size:.72rem;line-height:1.6;color:var(--muted)}
 .ai-tags span{font-size:.6rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.28rem .65rem;border:1px solid rgba(28,20,8,.2);color:rgba(28,20,8,.5)}
 
 /* PORTFOLIO — filtre avec disparition complète */
@@ -841,7 +845,7 @@ body.loaded .hero-scroll{opacity:1;transform:none;transition-delay:1.3s}
 <section class="about-intro" id="about-intro">
   <div class="ai-left">
     <div class="ai-photo" style="background:#0a0a08;border:none">
-      <img src="https://i.ibb.co/7NXLsMby/1.jpg" alt="Jaurys Maigret" style="width:100%;height:100%;object-fit:cover;object-position:center top;display:block">
+      <img src="https://i.ibb.co/7NXLsMby/1.jpg" alt="Jaurys Maigret" style="width:100%;height:100%;object-fit:cover;object-position:center 15%;display:block">
     </div>
     <div class="ai-label">
       <div class="tape l"></div>
@@ -860,6 +864,11 @@ body.loaded .hero-scroll{opacity:1;transform:none;transition-delay:1.3s}
         <p class="ai-paper-txt">Je rejoins le <strong>Master Direction Artistique de l'ESP Paris</strong> en septembre 2026 et recherche une entreprise partenaire dans l'univers de la <strong>publicité, du graphisme ou de la création visuelle</strong>, à Paris et alentours.</p>
         <div class="ai-tags">
           <span>Publicité</span><span>Graphisme</span><span>DA</span><span>Paris & IDF</span><span>Sept. 2026</span>
+        </div>
+        <div class="ai-stats">
+          <div class="ai-stat"><span class="ai-stat-val">Suite Adobe</span><span class="ai-stat-lbl">Photoshop · Illustrator · Premiere · After Effects</span></div>
+          <div class="ai-stat"><span class="ai-stat-val">Langues</span><span class="ai-stat-lbl">Français natif · Anglais B2</span></div>
+          <div class="ai-stat"><span class="ai-stat-val">Mobilité</span><span class="ai-stat-lbl">Paris & Île-de-France · Permis B</span></div>
         </div>
       </div>
     </div>
@@ -1232,7 +1241,7 @@ var CAMPAIGNS = {
     logo: "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQwIDgwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjEyMCIgeT0iNTYiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI1MiIgZm9udC13ZWlnaHQ9IjcwMCIgbGV0dGVyLXNwYWNpbmc9Ii0xIiBmaWxsPSIjZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5VYmVyPC90ZXh0Pjwvc3ZnPg==",
     meta: { "Type": "Campagne", "Secteur": "Mobilité / Transport", "Année": "2025" },
     brief: "Projet réalisé à l'ESP Paris autour de la marque Uber. L'objectif : concevoir une campagne qui traduit visuellement le positionnement de la marque dans un exercice de DA complet. J'ai travaillé sur le concept, la direction graphique et les déclinaisons, en cherchant à rester fidèle à l'identité forte d'Uber tout en apportant un regard personnel.",
-    posterSlots: 2,
+    posterSlots: 0,
     videoSlots: 0
   },
   halloween: {
@@ -1255,7 +1264,7 @@ var imgSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wi
 function openProject(group){
   var c=CAMPAIGNS[group];
   if(!c)return;
-  var imgs=groupItems(group).filter(function(it){return !it.classList.contains('brand-secondary')}).map(function(it){return {src:it.querySelector('img').src,title:it.dataset.title};});
+  var imgs=groupItems(group).map(function(it){return {src:it.querySelector('img').src,title:it.dataset.title};});
   ppBarLogo.src=c.logo;
   ppBarLogo.alt=c.name;
   var metaHtml='';
