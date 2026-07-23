@@ -1371,23 +1371,20 @@ var vmLoad=document.getElementById('vmLoad'),vmFallback=document.getElementById(
 function ytId(url){var m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|watch\?v=))([\w-]{11})/);return m?m[1]:null;}
 function openVideo(vsrc,title){
   var yid=ytId(vsrc);
+  if(yid){
+    window.open('https://www.youtube.com/watch?v='+yid,'_blank');
+    return;
+  }
   vmLoad.style.display='flex';
   vmFallback.style.display='none';
   vm.classList.add('on');
   document.body.style.overflow='hidden';
-  if(yid){
-    vmv.style.display='none';
-    vmyt.style.display='block';
-    vmyt.src='https://www.youtube.com/embed/'+yid+'?autoplay=1&rel=0';
-    vmLoad.style.display='none';
-  } else {
-    vmyt.style.display='none';
-    vmyt.src='';
-    vmv.classList.remove('ready');
-    vmv.style.display='block';
-    vmv.src=vsrc;
-    vmv.load();
-  }
+  vmyt.style.display='none';
+  vmyt.src='';
+  vmv.classList.remove('ready');
+  vmv.style.display='block';
+  vmv.src=vsrc;
+  vmv.load();
 }
 function closeVideo(){
   vm.classList.remove('on');
