@@ -426,8 +426,10 @@ footer{padding:1.5rem 3rem;display:flex;justify-content:space-between;align-item
 .ft-copy,.ft-r{font-size:.55rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(240,234,216,.1)}
 
 /* REVEAL — transitions douces avec blur */
-.rv{opacity:0;transform:translateY(24px);transition:opacity .9s cubic-bezier(.16,1,.3,1),transform .9s cubic-bezier(.16,1,.3,1)}
+.rv{opacity:0;transform:translateY(32px);transition:opacity .85s cubic-bezier(.16,1,.3,1),transform .85s cubic-bezier(.16,1,.3,1)}
 .rv.in{opacity:1;transform:none}
+.rvm{opacity:0;transform:translateY(20px) scale(.97);transition:opacity .8s cubic-bezier(.16,1,.3,1),transform .8s cubic-bezier(.16,1,.3,1)}
+.rvm.in{opacity:1;transform:none}
 .rvl{opacity:0;transform:translateX(-28px);transition:opacity .9s cubic-bezier(.16,1,.3,1),transform .9s cubic-bezier(.16,1,.3,1)}
 .rvl.in,.rvr.in{opacity:1;transform:none}
 .rvr{opacity:0;transform:translateX(28px);transition:opacity .9s cubic-bezier(.16,1,.3,1),transform .9s cubic-bezier(.16,1,.3,1)}
@@ -581,7 +583,7 @@ footer{padding:1.5rem 3rem;display:flex;justify-content:space-between;align-item
 
 /* EXTRA ANIMATIONS */
 /* stagger gallery items on scroll */
-.gal-item{opacity:0;transform:translateY(18px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+.gal-item{opacity:0;transform:translateY(22px) scale(.98);transition:opacity .75s cubic-bezier(.16,1,.3,1),transform .75s cubic-bezier(.16,1,.3,1)}
 .gal-item.shown{opacity:1;transform:none}
 /* number counter glow on hero stats */
 .hstat-n{transition:color .3s,text-shadow .3s}
@@ -873,62 +875,11 @@ body.loaded .hero-scroll{opacity:1;transform:none;transition-delay:1.3s}
   </div>
 </section>
 
-<!-- COMPÉTENCES -->
-<section class="sec" id="competences">
-  <div class="rv"><div class="sec-num">02 — Savoir-faire</div><div class="sec-title">Ce que je <em>fais</em></div></div>
-
-  <div class="cf-list">
-    <div class="cf-row rv" data-d="1">
-      <div class="cf-index">01</div>
-      <div class="cf-main">
-        <h3 class="cf-name">Création</h3>
-        <div class="cf-tags">
-          <span>Conception créative</span><span>Publicité</span><span>Graphisme</span><span>Création visuelle</span><span>Storytelling</span>
-        </div>
-      </div>
-    </div>
-    <div class="cf-row rv" data-d="2">
-      <div class="cf-index">02</div>
-      <div class="cf-main">
-        <h3 class="cf-name">Analyse</h3>
-        <div class="cf-tags">
-          <span>Veille créative</span><span>Analyse de tendances</span><span>Benchmark concurrentiel</span><span>Stratégie de contenu</span>
-        </div>
-      </div>
-    </div>
-    <div class="cf-row rv" data-d="3">
-      <div class="cf-index">03</div>
-      <div class="cf-main">
-        <h3 class="cf-name">Production</h3>
-        <div class="cf-tags">
-          <span>Montage vidéo</span><span>Retouche photo</span><span>Post-production</span><span>Création de contenu</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SUITE ADOBE -->
-  <div class="adobe-zone rv" data-d="2">
-    <div class="adobe-head">
-      <span class="adobe-tag">Outils</span>
-      <span class="adobe-title">Suite Adobe</span>
-    </div>
-    <div class="adobe-row">
-      <div class="adobe-item"><img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQwIDIzNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIyMjAiIGhlaWdodD0iMjE0IiByeD0iNDIiIGZpbGw9IiMyRDAwMTQiLz48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIyMjAiIGhlaWdodD0iMjE0IiByeD0iNDIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0ZGMzM2NiIgc3Ryb2tlLXdpZHRoPSIwIi8+PHRleHQgeD0iMTIwIiB5PSIxNTgiIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjExMCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI0ZGMzM2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+SWQ8L3RleHQ+PC9zdmc+" alt="InDesign"><span>InDesign</span></div>
-      <div class="adobe-item"><img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQwIDIzNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIyMjAiIGhlaWdodD0iMjE0IiByeD0iNDIiIGZpbGw9IiMwMDFFMzYiLz48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIyMjAiIGhlaWdodD0iMjE0IiByeD0iNDIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMxQThGRiIgc3Ryb2tlLXdpZHRoPSIwIi8+PHRleHQgeD0iMTIwIiB5PSIxNTgiIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjExMCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzMxQThGRiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UHM8L3RleHQ+PC9zdmc+" alt="Photoshop"><span>Photoshop</span></div>
-      <div class="adobe-item"><img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQwIDIzNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIyMjAiIGhlaWdodD0iMjE0IiByeD0iNDIiIGZpbGw9IiMzMzAwMDAiLz48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIyMjAiIGhlaWdodD0iMjE0IiByeD0iNDIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI0ZGOUEwMCIgc3Ryb2tlLXdpZHRoPSIwIi8+PHRleHQgeD0iMTIwIiB5PSIxNTgiIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjExMCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iI0ZGOUEwMCIgdGV4dC1hbmNob3I9Im1pZGRsZSI+QWk8L3RleHQ+PC9zdmc+" alt="Illustrator"><span>Illustrator</span></div>
-      <div class="adobe-item"><img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQwIDIzNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIyMjAiIGhlaWdodD0iMjE0IiByeD0iNDIiIGZpbGw9IiMwMDAwNUIiLz48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIyMjAiIGhlaWdodD0iMjE0IiByeD0iNDIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzk5OTlGRiIgc3Ryb2tlLXdpZHRoPSIwIi8+PHRleHQgeD0iMTIwIiB5PSIxNTgiIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjExMCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzk5OTlGRiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+UHI8L3RleHQ+PC9zdmc+" alt="Premiere Pro"><span>Premiere Pro</span></div>
-      <div class="adobe-item"><img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQwIDIzNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIyMjAiIGhlaWdodD0iMjE0IiByeD0iNDIiIGZpbGw9IiMwMDAwNUIiLz48dGV4dCB4PSIxMjAiIHk9IjE1OCIgZm9udC1mYW1pbHk9IkFyaWFsLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMTEwIiBmb250LXdlaWdodD0iNzAwIiBmaWxsPSIjOTk5OUZGIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5BZTwvdGV4dD48L3N2Zz4=" alt="After Effects"><span>After Effects</span></div>
-      <div class="adobe-item"><img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQwIDIzNCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIyMjAiIGhlaWdodD0iMjE0IiByeD0iNDIiIGZpbGw9IiMwMDFFMzYiLz48cmVjdCB4PSIxMCIgeT0iMTAiIHdpZHRoPSIyMjAiIGhlaWdodD0iMjE0IiByeD0iNDIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iIzMxQThGRiIgc3Ryb2tlLXdpZHRoPSIwIi8+PHRleHQgeD0iMTIwIiB5PSIxNTgiIGZvbnQtZmFtaWx5PSJBcmlhbCxzYW5zLXNlcmlmIiBmb250LXNpemU9IjExMCIgZm9udC13ZWlnaHQ9IjcwMCIgZmlsbD0iIzMxQThGRiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+THI8L3RleHQ+PC9zdmc+" alt="Lightroom"><span>Lightroom</span></div>
-      
-    </div>
-  </div>
-</section>
 
 <!-- PORTFOLIO -->
 <section class="sec" id="portfolio">
   <div class="pf-head rv">
-    <div><div class="sec-num">03 — Productions</div><div class="sec-title">Mes <em>projets</em></div></div>
+    <div><div class="sec-num">02 — Productions</div><div class="sec-title">Mes <em>projets</em></div></div>
     <p class="pf-desc">Photographie automobile, campagnes pub, affiches de marque et créations vidéo. Cliquez pour explorer.</p>
   </div>
   <div class="filter rv" data-d="2">
@@ -1007,9 +958,9 @@ body.loaded .hero-scroll{opacity:1;transform:none;transition-delay:1.3s}
 
 <!-- XP -->
 <section class="sec" id="xp">
-  <div class="rv"><div class="sec-num">05 — Expériences</div><div class="sec-title">Où j'ai <em>travaillé</em></div></div>
+  <div class="rv"><div class="sec-num">03 — Expériences</div><div class="sec-title">Où j'ai <em>travaillé</em></div></div>
   <div class="xp-rows">
-    <div class="xr rv" data-d="1">
+    <div class="xr rvm" data-d="1">
       <div class="xr-yr">2025 — 2026</div>
       <div class="xr-content">
         <div class="xr-head">
@@ -1020,7 +971,7 @@ body.loaded .hero-scroll{opacity:1;transform:none;transition-delay:1.3s}
         <ul class="xr-tasks"><li>Création de contenu photo & vidéo — concession de véhicules de luxe</li><li>Montage et post-production aux standards haut de gamme</li><li>Gestion des réseaux sociaux et calendrier éditorial</li><li>Storytelling visuel, image de marque & campagnes luxe</li></ul>
       </div>
     </div>
-    <div class="xr rv" data-d="2">
+    <div class="xr rvm" data-d="2">
       <div class="xr-yr">2024 — 1 mois</div>
       <div class="xr-content">
         <div class="xr-head">
@@ -1031,7 +982,7 @@ body.loaded .hero-scroll{opacity:1;transform:none;transition-delay:1.3s}
         <ul class="xr-tasks"><li>Création de contenu social media — groupe à dimension mondiale</li><li>Newsletters BtoC · Retouche visuelle · Analyse de performance</li></ul>
       </div>
     </div>
-    <div class="xr rv" data-d="3">
+    <div class="xr rvm" data-d="3">
       <div class="xr-yr">2024 — 1 mois</div>
       <div class="xr-content">
         <div class="xr-head">
@@ -1132,7 +1083,7 @@ document.querySelectorAll('.nm').forEach(function(a){a.addEventListener('click',
 
 // REVEAL
 var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)e.target.classList.add('in')})},{threshold:.08,rootMargin:'0px 0px -8% 0px'});
-document.querySelectorAll('.rv,.rvl,.rvr').forEach(function(e){io.observe(e)});
+document.querySelectorAll('.rv,.rvl,.rvr,.rvm').forEach(function(e){io.observe(e)});
 // timeline dot pulse trigger
 var tlObs=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)e.target.classList.add('in')})},{threshold:.3});
 document.querySelectorAll('.tl-item').forEach(function(e){tlObs.observe(e)});
