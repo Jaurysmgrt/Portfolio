@@ -546,6 +546,88 @@ footer{padding:1.5rem 3rem;display:flex;justify-content:space-between;align-item
   .pp-lb-prev{left:.6rem}.pp-lb-next{right:.6rem}
   .pp-lb-nav{width:44px;height:44px;font-size:1.4rem}
   .pp-lb-x{top:1rem;right:1rem}
+/* ══════════════ MOBILE OVERHAUL ══════════════ */
+@media(max-width:600px){
+  /* Hero */
+  .hero{padding:0 1.2rem;min-height:auto}
+  .hn1 span,.hn2 span{font-size:clamp(3.2rem,14vw,5rem)}
+  .hero-sub{font-size:.65rem}
+  .hero-col-r{display:none}
+  .hero-btn{padding:.9rem 1.8rem;font-size:.7rem;width:100%;text-align:center;justify-content:center;display:flex}
+  .hero-bottom{gap:1.2rem;padding-bottom:3rem}
+  .hero-body{padding:2rem 0 1rem}
+
+  /* À propos */
+  .about-intro{grid-template-columns:1fr}
+  .ai-left{border-right:none;border-bottom:1px solid var(--border)}
+  .ai-photo{min-height:260px}
+  .ai-right{padding:2.5rem 1.4rem}
+  .ai-title{font-size:clamp(2rem,9vw,3rem)}
+  .ai-stats{grid-template-columns:repeat(3,1fr);gap:.8rem;margin-top:2rem;padding-top:1.5rem}
+  .ai-stat-n{font-size:1.8rem}
+  .ai-stat-l{font-size:.5rem}
+
+  /* Section */
+  .sec{padding:3.5rem 1.2rem}
+  .sec-title{font-size:clamp(2rem,9vw,3.2rem)}
+
+  /* Gallery filters */
+  .filter{display:flex;flex-wrap:wrap;gap:.5rem}
+  .ft{font-size:.5rem;padding:.45rem .9rem}
+
+  /* Gallery */
+  .gallery{columns:1}
+  .gal-item img{height:auto}
+
+  /* XP */
+  .xr{grid-template-columns:1fr;gap:1rem;padding:2rem 0}
+  .xr-yr{font-size:.7rem}
+  .xr-role{font-size:.75rem}
+
+  /* Contact */
+  .contact-grid{grid-template-columns:1fr}
+  .cl{border-right:none;border-bottom:1px solid var(--border)}
+  .c-title{font-size:clamp(2rem,9vw,3rem)}
+
+  /* Footer */
+  footer{flex-direction:column;gap:1rem;text-align:center}
+  .ft-r{display:none}
+
+  /* Project page */
+  .pp-bar{padding:.9rem 1.2rem;gap:.8rem}
+  .pp-barlogo{height:18px}
+  .pp-wrap{padding:1.8rem 1.2rem 5rem}
+  .pp-head{gap:.6rem}
+  .pp-logo-big{height:32px}
+  .pp-title{font-size:clamp(1.8rem,8vw,2.6rem)}
+  .pp-meta{flex-wrap:wrap;gap:1rem}
+  .pp-brief{padding:1.4rem 1.2rem}
+  .pp-visuals{grid-template-columns:1fr;gap:3px}
+  .pp-visual img{height:220px}
+  .pp-vid-row{grid-template-columns:1fr;gap:3px}
+
+  /* Video modal */
+  .vmodal .vm-inner{width:95vw}
+  .vmyt,.vmv{width:95vw!important;height:53.4vw!important}
+
+  /* Lightbox */
+  .lb-inner{grid-template-columns:1fr}
+  .lb-img-wrap{padding:1rem;max-height:55vw}
+  .lb img{max-height:55vw}
+  .lb-info{padding:1.5rem 1.2rem}
+  .lb-info-title{font-size:1.4rem}
+  .lb-nav{width:36px;height:36px;font-size:1.2rem}
+
+  /* Nav mobile */
+  .nm{font-size:1.2rem;padding:1.2rem 0}
+}
+
+@media(max-width:380px){
+  .hn1 span,.hn2 span{font-size:12vw}
+  .ai-stats{grid-template-columns:repeat(3,1fr);gap:.5rem}
+  .ai-stat-n{font-size:1.5rem}
+}
+
 }
 
 /* CE QUE JE FAIS — liste éditoriale */
