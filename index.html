@@ -1322,7 +1322,13 @@ function ytId(url){var m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|watc
 function openVideo(vsrc,title){
   var yid=ytId(vsrc);
   if(yid){
-    window.open('https://www.youtube.com/watch?v='+yid,'_blank');
+    var a=document.createElement('a');
+    a.href='https://www.youtube.com/watch?v='+yid;
+    a.target='_blank';
+    a.rel='noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     return;
   }
   vmLoad.style.display='flex';
