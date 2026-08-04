@@ -355,6 +355,13 @@ body.loaded .hn2 span{transition-delay:.38s;transform:translateY(0)}
 .vm-spin{width:22px;height:22px;border:2px solid rgba(240,234,216,.2);border-top-color:var(--red2);border-radius:50%;animation:vmSpin .8s linear infinite}
 @keyframes vmSpin{to{transform:rotate(360deg)}}
 .vm-fallback{display:none;padding:4rem 2rem;text-align:center;color:rgba(240,234,216,.6);font-size:.85rem;letter-spacing:.05em;border:1.5px dashed rgba(240,234,216,.18);border-radius:3px}
+.vm-fb-btn{display:inline-block;background:var(--red);color:#fff;font-family:'Anton',sans-serif;font-size:.8rem;letter-spacing:.1em;text-decoration:none;padding:.7rem 1.8rem;box-shadow:3px 3px 0 rgba(0,0,0,.4);transition:transform .2s,box-shadow .2s}
+.vm-fb-btn:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 rgba(0,0,0,.4)}
+.vm-fb-thumb{width:min(70vw,340px);aspect-ratio:16/9;object-fit:cover;display:block;margin:0 auto 1.5rem;border-radius:2px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.vm-fb-txt{margin-bottom:1.4rem;color:rgba(240,234,216,.55)}
+#vmytWrap{width:min(90vw,1100px);max-height:82vh}
+#vmyt{width:100%;aspect-ratio:16/9;height:auto;border-radius:2px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+#vmyt iframe{width:100%;height:100%;border:none;display:block}
 .vm-x{position:absolute;top:-2.5rem;right:0;font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--cream);cursor:pointer;font-family:'Anton',sans-serif;background:none;border:none;transition:color .2s;z-index:5}
 .vm-x:hover{color:var(--red2)}
 
@@ -546,16 +553,18 @@ footer{padding:1.5rem 3rem;display:flex;justify-content:space-between;align-item
   .pp-lb-prev{left:.6rem}.pp-lb-next{right:.6rem}
   .pp-lb-nav{width:44px;height:44px;font-size:1.4rem}
   .pp-lb-x{top:1rem;right:1rem}
-/* ══════════════ MOBILE OVERHAUL ══════════════ */
+}
+
 @media(max-width:600px){
   /* Hero */
-  .hero{padding:0 1.2rem;min-height:auto}
+  .hero{padding:0 1.2rem;min-height:100svh}
   .hn1 span,.hn2 span{font-size:clamp(3.2rem,14vw,5rem)}
   .hero-sub{font-size:.65rem}
   .hero-col-r{display:none}
   .hero-btn{padding:.9rem 1.8rem;font-size:.7rem;width:100%;text-align:center;justify-content:center;display:flex}
   .hero-bottom{gap:1.2rem;padding-bottom:3rem}
-  .hero-body{padding:2rem 0 1rem}
+  .hero-body{padding:2rem 0 1rem;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1}
+  .hero-title-block{width:100%}
 
   /* À propos */
   .about-intro{grid-template-columns:1fr}
@@ -575,9 +584,11 @@ footer{padding:1.5rem 3rem;display:flex;justify-content:space-between;align-item
   .filter{display:flex;flex-wrap:wrap;gap:.5rem}
   .ft{font-size:.5rem;padding:.45rem .9rem}
 
-  /* Gallery */
+  /* Gallery — 1 col, brand cards constrained */
   .gallery{columns:1}
   .gal-item img{height:auto}
+  .brand-card{aspect-ratio:unset;max-height:72vw}
+  .gal-video .gv-frame{aspect-ratio:16/9}
 
   /* XP */
   .xr{grid-template-columns:1fr;gap:1rem;padding:2rem 0}
@@ -608,7 +619,9 @@ footer{padding:1.5rem 3rem;display:flex;justify-content:space-between;align-item
 
   /* Video modal */
   .vmodal .vm-inner{width:95vw}
-  .vmyt,.vmv{width:95vw!important;height:53.4vw!important}
+  #vmytWrap{width:95vw}
+  .vm-inner video{max-width:95vw}
+  .vm-fallback{padding:2.5rem 1.2rem}
 
   /* Lightbox */
   .lb-inner{grid-template-columns:1fr}
@@ -626,8 +639,6 @@ footer{padding:1.5rem 3rem;display:flex;justify-content:space-between;align-item
   .hn1 span,.hn2 span{font-size:12vw}
   .ai-stats{grid-template-columns:repeat(3,1fr);gap:.5rem}
   .ai-stat-n{font-size:1.5rem}
-}
-
 }
 
 /* CE QUE JE FAIS — liste éditoriale */
@@ -808,6 +819,86 @@ body.loaded .hero-scroll{opacity:1;transform:none;transition-delay:1.3s}
   html{scroll-behavior:smooth}
 }
 
+/* ═══ CONTACT MODAL ═══ */
+.cmod{position:fixed;inset:0;z-index:3000;display:flex;align-items:center;justify-content:center;padding:1.5rem;opacity:0;pointer-events:none;transition:opacity .35s cubic-bezier(.16,1,.3,1)}
+.cmod.on{opacity:1;pointer-events:auto}
+.cmod-bg{position:absolute;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(8px)}
+.cmod-box{position:relative;z-index:1;background:var(--bg2);border:1px solid var(--border);max-width:480px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.7);transform:translateY(18px) scale(.97);transition:transform .4s cubic-bezier(.16,1,.3,1);overflow:hidden}
+.cmod.on .cmod-box{transform:none}
+.cmod-top{background:var(--red);padding:1.4rem 2rem;display:flex;align-items:center;justify-content:space-between}
+.cmod-top h2{font-family:'Anton',sans-serif;font-size:1.3rem;letter-spacing:.06em;color:#fff}
+.cmod-x{background:none;border:none;color:rgba(255,255,255,.7);font-size:1.4rem;cursor:pointer;line-height:1;padding:0;transition:color .2s}
+.cmod-x:hover{color:#fff}
+.cmod-body{padding:2rem}
+.cmod-row{display:flex;align-items:center;gap:1.2rem;padding:1.1rem 0;border-bottom:1px solid var(--border)}
+.cmod-row:last-child{border-bottom:none}
+.cmod-icon{width:40px;height:40px;background:rgba(200,40,26,.1);border:1px solid rgba(200,40,26,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem}
+.cmod-info{display:flex;flex-direction:column;gap:.2rem;min-width:0}
+.cmod-label{font-size:.52rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:rgba(240,234,216,.35)}
+.cmod-val{font-size:.95rem;color:var(--cream);text-decoration:none;transition:color .2s;word-break:break-all}
+a.cmod-val:hover{color:var(--red2)}
+.cmod-copy{margin-left:auto;background:none;border:1px solid var(--border);color:var(--muted);font-size:.55rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.35rem .7rem;cursor:pointer;transition:all .2s;flex-shrink:0}
+.cmod-copy:hover{border-color:var(--red2);color:var(--red2)}
+.cmod-copy.copied{border-color:var(--red);color:var(--red)}
+.cmod-link{text-decoration:none;transition:background .2s}
+.cmod-link:hover,.cmod-link:active{background:rgba(200,40,26,.06)}
+.cmod-link .cmod-val{color:var(--cream);transition:color .2s}
+.cmod-link:hover .cmod-val{color:var(--red2)}
+@media(max-width:480px){
+  .cmod-box{margin:0}.cmod-body{padding:1.5rem 1.2rem}
+  .cmod-top{padding:1.2rem 1.4rem}
+  .cmod-val{font-size:.85rem}
+}
+
+/* ═══ EXTRA ANIMATIONS ═══ */
+/* Filter button ripple */
+.ft{position:relative;overflow:hidden}
+.ft::after{content:'';position:absolute;inset:50%;background:rgba(255,255,255,.25);border-radius:50%;transform:translate(-50%,-50%) scale(0);transition:transform .5s,opacity .5s,inset .5s}
+.ft:active::after{inset:0;border-radius:0;transform:none;opacity:0;transition:none}
+
+/* Section number animated underline */
+.sec-num::after{content:'';display:block;height:2px;background:var(--red);transform:scaleX(0);transform-origin:left;transition:transform .4s cubic-bezier(.16,1,.3,1)}
+.rv.in .sec-num::after{transform:scaleX(1);transition-delay:.4s}
+
+/* Gallery item — staggered reveal delay by index */
+.gal-item:nth-child(1){transition-delay:.05s}
+.gal-item:nth-child(2){transition-delay:.1s}
+.gal-item:nth-child(3){transition-delay:.15s}
+.gal-item:nth-child(4){transition-delay:.2s}
+.gal-item:nth-child(5){transition-delay:.25s}
+.gal-item:nth-child(6){transition-delay:.3s}
+.gal-item:nth-child(7){transition-delay:.35s}
+.gal-item:nth-child(8){transition-delay:.4s}
+
+/* Marquee pause on reduced motion */
+@media(prefers-reduced-motion:reduce){.mq-track{animation:none}.adobe-item img{animation:none}}
+
+/* Avail pill shimmer */
+@keyframes pillShimmer{0%,100%{background:rgba(200,40,26,.07)}50%{background:rgba(200,40,26,.14)}}
+.avail-pill{animation:pillShimmer 3s ease-in-out infinite 2s}
+
+/* Footer links */
+footer a{position:relative;text-decoration:none}
+footer a::after{content:'';position:absolute;bottom:-2px;left:0;width:0;height:1px;background:var(--red2);transition:width .3s}
+footer a:hover::after{width:100%}
+
+/* Contact CTA hover lift */
+.c-cta{transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s}
+.c-cta:hover{transform:translateY(-3px);box-shadow:4px 8px 20px rgba(0,0,0,.5)}
+
+/* Brand card subtle gradient shimmer on hover */
+.brand-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,.04) 50%,transparent 60%);background-size:200% 200%;transition:background-position .6s}
+.has-card:hover .brand-card::before{background-position:100% 100%}
+
+/* Gal overlay text slide-up */
+.gal-title{transform:translateY(4px);transition:transform .4s cubic-bezier(.16,1,.3,1)}
+.gal-item:hover .gal-title{transform:translateY(0)}
+
+/* Mobile touch — remove hover cursor */
+@media(hover:none){
+  .hero-btn::after{display:none}
+}
+
 </style>
 </head>
 <body>
@@ -821,6 +912,49 @@ body.loaded .hero-scroll{opacity:1;transform:none;transition-delay:1.3s}
     </div>
     <div class="lo-progress"><div class="lo-bar" id="loBar"></div></div>
     <div class="lo-pct" id="loPct">0%</div>
+  </div>
+</div>
+
+<!-- CONTACT MODAL -->
+<div class="cmod" id="cmod">
+  <div class="cmod-bg" onclick="closeContact()"></div>
+  <div class="cmod-box">
+    <div class="cmod-top">
+      <h2>ME CONTACTER</h2>
+      <button class="cmod-x" onclick="closeContact()">✕</button>
+    </div>
+    <div class="cmod-body">
+      <a class="cmod-row cmod-link" href="mailto:maigretjaurys8@gmail.com">
+        <div class="cmod-icon">✉</div>
+        <div class="cmod-info">
+          <span class="cmod-label">Email — appuyer pour ouvrir</span>
+          <span class="cmod-val">maigretjaurys8@gmail.com</span>
+        </div>
+        <button class="cmod-copy" onclick="event.preventDefault();copyText('maigretjaurys8@gmail.com',this)">Copier</button>
+      </a>
+      <a class="cmod-row cmod-link" href="tel:+33609977401">
+        <div class="cmod-icon">📞</div>
+        <div class="cmod-info">
+          <span class="cmod-label">Téléphone — appuyer pour appeler</span>
+          <span class="cmod-val">06 09 97 74 01</span>
+        </div>
+        <button class="cmod-copy" onclick="event.preventDefault();copyText('0609977401',this)">Copier</button>
+      </a>
+      <a class="cmod-row cmod-link" href="https://www.linkedin.com/in/jaurys-maigret" target="_blank" rel="noopener">
+        <div class="cmod-icon">in</div>
+        <div class="cmod-info">
+          <span class="cmod-label">LinkedIn — appuyer pour ouvrir</span>
+          <span class="cmod-val">Jaurys Maigret →</span>
+        </div>
+      </a>
+      <div class="cmod-row">
+        <div class="cmod-icon">📍</div>
+        <div class="cmod-info">
+          <span class="cmod-label">Disponibilité</span>
+          <span class="cmod-val" style="color:var(--red2)">Alternance · Sept. 2026 · Paris</span>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -844,8 +978,8 @@ body.loaded .hero-scroll{opacity:1;transform:none;transition-delay:1.3s}
     <button class="vm-x" id="vmx">Fermer ✕</button>
     <div class="vm-load" id="vmLoad"><span class="vm-spin"></span>Chargement…</div>
     <video id="vmvid" controls playsinline preload="metadata"></video>
-    <iframe id="vmyt" style="display:none;max-width:90vw;max-height:82vh;width:90vw;height:50.625vw;border:none;border-radius:2px;box-shadow:0 20px 60px rgba(0,0,0,.6)" allowfullscreen allow="autoplay; encrypted-media"></iframe>
-    <div class="vm-fallback" id="vmFallback">La vidéo sera chargée ici.</div>
+    <div id="vmytWrap" style="display:none"><div id="vmyt"></div></div>
+    <div class="vm-fallback" id="vmFallback"></div>
   </div>
 </div>
 
@@ -916,7 +1050,7 @@ body.loaded .hero-scroll{opacity:1;transform:none;transition-delay:1.3s}
   </div>
   <div class="hero-bottom">
     <p class="hero-desc">Créatif, curieux, impliqué — je crée des visuels qui racontent quelque chose. Publicité, graphisme, photo, vidéo.</p>
-    <a href="#contact" class="hero-btn">Me contacter →</a>
+    <a href="#contact" class="hero-btn" id="ctaContact" onclick="openContact(event)">Me contacter →</a>
   </div>
   <div class="hero-scroll"><span class="hs-lbl">Scroll</span><div class="hs-line"></div></div>
 </section>
@@ -1286,6 +1420,28 @@ var CAMPAIGNS = {
 
 // ═══ PAGE PROJET ═══
 var pp=document.getElementById('projectPage'),ppWrap=document.getElementById('ppWrap'),ppBarLogo=document.getElementById('ppBarLogo');
+// CONTACT MODAL
+function openContact(e){
+  if(e)e.preventDefault();
+  var m=document.getElementById('cmod');
+  m.classList.add('on');
+  document.body.style.overflow='hidden';
+}
+function closeContact(){
+  var m=document.getElementById('cmod');
+  m.classList.remove('on');
+  document.body.style.overflow='';
+}
+function copyText(txt,btn){
+  navigator.clipboard.writeText(txt).then(function(){
+    var orig=btn.textContent;
+    btn.textContent='✓ Copié';
+    btn.classList.add('copied');
+    setTimeout(function(){btn.textContent=orig;btn.classList.remove('copied')},2000);
+  });
+}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeContact()});
+
 var ppImgs=[];
 var camSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M15 10l4.553-2.554A1 1 0 0121 8.382v7.236a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>';
 var imgSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
@@ -1407,36 +1563,103 @@ var vm=document.getElementById('vmodal'),vmv=document.getElementById('vmvid');
 var vmyt=document.getElementById('vmyt');
 var vmLoad=document.getElementById('vmLoad'),vmFallback=document.getElementById('vmFallback');
 function ytId(url){var m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|watch\?v=))([\w-]{11})/);return m?m[1]:null;}
+var vmytWrap=document.getElementById('vmytWrap');
+var vmCurrentYt=null,ytPlayer=null,ytApiReady=false,ytApiLoading=false,ytPending=null,ytGuard=null;
+
+// Charge l'API YouTube une seule fois
+function loadYtApi(){
+  if(ytApiReady||ytApiLoading)return;
+  ytApiLoading=true;
+  var s=document.createElement('script');
+  s.src='https://www.youtube.com/iframe_api';
+  s.onerror=function(){ytApiLoading=false;ytFallback()};
+  document.head.appendChild(s);
+}
+window.onYouTubeIframeAPIReady=function(){
+  ytApiReady=true;ytApiLoading=false;
+  if(ytPending){var id=ytPending;ytPending=null;playYt(id)}
+};
+
+function playYt(yid){
+  clearTimeout(ytGuard);
+  // Si la vidéo ne démarre pas en 4s, on bascule sur le plan B
+  ytGuard=setTimeout(ytFallback,4000);
+  try{
+    if(ytPlayer&&ytPlayer.loadVideoById){
+      ytPlayer.loadVideoById(yid);
+      return;
+    }
+    ytPlayer=new YT.Player('vmyt',{
+      videoId:yid,
+      playerVars:{autoplay:1,rel:0,modestbranding:1,playsinline:1},
+      events:{
+        onReady:function(e){e.target.playVideo()},
+        onStateChange:function(e){
+          // dès que ça joue ou que c'est prêt, on annule le plan B
+          if(e.data===YT.PlayerState.PLAYING||e.data===YT.PlayerState.BUFFERING||e.data===YT.PlayerState.CUED){
+            clearTimeout(ytGuard);
+            vmLoad.style.display='none';
+          }
+        },
+        onError:function(){ytFallback()}
+      }
+    });
+  }catch(err){ytFallback()}
+}
+
 function openVideo(vsrc,title){
   var yid=ytId(vsrc);
-  if(yid){
-    var a=document.createElement('a');
-    a.href='https://www.youtube.com/watch?v='+yid;
-    a.target='_blank';
-    a.rel='noopener noreferrer';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    return;
-  }
-  vmLoad.style.display='flex';
-  vmFallback.style.display='none';
   vm.classList.add('on');
   document.body.style.overflow='hidden';
-  vmyt.style.display='none';
-  vmyt.src='';
+  vmFallback.style.display='none';
+  vmFallback.innerHTML='';
   vmv.classList.remove('ready');
+
+  if(yid){
+    // Lecture YouTube intégrée — on reste sur le site
+    vmCurrentYt=yid;
+    vmv.pause();vmv.removeAttribute('src');vmv.load();
+    vmv.style.display='none';
+    vmLoad.style.display='flex';
+    vmytWrap.style.display='block';
+    if(ytApiReady){playYt(yid)}
+    else{ytPending=yid;loadYtApi();clearTimeout(ytGuard);ytGuard=setTimeout(ytFallback,7000)}
+    return;
+  }
+  // Fichier vidéo local
+  vmCurrentYt=null;
+  vmLoad.style.display='flex';
+  vmytWrap.style.display='none';
+  if(ytPlayer&&ytPlayer.stopVideo)try{ytPlayer.stopVideo()}catch(e){}
   vmv.style.display='block';
   vmv.src=vsrc;
   vmv.load();
 }
+
 function closeVideo(){
+  clearTimeout(ytGuard);
   vm.classList.remove('on');
   vmv.pause();vmv.removeAttribute('src');vmv.load();
   vmv.classList.remove('ready');
-  vmyt.src='';
-  vmyt.style.display='none';
+  if(ytPlayer&&ytPlayer.stopVideo)try{ytPlayer.stopVideo()}catch(e){}
+  vmytWrap.style.display='none';
+  vmFallback.style.display='none';
+  vmCurrentYt=null;
   document.body.style.overflow='';
+}
+
+// Plan B : lecture impossible -> on ouvre YouTube proprement, sans écran d'erreur
+function ytFallback(){
+  clearTimeout(ytGuard);
+  if(!vmCurrentYt)return;
+  var yid=vmCurrentYt;
+  vmLoad.style.display='none';
+  vmytWrap.style.display='none';
+  vmFallback.innerHTML=
+    '<img src="https://img.youtube.com/vi/'+yid+'/mqdefault.jpg" alt="" class="vm-fb-thumb">'+
+    '<p class="vm-fb-txt">Lecture externe requise pour cette vidéo.</p>'+
+    '<a href="https://www.youtube.com/watch?v='+yid+'" target="_blank" rel="noopener" class="vm-fb-btn">Regarder la vidéo →</a>';
+  vmFallback.style.display='block';
 }
 vmv.addEventListener('loadeddata',function(){vmLoad.style.display='none';vmv.classList.add('ready');vmv.play().catch(function(){});});
 vmv.addEventListener('canplay',function(){vmLoad.style.display='none';vmv.classList.add('ready');});
