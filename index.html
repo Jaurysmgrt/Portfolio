@@ -546,16 +546,18 @@ footer{padding:1.5rem 3rem;display:flex;justify-content:space-between;align-item
   .pp-lb-prev{left:.6rem}.pp-lb-next{right:.6rem}
   .pp-lb-nav{width:44px;height:44px;font-size:1.4rem}
   .pp-lb-x{top:1rem;right:1rem}
-/* ══════════════ MOBILE OVERHAUL ══════════════ */
+}
+
 @media(max-width:600px){
   /* Hero */
-  .hero{padding:0 1.2rem;min-height:auto}
+  .hero{padding:0 1.2rem;min-height:100svh}
   .hn1 span,.hn2 span{font-size:clamp(3.2rem,14vw,5rem)}
   .hero-sub{font-size:.65rem}
   .hero-col-r{display:none}
   .hero-btn{padding:.9rem 1.8rem;font-size:.7rem;width:100%;text-align:center;justify-content:center;display:flex}
   .hero-bottom{gap:1.2rem;padding-bottom:3rem}
-  .hero-body{padding:2rem 0 1rem}
+  .hero-body{padding:2rem 0 1rem;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1}
+  .hero-title-block{width:100%}
 
   /* À propos */
   .about-intro{grid-template-columns:1fr}
@@ -575,9 +577,11 @@ footer{padding:1.5rem 3rem;display:flex;justify-content:space-between;align-item
   .filter{display:flex;flex-wrap:wrap;gap:.5rem}
   .ft{font-size:.5rem;padding:.45rem .9rem}
 
-  /* Gallery */
+  /* Gallery — 1 col, brand cards constrained */
   .gallery{columns:1}
   .gal-item img{height:auto}
+  .brand-card{aspect-ratio:unset;max-height:72vw}
+  .gal-video .gv-frame{aspect-ratio:16/9}
 
   /* XP */
   .xr{grid-template-columns:1fr;gap:1rem;padding:2rem 0}
@@ -626,8 +630,6 @@ footer{padding:1.5rem 3rem;display:flex;justify-content:space-between;align-item
   .hn1 span,.hn2 span{font-size:12vw}
   .ai-stats{grid-template-columns:repeat(3,1fr);gap:.5rem}
   .ai-stat-n{font-size:1.5rem}
-}
-
 }
 
 /* CE QUE JE FAIS — liste éditoriale */
@@ -806,6 +808,55 @@ body.loaded .hero-scroll{opacity:1;transform:none;transition-delay:1.3s}
 /* ═══ smooth scroll feel ═══ */
 @media(prefers-reduced-motion:no-preference){
   html{scroll-behavior:smooth}
+}
+
+/* ═══ EXTRA ANIMATIONS ═══ */
+/* Filter button ripple */
+.ft{position:relative;overflow:hidden}
+.ft::after{content:'';position:absolute;inset:50%;background:rgba(255,255,255,.25);border-radius:50%;transform:translate(-50%,-50%) scale(0);transition:transform .5s,opacity .5s,inset .5s}
+.ft:active::after{inset:0;border-radius:0;transform:none;opacity:0;transition:none}
+
+/* Section number animated underline */
+.sec-num::after{content:'';display:block;height:2px;background:var(--red);transform:scaleX(0);transform-origin:left;transition:transform .4s cubic-bezier(.16,1,.3,1)}
+.rv.in .sec-num::after{transform:scaleX(1);transition-delay:.4s}
+
+/* Gallery item — staggered reveal delay by index */
+.gal-item:nth-child(1){transition-delay:.05s}
+.gal-item:nth-child(2){transition-delay:.1s}
+.gal-item:nth-child(3){transition-delay:.15s}
+.gal-item:nth-child(4){transition-delay:.2s}
+.gal-item:nth-child(5){transition-delay:.25s}
+.gal-item:nth-child(6){transition-delay:.3s}
+.gal-item:nth-child(7){transition-delay:.35s}
+.gal-item:nth-child(8){transition-delay:.4s}
+
+/* Marquee pause on reduced motion */
+@media(prefers-reduced-motion:reduce){.mq-track{animation:none}.adobe-item img{animation:none}}
+
+/* Avail pill shimmer */
+@keyframes pillShimmer{0%,100%{background:rgba(200,40,26,.07)}50%{background:rgba(200,40,26,.14)}}
+.avail-pill{animation:pillShimmer 3s ease-in-out infinite 2s}
+
+/* Footer links */
+footer a{position:relative;text-decoration:none}
+footer a::after{content:'';position:absolute;bottom:-2px;left:0;width:0;height:1px;background:var(--red2);transition:width .3s}
+footer a:hover::after{width:100%}
+
+/* Contact CTA hover lift */
+.c-cta{transition:transform .3s cubic-bezier(.34,1.56,.64,1),box-shadow .3s}
+.c-cta:hover{transform:translateY(-3px);box-shadow:4px 8px 20px rgba(0,0,0,.5)}
+
+/* Brand card subtle gradient shimmer on hover */
+.brand-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,transparent 40%,rgba(255,255,255,.04) 50%,transparent 60%);background-size:200% 200%;transition:background-position .6s}
+.has-card:hover .brand-card::before{background-position:100% 100%}
+
+/* Gal overlay text slide-up */
+.gal-title{transform:translateY(4px);transition:transform .4s cubic-bezier(.16,1,.3,1)}
+.gal-item:hover .gal-title{transform:translateY(0)}
+
+/* Mobile touch — remove hover cursor */
+@media(hover:none){
+  .hero-btn::after{display:none}
 }
 
 </style>
