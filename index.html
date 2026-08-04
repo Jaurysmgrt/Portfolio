@@ -1808,6 +1808,23 @@ function animateStats(){
 // trigger when hero stats visible (after load)
 setTimeout(animateStats,2600);
 
+// Photo de profil : filet de sécurité indépendant de l'événement error.
+// naturalWidth===0 sur une image "complete" = chargement échoué.
+(function(){
+  var ph=document.querySelector('.ai-photo');
+  var im=ph&&ph.querySelector('img');
+  if(!ph||!im)return;
+  function check(){
+    if(!im.complete)return;
+    if(im.naturalWidth===0){im.style.display='none';ph.classList.add('ai-photo-fb');}
+  }
+  im.addEventListener('load',check);
+  im.addEventListener('error',check);
+  window.addEventListener('load',check);
+  check();
+  setTimeout(check,2500);
+  setTimeout(check,6000);
+})();
 </script>
 </body>
 </html>
