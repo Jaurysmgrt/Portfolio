@@ -355,6 +355,9 @@ body.loaded .hn2 span{transition-delay:.38s;transform:translateY(0)}
 .vm-spin{width:22px;height:22px;border:2px solid rgba(240,234,216,.2);border-top-color:var(--red2);border-radius:50%;animation:vmSpin .8s linear infinite}
 @keyframes vmSpin{to{transform:rotate(360deg)}}
 .vm-fallback{display:none;padding:4rem 2rem;text-align:center;color:rgba(240,234,216,.6);font-size:.85rem;letter-spacing:.05em;border:1.5px dashed rgba(240,234,216,.18);border-radius:3px}
+.vm-fb-btn{display:inline-block;background:var(--red);color:#fff;font-family:'Anton',sans-serif;font-size:.8rem;letter-spacing:.1em;text-decoration:none;padding:.7rem 1.8rem;box-shadow:3px 3px 0 rgba(0,0,0,.4);transition:transform .2s,box-shadow .2s}
+.vm-fb-btn:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 rgba(0,0,0,.4)}
+#vmyt{width:min(90vw,1100px);aspect-ratio:16/9;height:auto;max-height:82vh}
 .vm-x{position:absolute;top:-2.5rem;right:0;font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--cream);cursor:pointer;font-family:'Anton',sans-serif;background:none;border:none;transition:color .2s;z-index:5}
 .vm-x:hover{color:var(--red2)}
 
@@ -612,7 +615,8 @@ footer{padding:1.5rem 3rem;display:flex;justify-content:space-between;align-item
 
   /* Video modal */
   .vmodal .vm-inner{width:95vw}
-  .vmyt,.vmv{width:95vw!important;height:53.4vw!important}
+  #vmyt{width:95vw;aspect-ratio:16/9;height:auto}
+  .vm-inner video{max-width:95vw}
 
   /* Lightbox */
   .lb-inner{grid-template-columns:1fr}
@@ -969,8 +973,8 @@ footer a:hover::after{width:100%}
     <button class="vm-x" id="vmx">Fermer ✕</button>
     <div class="vm-load" id="vmLoad"><span class="vm-spin"></span>Chargement…</div>
     <video id="vmvid" controls playsinline preload="metadata"></video>
-    <iframe id="vmyt" style="display:none;max-width:90vw;max-height:82vh;width:90vw;height:50.625vw;border:none;border-radius:2px;box-shadow:0 20px 60px rgba(0,0,0,.6)" allowfullscreen allow="autoplay; encrypted-media"></iframe>
-    <div class="vm-fallback" id="vmFallback">La vidéo sera chargée ici.</div>
+    <iframe id="vmyt" style="display:none;border:none;border-radius:2px;box-shadow:0 20px 60px rgba(0,0,0,.6)" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <div class="vm-fallback" id="vmFallback"></div>
   </div>
 </div>
 
@@ -1554,25 +1558,31 @@ var vm=document.getElementById('vmodal'),vmv=document.getElementById('vmvid');
 var vmyt=document.getElementById('vmyt');
 var vmLoad=document.getElementById('vmLoad'),vmFallback=document.getElementById('vmFallback');
 function ytId(url){var m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|watch\?v=))([\w-]{11})/);return m?m[1]:null;}
+var vmCurrentYt=null;
 function openVideo(vsrc,title){
   var yid=ytId(vsrc);
-  if(yid){
-    var a=document.createElement('a');
-    a.href='https://www.youtube.com/watch?v='+yid;
-    a.target='_blank';
-    a.rel='noopener noreferrer';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    return;
-  }
-  vmLoad.style.display='flex';
-  vmFallback.style.display='none';
   vm.classList.add('on');
   document.body.style.overflow='hidden';
+  vmFallback.style.display='none';
+  vmv.classList.remove('ready');
+
+  if(yid){
+    // Lecture YouTube intégrée — on reste sur le site
+    vmCurrentYt=yid;
+    vmv.pause();vmv.removeAttribute('src');vmv.load();
+    vmv.style.display='none';
+    vmLoad.style.display='flex';
+    vmyt.style.display='block';
+    vmyt.src='https://www.youtube-nocookie.com/embed/'+yid+'?autoplay=1&rel=0&modestbranding=1&playsinline=1';
+    // le loader disparaît dès que l'iframe a chargé
+    setTimeout(function(){vmLoad.style.display='none'},1200);
+    return;
+  }
+  // Fichier vidéo local
+  vmCurrentYt=null;
+  vmLoad.style.display='flex';
   vmyt.style.display='none';
   vmyt.src='';
-  vmv.classList.remove('ready');
   vmv.style.display='block';
   vmv.src=vsrc;
   vmv.load();
@@ -1583,7 +1593,18 @@ function closeVideo(){
   vmv.classList.remove('ready');
   vmyt.src='';
   vmyt.style.display='none';
+  vmFallback.style.display='none';
+  vmCurrentYt=null;
   document.body.style.overflow='';
+}
+// Plan B : si YouTube refuse l'intégration, on propose le lien
+function ytFallback(){
+  if(!vmCurrentYt)return;
+  vmLoad.style.display='none';
+  vmyt.style.display='none';
+  vmFallback.innerHTML='<p style="margin-bottom:1.2rem">Cette vidéo ne peut pas être lue ici.</p>'+
+    '<a href="https://www.youtube.com/watch?v='+vmCurrentYt+'" target="_blank" rel="noopener" class="vm-fb-btn">Ouvrir sur YouTube →</a>';
+  vmFallback.style.display='block';
 }
 vmv.addEventListener('loadeddata',function(){vmLoad.style.display='none';vmv.classList.add('ready');vmv.play().catch(function(){});});
 vmv.addEventListener('canplay',function(){vmLoad.style.display='none';vmv.classList.add('ready');});
