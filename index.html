@@ -831,6 +831,10 @@ a.cmod-val:hover{color:var(--red2)}
 .cmod-copy{margin-left:auto;background:none;border:1px solid var(--border);color:var(--muted);font-size:.55rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.35rem .7rem;cursor:pointer;transition:all .2s;flex-shrink:0}
 .cmod-copy:hover{border-color:var(--red2);color:var(--red2)}
 .cmod-copy.copied{border-color:var(--red);color:var(--red)}
+.cmod-link{text-decoration:none;transition:background .2s}
+.cmod-link:hover,.cmod-link:active{background:rgba(200,40,26,.06)}
+.cmod-link .cmod-val{color:var(--cream);transition:color .2s}
+.cmod-link:hover .cmod-val{color:var(--red2)}
 @media(max-width:480px){
   .cmod-box{margin:0}.cmod-body{padding:1.5rem 1.2rem}
   .cmod-top{padding:1.2rem 1.4rem}
@@ -911,29 +915,29 @@ footer a:hover::after{width:100%}
       <button class="cmod-x" onclick="closeContact()">✕</button>
     </div>
     <div class="cmod-body">
-      <div class="cmod-row">
+      <a class="cmod-row cmod-link" href="mailto:maigretjaurys8@gmail.com">
         <div class="cmod-icon">✉</div>
         <div class="cmod-info">
-          <span class="cmod-label">Email</span>
-          <a href="mailto:maigretjaurys8@gmail.com" class="cmod-val">maigretjaurys8@gmail.com</a>
+          <span class="cmod-label">Email — appuyer pour ouvrir</span>
+          <span class="cmod-val">maigretjaurys8@gmail.com</span>
         </div>
-        <button class="cmod-copy" onclick="copyText('maigretjaurys8@gmail.com',this)">Copier</button>
-      </div>
-      <div class="cmod-row">
+        <button class="cmod-copy" onclick="event.preventDefault();copyText('maigretjaurys8@gmail.com',this)">Copier</button>
+      </a>
+      <a class="cmod-row cmod-link" href="tel:+33609977401">
         <div class="cmod-icon">📞</div>
         <div class="cmod-info">
-          <span class="cmod-label">Téléphone</span>
-          <a href="tel:+33609977401" class="cmod-val">06 09 97 74 01</a>
+          <span class="cmod-label">Téléphone — appuyer pour appeler</span>
+          <span class="cmod-val">06 09 97 74 01</span>
         </div>
-        <button class="cmod-copy" onclick="copyText('0609977401',this)">Copier</button>
-      </div>
-      <div class="cmod-row">
+        <button class="cmod-copy" onclick="event.preventDefault();copyText('0609977401',this)">Copier</button>
+      </a>
+      <a class="cmod-row cmod-link" href="https://www.linkedin.com/in/jaurys-maigret" target="_blank" rel="noopener">
         <div class="cmod-icon">in</div>
         <div class="cmod-info">
-          <span class="cmod-label">LinkedIn</span>
-          <a href="https://www.linkedin.com/in/jaurys-maigret" target="_blank" rel="noopener" class="cmod-val">Jaurys Maigret →</a>
+          <span class="cmod-label">LinkedIn — appuyer pour ouvrir</span>
+          <span class="cmod-val">Jaurys Maigret →</span>
         </div>
-      </div>
+      </a>
       <div class="cmod-row">
         <div class="cmod-icon">📍</div>
         <div class="cmod-info">
