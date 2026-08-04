@@ -259,6 +259,8 @@ body.loaded .hn2 span{transition-delay:.38s;transform:translateY(0)}
 .pp-brief-txt em{font-style:italic;color:rgba(28,20,8,.45)}
 /* visuels — grille compacte de vignettes (clic = agrandir) */
 .pp-vis-label{font-size:.6rem;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:rgba(240,234,216,.4);margin-bottom:1.3rem;display:flex;align-items:center;gap:1rem}
+/* respiration entre une grille de visuels et le titre de section suivant */
+.pp-visuals+.pp-vis-label{margin-top:3.5rem}
 .pp-vis-label::after{content:'';flex:1;height:1px;background:var(--border)}
 .pp-visuals{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}
 .pp-visual{position:relative;background:#0a0a08;overflow:hidden;opacity:0;transform:translateY(20px);transition:opacity .6s cubic-bezier(.16,1,.3,1),transform .6s cubic-bezier(.16,1,.3,1)}
@@ -279,7 +281,8 @@ body.loaded .hn2 span{transition-delay:.38s;transform:translateY(0)}
 .pp-slot-vid{aspect-ratio:16/9}
 .pp-slot-in{display:flex;flex-direction:column;align-items:center;gap:.5rem;color:rgba(240,234,216,.3);text-align:center;padding:.5rem}
 .pp-slot-in svg{width:26px;height:26px}
-.pp-slot-in p{font-size:.5rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase}
+.pp-slot-in p{font-size:.5rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;line-height:1.9}
+.pp-slot-in small{font-size:.85em;color:rgba(240,234,216,.55);letter-spacing:.1em}
 /* vraies vidéos de campagne (cliquables) */
 .pp-vid{cursor:pointer;background:linear-gradient(135deg,#1a1a18,#0e0e0c);display:flex;align-items:center;justify-content:center}
 .pp-vid::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(45deg,transparent,transparent 14px,rgba(240,234,216,.015) 14px,rgba(240,234,216,.015) 28px)}
@@ -1517,10 +1520,31 @@ function openProject(group){
   });
   // clic sur une vidéo de campagne -> lecteur vidéo
   ppWrap.querySelectorAll('.pp-vid[data-vsrc]').forEach(function(el){
-    el.addEventListener('click',function(){openVideo(el.dataset.vsrc, el.querySelector('.pp-visual-cap').textContent);});
+    var src=el.dataset.vsrc;
+    el.addEventListener('click',function(){
+      if(el.classList.contains('pp-slot'))return; // vignette « à venir » : non cliquable
+      openVideo(src, el.querySelector('.pp-visual-cap').textContent);
+    });
+    // Fichier local : on vérifie qu'il existe vraiment.
+    // S'il manque, la vignette devient un emplacement « bientôt disponible »
+    // et redeviendra cliquable d'elle-même le jour où le fichier est mis en ligne.
+    if(!ytId(src)){
+      fetch(src,{method:'HEAD'}).then(function(r){
+        if(!r.ok)markVidMissing(el);
+      }).catch(function(){markVidMissing(el);});
+    }
   });
   history.replaceState(null,'','#p-'+group);
 }
+// Vidéo absente -> emplacement « bientôt disponible », jamais de cadre vide
+function markVidMissing(el){
+  var label=el.querySelector('.pp-visual-cap');
+  var txt=label?label.textContent:'Vidéo';
+  el.classList.add('pp-slot','pp-slot-vid');
+  el.style.aspectRatio='16/9'; // annule le format vertical hérité du style en ligne
+  el.innerHTML='<div class="pp-slot-in">'+camSvg+'<p>'+txt+'<br><small>Bientôt disponible</small></p></div>';
+}
+
 // ─── Lightbox interne à la page projet ───
 function openPpLb(idx){
   ppLbIdx=idx;
