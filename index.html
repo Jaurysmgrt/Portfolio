@@ -359,6 +359,7 @@ body.loaded .hn2 span{transition-delay:.38s;transform:translateY(0)}
 .vm-fb-btn:hover{transform:translate(-2px,-2px);box-shadow:5px 5px 0 rgba(0,0,0,.4)}
 .vm-fb-thumb{width:min(70vw,340px);aspect-ratio:16/9;object-fit:cover;display:block;margin:0 auto 1.5rem;border-radius:2px;box-shadow:0 12px 40px rgba(0,0,0,.5)}
 .vm-fb-txt{margin-bottom:1.4rem;color:rgba(240,234,216,.55)}
+.vm-fb-sub{margin-top:.6rem;font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(240,234,216,.28)}
 #vmytWrap{width:min(90vw,1100px);max-height:82vh}
 #vmyt{width:100%;aspect-ratio:16/9;height:auto;border-radius:2px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6)}
 #vmyt iframe{width:100%;height:100%;border:none;display:block}
@@ -1564,7 +1565,7 @@ var vmyt=document.getElementById('vmyt');
 var vmLoad=document.getElementById('vmLoad'),vmFallback=document.getElementById('vmFallback');
 function ytId(url){var m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|watch\?v=))([\w-]{11})/);return m?m[1]:null;}
 var vmytWrap=document.getElementById('vmytWrap');
-var vmCurrentYt=null,ytPlayer=null,ytApiReady=false,ytApiLoading=false,ytPending=null,ytGuard=null;
+var vmCurrentYt=null,ytPlayer=null,ytApiReady=false,ytApiLoading=false,ytPending=null,ytGuard=null,vmLocalGuard=null;
 
 // Charge l'API YouTube une seule fois
 function loadYtApi(){
@@ -1634,10 +1635,13 @@ function openVideo(vsrc,title){
   vmv.style.display='block';
   vmv.src=vsrc;
   vmv.load();
+  // Filet de sécurité : si rien ne charge en 6s, on affiche le message
+  clearTimeout(vmLocalGuard);
+  vmLocalGuard=setTimeout(localFallback,6000);
 }
 
 function closeVideo(){
-  clearTimeout(ytGuard);
+  clearTimeout(ytGuard);clearTimeout(vmLocalGuard);
   vm.classList.remove('on');
   vmv.pause();vmv.removeAttribute('src');vmv.load();
   vmv.classList.remove('ready');
@@ -1661,13 +1665,21 @@ function ytFallback(){
     '<a href="https://www.youtube.com/watch?v='+yid+'" target="_blank" rel="noopener" class="vm-fb-btn">Regarder la vidéo →</a>';
   vmFallback.style.display='block';
 }
-vmv.addEventListener('loadeddata',function(){vmLoad.style.display='none';vmv.classList.add('ready');vmv.play().catch(function(){});});
-vmv.addEventListener('canplay',function(){vmLoad.style.display='none';vmv.classList.add('ready');});
+vmv.addEventListener('loadeddata',function(){clearTimeout(vmLocalGuard);vmLoad.style.display='none';vmv.classList.add('ready');vmv.play().catch(function(){});});
+vmv.addEventListener('canplay',function(){clearTimeout(vmLocalGuard);vmLoad.style.display='none';vmv.classList.add('ready');});
 vmv.addEventListener('error',function(){
+  localFallback();
+});
+// Fichier vidéo introuvable ou illisible -> message propre, jamais de boîte vide
+function localFallback(){
+  clearTimeout(vmLocalGuard);
   vmLoad.style.display='none';
   vmv.style.display='none';
+  vmFallback.innerHTML=
+    '<p class="vm-fb-txt" style="margin-bottom:0">Cette vidéo n\'est pas encore disponible.</p>'+
+    '<p class="vm-fb-sub">Elle sera mise en ligne prochainement.</p>';
   vmFallback.style.display='block';
-});
+}
 
 allItems.forEach(function(item){
   item.addEventListener('click',function(){
