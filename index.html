@@ -569,7 +569,11 @@ footer{padding:1.5rem 3rem;display:flex;justify-content:space-between;align-item
   .hero{padding:0 1.2rem;min-height:100svh}
   .hn1 span,.hn2 span{font-size:clamp(3.2rem,14vw,5rem)}
   .hero-sub{font-size:.65rem}
-  .hero-col-r{display:none}
+  .hero-col-r{display:flex;flex-direction:row;justify-content:center;gap:2.2rem;
+    align-items:flex-start;margin-top:.4rem}
+  .hstat{text-align:center}
+  .hstat-n{font-size:2rem}
+  .hstat-l{font-size:.5rem;letter-spacing:.14em}
   .hero-btn{padding:.9rem 1.8rem;font-size:.7rem;width:100%;text-align:center;justify-content:center;display:flex}
   .hero-bottom{gap:1.2rem;padding-bottom:3rem}
   .hero-body{padding:2rem 0 1rem;display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1}
@@ -1805,8 +1809,17 @@ function animateStats(){
     },40);
   });
 }
-// trigger when hero stats visible (after load)
-setTimeout(animateStats,2600);
+// déclenchement : seulement une fois le loader disparu,
+// sinon le décompte se joue derrière et personne ne le voit.
+(function(){
+  function start(){setTimeout(animateStats,350);}
+  if(document.body.classList.contains('loaded'))return start();
+  var mo=new MutationObserver(function(){
+    if(document.body.classList.contains('loaded')){mo.disconnect();start();}
+  });
+  mo.observe(document.body,{attributes:true,attributeFilter:['class']});
+  setTimeout(animateStats,7000); // filet de sécurité
+})();
 
 // Photo de profil : filet de sécurité indépendant de l'événement error.
 // naturalWidth===0 sur une image "complete" = chargement échoué.
