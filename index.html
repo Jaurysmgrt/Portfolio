@@ -175,8 +175,8 @@ body.loaded .hn2 span{transition-delay:.38s;transform:translateY(0)}
 .ft.on,.ft:hover{background:var(--red);border-color:var(--red);color:#fff}
 
 /* GALLERY — masonry, items masqués = display:none via JS */
-.gallery{columns:3 280px;gap:0;column-fill:balance}
-.gal-item{break-inside:avoid;margin-bottom:0;position:relative;overflow:hidden;cursor:pointer;display:block;background:#0a0a08}
+.gallery{columns:3 280px;gap:10px;column-fill:balance}
+.gal-item{break-inside:avoid;margin-bottom:10px;position:relative;overflow:hidden;cursor:pointer;display:block;background:#0a0a08}
 .gal-item img{width:100%;height:auto;display:block;transform:none;transition:transform .6s cubic-bezier(.25,.46,.45,.94),filter .5s}
 .gal-item:hover img{transform:scale(1.02);filter:brightness(.45)}
 .gal-ov{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;opacity:0;transition:opacity .35s}
@@ -915,6 +915,18 @@ footer a:hover::after{width:100%}
 }
 
 .c-sub-note{display:block;margin-top:.6rem;font-size:.78rem;color:rgba(28,20,8,.38);letter-spacing:.02em}
+
+/* Une carte de marque annonce toujours qu'elle mene a une campagne.
+   Sans ca, sur mobile (pas de survol) elle passe pour un bandeau
+   qui titre la photo juste en dessous. */
+.has-card .brand-card::after{
+  content:'Voir la campagne →';position:absolute;left:0;right:0;bottom:0;z-index:2;
+  padding:.7rem .7rem .55rem;font-size:.5rem;font-weight:700;letter-spacing:.16em;
+  text-transform:uppercase;color:rgba(255,255,255,.95);text-align:center;
+  background:linear-gradient(to top,rgba(10,10,8,.62),rgba(10,10,8,.28) 55%,transparent);
+  text-shadow:0 1px 3px rgba(0,0,0,.5)}
+/* le libelle du survol ferait doublon */
+.has-card .gal-paper::after{display:none}
 </style>
 </head>
 <body>
