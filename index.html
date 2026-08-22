@@ -178,7 +178,7 @@ body.loaded .hn2 span{transition-delay:.38s;transform:translateY(0)}
 .gallery{columns:3 280px;gap:10px;column-fill:balance}
 .gal-item{break-inside:avoid;margin-bottom:10px;position:relative;overflow:hidden;cursor:pointer;display:block;background:#0a0a08}
 .gal-item img{width:100%;height:auto;display:block;transform:none;transition:transform .6s cubic-bezier(.25,.46,.45,.94),filter .5s}
-.gal-item:hover img{transform:scale(1.02);filter:brightness(.45)}
+.gal-item:hover img{transform:scale(1.04);filter:brightness(.58) saturate(1.05)}
 .gal-ov{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;opacity:0;transition:opacity .35s}
 .gal-item:hover .gal-ov{opacity:1}
 .gal-paper{background:var(--paper);padding:.9rem 1.1rem .8rem;position:relative;transform:translateY(8px);transition:transform .4s cubic-bezier(.16,1,.3,1)}
@@ -697,8 +697,10 @@ footer{padding:1.5rem 3rem;display:flex;justify-content:space-between;align-item
 
 /* EXTRA ANIMATIONS */
 /* stagger gallery items on scroll */
-.gal-item{opacity:0;transform:translateY(28px) scale(.97);transition:opacity .65s cubic-bezier(.16,1,.3,1),transform .65s cubic-bezier(.16,1,.3,1)}
-.gal-item.shown{opacity:1;transform:none}
+.gal-item{opacity:0;transform:translateY(26px);clip-path:inset(14% 0 0 0);
+  transition:opacity .75s cubic-bezier(.22,1,.36,1),transform .95s cubic-bezier(.22,1,.36,1),clip-path .95s cubic-bezier(.22,1,.36,1);
+  transition-delay:var(--gd,0ms)}
+.gal-item.shown{opacity:1;transform:none;clip-path:inset(0 0 0 0)}
 /* number counter glow on hero stats */
 .hstat-n{transition:color .3s,text-shadow .3s}
 .hero-col-r:hover .hstat-n{color:var(--red2)}
@@ -781,7 +783,7 @@ body.loaded .hero-scroll{opacity:1;transform:none;transition-delay:1.3s}
 
 /* ═══ GALLERY — smoother hover with overlay slide ═══ */
 .gal-item{transform-origin:center}
-.gal-item img{transition:transform .8s cubic-bezier(.25,.46,.45,.94),filter .5s}
+.gal-item img{transition:transform 1.1s cubic-bezier(.22,1,.36,1),filter .6s ease}
 .gal-item:hover{z-index:5}
 .gal-paper{transition:transform .45s cubic-bezier(.16,1,.3,1),opacity .3s}
 /* number badge animate */
@@ -927,6 +929,16 @@ footer a:hover::after{width:100%}
   text-shadow:0 1px 3px rgba(0,0,0,.5)}
 /* le libelle du survol ferait doublon */
 .has-card .gal-paper::after{display:none}
+
+/* Le voile du survol monte depuis le bas plutôt que d'assombrir d'un bloc */
+.gal-ov{background:linear-gradient(to top,rgba(10,10,8,.72),rgba(10,10,8,.15) 45%,transparent);
+  transition:opacity .45s cubic-bezier(.22,1,.36,1)}
+.gal-paper{transform:translateY(14px)}
+.gal-item:hover .gal-paper{transform:translateY(0)}
+
+@media(prefers-reduced-motion:reduce){
+  .gal-item{opacity:1;transform:none;clip-path:none;transition:none}
+}
 </style>
 </head>
 <body>
@@ -1134,9 +1146,9 @@ footer a:hover::after{width:100%}
   </div>
   <div class="filter rv" data-d="2">
     <button class="ft on" data-f="all">Tout voir</button>
-    <button class="ft" data-f="photo">Photo</button>
+    <button class="ft" data-f="photo">Mes photos</button>
     <button class="ft" data-f="affiche">Affiches</button>
-    <button class="ft" data-f="auto">Automobile</button>
+    
     <button class="ft" data-f="video">Vidéos</button>
   </div>
   <div class="gallery" id="gallery">
@@ -1337,20 +1349,37 @@ document.querySelectorAll('.rv,.rvl,.rvr,.rvm').forEach(function(e){io.observe(e
 var tlObs=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)e.target.classList.add('in')})},{threshold:.3});
 document.querySelectorAll('.tl-item').forEach(function(e){tlObs.observe(e)});
 
+// Cascade galerie : les vignettes entrant dans le champ en meme temps
+// se declenchent l'une apres l'autre au lieu de surgir ensemble.
+var __wave=0,__waveT=null;
+function galDelay(){
+  __wave++; clearTimeout(__waveT);
+  __waveT=setTimeout(function(){__wave=0},240);
+  return Math.min(__wave-1,7)*75;
+}
+
 // FILTER — disparition complète + animation
 var allItems=[...document.querySelectorAll('#gallery .gal-item')];
 
-function applyFilter(f){
+function applyFilter(f,animer){
+  var n=0;
   allItems.forEach(function(item,i){
     var cat=item.dataset.c||'';
     var show=f==='all'||cat.includes(f);
     if(show){
       item.style.display='block';
       item.classList.remove('shown');
-      setTimeout(function(){item.classList.add('shown')}, i*40);
+      // au premier chargement on laisse l'observateur reveler au scroll :
+      // sinon la cascade se joue derriere le loader, invisible.
+      if(!animer){galObs.observe(item);return;}
+      item.style.setProperty('--gd',Math.min(n++,9)*60+'ms');
+      requestAnimationFrame(function(){requestAnimationFrame(function(){
+        item.classList.add('shown');
+      })});
     } else {
       item.style.display='none';
       item.classList.remove('shown');
+      galObs.unobserve(item);
     }
   });
 }
@@ -1359,23 +1388,23 @@ document.querySelectorAll('.ft').forEach(function(btn){
   btn.addEventListener('click',function(){
     document.querySelectorAll('.ft').forEach(function(b){b.classList.remove('on')});
     btn.classList.add('on');
-    applyFilter(btn.dataset.f);
+    applyFilter(btn.dataset.f,true);
   });
 });
-applyFilter('all');
 
 
 // initial gallery reveal on scroll
 var galObs=new IntersectionObserver(function(es){
   es.forEach(function(e,i){
     if(e.isIntersecting){
-      var idx=allItems.indexOf(e.target);
-      setTimeout(function(){e.target.classList.add('shown')}, (idx%4)*60);
+      e.target.style.setProperty('--gd',galDelay()+'ms');
+      e.target.classList.add('shown');
       galObs.unobserve(e.target);
     }
   });
 },{threshold:.1});
 allItems.forEach(function(item){galObs.observe(item)});
+applyFilter('all');   // après galObs : l'observateur pilote la première apparition
 
 // LIGHTBOX
 var lb=document.getElementById('lb'),lbImg=document.getElementById('lbImg');
