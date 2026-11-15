@@ -206,6 +206,92 @@ export async function demarrer() {
     return new THREE.Mesh(new THREE.BoxGeometry(larg, haut, 0.09), [a, a, a, a, face, a]);
   }
 
+  // Au fond du hall, le texte n'est pas sur une pancarte : il est peint sur
+  // la paroi. Pas de cadre, pas de fond, pas de filet rouge — on arrive au
+  // bout d'une veine d'essai, pas devant un panneau de plus.
+  function lettrage(lignes, larg, haut) {
+    const S = 900;
+    const c = document.createElement('canvas');
+    c.height = S; c.width = Math.round(S * (larg / haut));
+    const g = c.getContext('2d');
+    g.textBaseline = 'alphabetic';
+    let y = 92;
+    for (const l of lignes) {
+      if (l.t === 'lbl') {
+        g.font = '500 30px "IBM Plex Mono", monospace'; g.fillStyle = '#ff4433';
+        g.letterSpacing = '10px'; g.fillText(String(l.v).toUpperCase(), 0, y); y += 86;
+      } else if (l.t === 'titre') {
+        g.font = '150px Anton, sans-serif'; g.fillStyle = '#ffffff';
+        g.letterSpacing = '2px'; g.fillText(l.v, 0, y + 110); y += 158;
+      } else {
+        g.font = '500 34px "IBM Plex Mono", monospace'; g.fillStyle = '#a9b7c6';
+        g.letterSpacing = '7px'; g.fillText(String(l.v).toUpperCase(), 0, y + 34); y += 62;
+      }
+    }
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+    return new THREE.Mesh(new THREE.PlaneGeometry(larg, haut),
+      new THREE.MeshStandardMaterial({
+        map: tex, transparent: true, depthWrite: false, roughness: 0.9, metalness: 0,
+        emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.5
+      }));
+  }
+
+  // Une plaque sur laquelle on peut AGIR. Jusqu'ici la fin du hall affichait
+  // une adresse e-mail gravee dans une texture : illisible de loin, et
+  // impossible a copier. Celles-ci repondent au clic et se redessinent.
+  const actions = [];
+  function plaqueAction(lbl, val, indice, larg, haut, faire) {
+    const S = 512;
+    const c = document.createElement('canvas');
+    c.height = S; c.width = Math.round(S * (larg / haut));
+    const g = c.getContext('2d');
+    const tex = new THREE.CanvasTexture(c);
+    tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+
+    function peindre(valeur, bas, chaud) {
+      g.fillStyle = chaud ? '#1b242f' : '#0d1219';
+      g.fillRect(0, 0, c.width, c.height);
+      g.strokeStyle = chaud ? 'rgba(255,68,51,.9)' : 'rgba(190,210,230,.22)';
+      g.lineWidth = 5; g.strokeRect(2.5, 2.5, c.width - 5, c.height - 5);
+      g.fillStyle = '#d42a1b'; g.fillRect(0, 0, c.width, 7);
+      g.textBaseline = 'alphabetic';
+      g.font = '500 30px "IBM Plex Mono", monospace';
+      g.fillStyle = '#ff4433'; g.letterSpacing = '8px';
+      g.fillText(String(lbl).toUpperCase(), 46, 112);
+      // la valeur prend toute la largeur disponible : c'est elle qu'on vient lire
+      let t = 62; g.letterSpacing = '1px';
+      g.font = `600 ${t}px "IBM Plex Mono", monospace`;
+      while (g.measureText(valeur).width > c.width - 92 && t > 20) {
+        t -= 2; g.font = `600 ${t}px "IBM Plex Mono", monospace`;
+      }
+      g.fillStyle = chaud ? '#ffffff' : '#e8f0f8';
+      g.fillText(valeur, 46, 250);
+      g.font = '500 26px "IBM Plex Mono", monospace';
+      g.fillStyle = chaud ? 'rgba(255,68,51,.95)' : 'rgba(169,183,198,.65)';
+      g.letterSpacing = '6px';
+      g.fillText(String(bas).toUpperCase(), 46, 420);
+      tex.needsUpdate = true;
+    }
+    peindre(val, indice, false);
+
+    const a = acier();
+    const face = new THREE.MeshStandardMaterial({
+      map: tex, roughness: 0.82, metalness: 0.06,
+      emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.62
+    });
+    const m = new THREE.Mesh(new THREE.BoxGeometry(larg, haut, 0.09), [a, a, a, a, face, a]);
+    m.userData = {
+      act: faire, lbl: lbl, val: val, indice: indice, k: 0, cible: 0,
+      chaud: function (v) { peindre(m.userData.val, m.userData.indice, v); },
+      dire: function (valeur, bas) {
+        m.userData.val = valeur; m.userData.indice = bas; peindre(valeur, bas, true);
+      }
+    };
+    actions.push(m);
+    return m;
+  }
+
   // ═══════════ zone 01 — l'entrée ═══════════
   const entree = plaque([
     { t: 'lbl',   v: 'Soufflerie · zone 01' },
@@ -344,26 +430,73 @@ export async function demarrer() {
   fond.position.set(0, PLAFOND / 2, Z_FOND - 3);
   monde.add(fond);
 
-  // Le fond du hall n'est pas une plaque posee : c'est une fin de parcours.
-  // Le titre en grand sur la paroi, les coordonnees sur trois plaques
-  // distinctes en dessous, et une lueur rouge qui monte du sol.
-  const titreFin = plaque([
+  // On arrive au bout apres pres de 200 metres. Ce qui attendait ici, c'etait
+  // une adresse e-mail gravee dans une texture : trop petite pour etre lue,
+  // impossible a copier, et aucun moyen de repartir. Maintenant le titre est
+  // peint a meme la paroi, et les trois plaques en dessous FONT quelque chose.
+  // En portrait, trois plaques cote a cote debordent de l'ecran : on les
+  // empile. Le telephone lit une colonne, pas une frise.
+  const ETROIT = innerWidth < innerHeight;
+
+  const titreFin = lettrage([
     { t: 'lbl',   v: 'Zone 04 · fin de veine' },
     { t: 'titre', v: 'Parlons de' },
-    { t: 'titre', v: 'votre projet.' }
-  ], 7.4, 2.5);
-  titreFin.position.set(0, 3.5, Z_FOND - 2.85);
+    { t: 'titre', v: 'votre projet.' },
+    { t: 'sous',  v: 'Alternance · dès maintenant · Paris & IDF' }
+  ], ETROIT ? 5.2 : 6.6, ETROIT ? 2.3 : 2.9);
+  titreFin.position.set(0, ETROIT ? 4.85 : 3.75, Z_FOND - 2.94);
   monde.add(titreFin);
 
-  const coord = [
-    ['E-mail', 'maigretjaurys8@gmail.com'],
-    ['Téléphone', '06 09 97 74 01'],
-    ['Disponible', 'Dès maintenant · Paris & IDF']
-  ];
-  coord.forEach(function (c, i) {
-    const m = plaque([{ t: 'lbl', v: c[0] }, { t: 'sous', v: c[1] }], 2.9, 1.0);
-    m.position.set((i - 1) * 3.05, 1.5, Z_FOND - 2.8);
-    monde.add(m);
+  const PL_L = ETROIT ? 5.0 : 3.5;          // largeur d'une plaque
+  const PL_H = ETROIT ? 1.05 : 1.3;
+  // ou se pose chacune des trois : en colonne, ou en ligne
+  const PLACES = ETROIT
+    ? [[0, 3.25], [0, 2.02], [0, 0.79]]
+    : [[-3.65, 1.62], [0, 1.62], [3.65, 1.62]];
+
+  const MAIL = 'maigretjaurys8@gmail.com';
+  const TEL  = '06 09 97 74 01';
+
+  function flash(m, texte, indice) {
+    const v0 = m.userData.val, i0 = m.userData.indice;
+    m.userData.dire(texte, indice);
+    setTimeout(function () { m.userData.dire(v0, i0); m.userData.chaud(vise === m); }, 2200);
+  }
+
+  const pMail = plaqueAction('E-mail', MAIL, 'Clic · copier', PL_L, PL_H, function (m) {
+    bruitage('clac');
+    const fini = function () { flash(m, 'Copié dans le presse-papier', 'Clic · copier'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(MAIL).then(fini, function () {
+        window.location.href = 'mailto:' + MAIL;
+      });
+    } else {
+      window.location.href = 'mailto:' + MAIL;
+    }
+  });
+  pMail.position.set(PLACES[0][0], PLACES[0][1], Z_FOND - 2.86);
+  monde.add(pMail);
+
+  const pTel = plaqueAction('Téléphone', TEL, 'Clic · appeler', PL_L, PL_H, function (m) {
+    bruitage('clac');
+    window.location.href = 'tel:+33609977401';
+  });
+  pTel.position.set(PLACES[1][0], PLACES[1][1], Z_FOND - 2.86);
+  monde.add(pTel);
+
+  // la sortie : on ne laisse personne au fond d'un couloir sans porte
+  const pSortie = plaqueAction('Le site', 'Revenir au portfolio', 'Clic · quitter la soufflerie', PL_L, PL_H, function () {
+    bruitage('balai');
+    window.location.href = 'index.html#portfolio';
+  });
+  pSortie.position.set(PLACES[2][0], PLACES[2][1], Z_FOND - 2.86);
+  monde.add(pSortie);
+
+  // un socle sous chaque plaque : elles sont posees, pas collees au mur
+  PLACES.forEach(function (q) {
+    const s = new THREE.Mesh(new THREE.BoxGeometry(PL_L + 0.2, 0.1, 0.5), acier());
+    s.position.set(q[0], q[1] - PL_H / 2 - 0.05, Z_FOND - 2.72);
+    monde.add(s);
   });
 
   const sFond = new THREE.SpotLight(0xf2f7ff, 55, 26, 0.72, 0.55, 1.4);
@@ -372,14 +505,44 @@ export async function demarrer() {
   monde.add(sFond); monde.add(sFond.target);
 
   // la lueur rouge du fond : on sait qu'on arrive au bout
+  const cl = document.createElement('canvas'); cl.width = 512; cl.height = 32;
+  const gl = cl.getContext('2d');
+  const dg = gl.createLinearGradient(0, 0, 512, 0);
+  dg.addColorStop(0, 'rgba(212,42,27,0)');
+  dg.addColorStop(0.5, 'rgba(255,68,51,1)');
+  dg.addColorStop(1, 'rgba(212,42,27,0)');
+  gl.fillStyle = dg; gl.fillRect(0, 0, 512, 32);
+  const tl = new THREE.CanvasTexture(cl); tl.colorSpace = THREE.SRGBColorSpace;
   const lueur = new THREE.Mesh(
-    new THREE.PlaneGeometry(DEMI_L * 2, 0.12),
-    new THREE.MeshBasicMaterial({ color: ROUGE })
+    new THREE.PlaneGeometry(DEMI_L * 2, 0.16),
+    new THREE.MeshBasicMaterial({ map: tl, transparent: true, depthWrite: false })
   );
   lueur.position.set(0, 0.07, Z_FOND - 2.72);
   monde.add(lueur);
+  // son reflet sur le sol, couche a plat : c'est ca qui fait la braise
+  const reflet = new THREE.Mesh(
+    new THREE.PlaneGeometry(DEMI_L * 2, 3.2),
+    new THREE.MeshBasicMaterial({ map: tl, transparent: true, opacity: 0.17, depthWrite: false })
+  );
+  reflet.rotation.x = -Math.PI / 2;
+  reflet.position.set(0, 0.012, Z_FOND - 1.3);
+  monde.add(reflet);
   braise.position.set(0, 0.9, Z_FOND - 1.4);
   braise.intensity = 16;
+
+  // Tout ce qui repond au pointeur. Les pieces ouvrent une fiche, les
+  // plaques du fond declenchent une action : un seul lancer de rayon.
+  const cliquables = cibles.concat(actions);
+  let dernierAct = 0;
+  function activer(obj) {
+    if (obj && obj.userData && typeof obj.userData.act === 'function') {
+      const t = performance.now();
+      if (t - dernierAct < 350) return true;   // pointerup puis click : une seule fois
+      dernierAct = t;
+      obj.userData.act(obj); return true;
+    }
+    return false;
+  }
 
   // ═══════════ déplacement : le flux ═══════════
   const pos = new THREE.Vector3(0, OEIL, 8.5);
@@ -405,13 +568,14 @@ export async function demarrer() {
   const railC = document.getElementById('railCurseur');
   const railEl = document.getElementById('rail');
   let railH = railEl ? railEl.getBoundingClientRect().height : 200;
+  const elCA = document.getElementById('cartelA');
   const elFiche = document.getElementById('fiche');
   const elGuide = document.getElementById('guide');
 
   // ── souris : regard ──
   let verrou = false;
   cv.addEventListener('click', () => {
-    if (vise) { ouvrir(vise); return; }
+    if (vise) { if (!activer(vise)) ouvrir(vise); return; }
     if (!verrou && cv.requestPointerLock) cv.requestPointerLock();
   });
   document.addEventListener('pointerlockchange', () => { verrou = document.pointerLockElement === cv; });
@@ -482,22 +646,24 @@ export async function demarrer() {
     var r=cv.getBoundingClientRect();
     doigt.set(((e.clientX-r.left)/r.width)*2-1, -(((e.clientY-r.top)/r.height)*2-1));
     rayon.setFromCamera(doigt, cam);
-    var t=rayon.intersectObjects(cibles, false);
-    if(t.length){ ouvrir(t[0].object); return; }
+    var t=rayon.intersectObjects(cliquables, false);
+    if(t.length){ var o=t[0].object; if(!activer(o)) ouvrir(o); return; }
     // Au doigt, une piece lointaine fait quelques dizaines de pixels : exiger
     // de la toucher au pixel pres serait cruel. On prend la plus proche dans
     // un rayon raisonnable autour du point touche.
     var meilleure=null, dMin=1e9;
     var v=new THREE.Vector3();
-    for(var i=0;i<cibles.length;i++){
-      cibles[i].getWorldPosition(v);
+    for(var i=0;i<cliquables.length;i++){
+      cliquables[i].getWorldPosition(v);
       var d=v.clone().project(cam);
       if(d.z>1) continue;
       var sx=(d.x*0.5+0.5)*r.width, sy=(-d.y*0.5+0.5)*r.height;
       var dist=Math.hypot(sx-(e.clientX-r.left), sy-(e.clientY-r.top));
-      if(dist<dMin){ dMin=dist; meilleure=cibles[i]; }
+      if(dist<dMin){ dMin=dist; meilleure=cliquables[i]; }
     }
-    if(meilleure && dMin < Math.min(r.width,r.height)*0.17) ouvrir(meilleure);
+    if(meilleure && dMin < Math.min(r.width,r.height)*0.17){
+      if(!activer(meilleure)) ouvrir(meilleure);
+    }
     else if(ouverte) fermerFiche();
   });
   cv.addEventListener('pointercancel', function(){ depart=null; });
@@ -714,13 +880,24 @@ export async function demarrer() {
 
     // visée
     rayon.setFromCamera(verrou ? centre : souris, cam);
-    const touche = rayon.intersectObjects(cibles, false);
+    const touche = rayon.intersectObjects(cliquables, false);
     const n = (touche.length && touche[0].distance < 26) ? touche[0].object : null;
     if (n !== vise) {
+      const avant = vise;
       vise = n;
-      cibles.forEach(c => c.userData.cible = (c === vise ? 1 : 0));
+      cliquables.forEach(c => c.userData.cible = (c === vise ? 1 : 0));
       document.body.classList.toggle('vise', !!vise);
-      if (vise) { elCT.textContent = vise.userData.p.titre || ''; elCC.textContent = vise.userData.p.cat || ''; bruitage('tic'); }
+      // une plaque du fond se rallume : le cadre passe au rouge, le texte blanchit
+      if (avant && avant.userData.chaud) avant.userData.chaud(false);
+      if (vise && vise.userData.chaud) vise.userData.chaud(true);
+      if (vise) {
+        const u = vise.userData;
+        elCT.textContent = u.p ? (u.p.titre || '') : u.val;
+        elCC.textContent = u.p ? (u.p.cat || '') : u.indice;
+        // la plaque dit deja ce qu'elle fait : pas de "clic pour ouvrir" en plus
+        if (elCA) elCA.style.display = u.p ? '' : 'none';
+        bruitage('tic');
+      }
     }
     for (const c of cibles) {
       const u = c.userData;
