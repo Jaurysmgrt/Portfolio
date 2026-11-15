@@ -248,6 +248,25 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
   .fiche{width:100%}
   .guide{bottom:22%}
 }
+
+/* ─── telephone : plus rien ne se chevauche ─── */
+@media(max-width:760px){
+  /* la manette descend a gauche, le son remonte a droite */
+  .manette{width:104px;height:104px;left:1rem;bottom:1rem;background:rgba(10,13,18,.55)}
+  .son{left:auto!important;right:1rem!important;bottom:1rem!important;z-index:22}
+  /* les releves du haut ne se marchent plus dessus */
+  .coord{top:1rem;left:1rem;font-size:.46rem;line-height:1.9}
+  .zone{top:auto;bottom:7.6rem;left:50%}
+  .zone-t{font-size:.95rem}
+  .zone-n{font-size:.46rem;letter-spacing:.24em}
+  /* le menu laisse la place au rail */
+  .menu{bottom:1rem;right:5.2rem;gap:.3rem}
+  .menu button,.menu a.sortie{font-size:.46rem;padding:.42rem .6rem}
+  .rail{right:.7rem;gap:.95rem}
+  .guide{bottom:11rem}
+  .guide-t{font-size:.52rem;text-align:center;padding:0 2rem;line-height:1.9}
+  .cartel{bottom:11.6rem}
+}
 </style>
 </head>
 <body>

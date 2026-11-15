@@ -9,15 +9,15 @@
 import * as THREE from '../vendor/three.module.min.js';
 
 const NOIR    = 0x050608;
-const SOL     = 0x141b24;
-const PAROI   = 0x18212c;
+const SOL     = 0x1b232e;
+const PAROI   = 0x222c39;
 const ACIER   = 0x39434f;
 const ROUGE   = 0xd42a1b;
 
 const DEMI_L  = 7.4;
 const PLAFOND = 6.2;
 const OEIL    = 1.68;
-const PAS     = 13;
+const PAS     = 9.5;      // on resserre : le hall etait interminable
 
 // le son, s'il est demande : synthetise, jamais charge
 let SON = null;
@@ -59,7 +59,7 @@ export async function demarrer() {
 
   const monde = new THREE.Scene();
   monde.background = new THREE.Color(NOIR);
-  monde.fog = new THREE.FogExp2(0x070910, 0.016);
+  monde.fog = new THREE.FogExp2(0x0b1017, 0.0115);
   const cam = new THREE.PerspectiveCamera(64, 1, 0.1, 400);
 
   const pieces = await fetch('data/pieces.json').then(r => r.json());
@@ -89,28 +89,40 @@ export async function demarrer() {
   monde.add(pf);
 
   // la rampe du plafond, et sa nappe au sol
-  const rampe = new THREE.Mesh(new THREE.PlaneGeometry(0.44, LONG + 80),
-    new THREE.MeshBasicMaterial({ color: 0xe2edfa }));
+  const rampe = new THREE.Mesh(new THREE.PlaneGeometry(0.62, LONG + 80),
+    new THREE.MeshBasicMaterial({ color: 0xf2f7ff }));
   rampe.rotation.x = Math.PI / 2;
   rampe.position.set(0, PLAFOND - 0.02, -LONG / 2 + 20);
   monde.add(rampe);
 
-  const nappe = new THREE.Mesh(new THREE.PlaneGeometry(2.8, LONG + 80),
-    new THREE.MeshBasicMaterial({ color: 0x9fc0e0, transparent: true, opacity: 0.075 }));
+  const nappe = new THREE.Mesh(new THREE.PlaneGeometry(3.6, LONG + 80),
+    new THREE.MeshBasicMaterial({ color: 0xa8c8e8, transparent: true, opacity: 0.11 }));
   nappe.rotation.x = -Math.PI / 2;
   nappe.position.set(0, 0.012, -LONG / 2 + 20);
   monde.add(nappe);
 
   // ═══════════ lumière ═══════════
-  monde.add(new THREE.AmbientLight(0x6c819c, 1.15));
-  monde.add(new THREE.HemisphereLight(0x9db4cf, 0x0a0e14, 0.75));
+  monde.add(new THREE.AmbientLight(0x8197b4, 1.7));
+  monde.add(new THREE.HemisphereLight(0xb9cce2, 0x141c26, 1.15));
   const lampes = [];
   for (let i = 0; i < 3; i++) {
-    const l = new THREE.PointLight(0xdae8f8, 55, 48, 2);
+    const l = new THREE.PointLight(0xe4eefb, 75, 54, 2);
     monde.add(l); lampes.push(l);
   }
   const braise = new THREE.PointLight(ROUGE, 9, 24, 2);
   monde.add(braise);
+
+  // ═══════════ les luminaires du plafond ═══════════
+  // Une rampe seule, c'est une ligne. Des caissons espaces, c'est un hall.
+  const matCaisson = new THREE.MeshBasicMaterial({ color: 0xcfe0f2 });
+  const geoCaisson = new THREE.BoxGeometry(1.7, 0.06, 0.34);
+  for (let z = 8; z > -LONG; z -= 9.5) {
+    for (const c of [-1, 1]) {
+      const b = new THREE.Mesh(geoCaisson, matCaisson);
+      b.position.set(c * 4.7, PLAFOND - 0.06, z);
+      monde.add(b);
+    }
+  }
 
   // ═══════════ marques de mesure au sol ═══════════
   const matTrait = new THREE.MeshBasicMaterial({ color: 0x2b3642, transparent: true, opacity: 0.8 });
@@ -132,17 +144,39 @@ export async function demarrer() {
     return out;
   }
 
-  function plaque(lignes, larg, haut, ech = 1) {
+  // Le texte s'ajuste a la plaque : on mesure d'abord la hauteur qu'il prend a
+  // l'echelle 1, puis on choisit l'echelle pour qu'il occupe la plaque. Sans
+  // ca, une plaque large restait aux trois quarts vide.
+  function hauteurTexte(g, lignes, largeurUtile) {
+    let y = 112;
+    for (const l of lignes) {
+      if (l.t === 'lbl') y += 70;
+      else if (l.t === 'titre') y += 94;
+      else if (l.t === 'sous') y += 60;
+      else if (l.t === 'vide') y += (l.v || 30);
+      else {
+        g.font = '300 34px "IBM Plex Sans", sans-serif';
+        y += couper(g, l.v, largeurUtile).length * 48 + 14;
+      }
+    }
+    return y;
+  }
+
+  function plaque(lignes, larg, haut, ech) {
     const S = 1100;
     const c = document.createElement('canvas');
     c.height = S; c.width = Math.round(S * (larg / haut));
     const g = c.getContext('2d');
+    if (!ech) {
+      const h1 = hauteurTexte(g, lignes, c.width - 128);
+      ech = Math.max(0.75, Math.min(3.2, (S * 0.82 - 60) / Math.max(1, h1 - 60)));
+    }
     g.fillStyle = '#0d1219'; g.fillRect(0, 0, c.width, c.height);
     g.strokeStyle = 'rgba(190,210,230,.20)'; g.lineWidth = 3;
     g.strokeRect(1.5, 1.5, c.width - 3, c.height - 3);
     g.fillStyle = '#d42a1b'; g.fillRect(0, 0, c.width, 8);
     g.textBaseline = 'alphabetic';
-    let y = 112;
+    let y = 56 + 56 * ech;
     for (const l of lignes) {
       if (l.t === 'lbl') {
         g.font = `500 ${28*ech}px "IBM Plex Mono", monospace`; g.fillStyle = '#ff4433';
@@ -180,7 +214,7 @@ export async function demarrer() {
     { t: 'sous',  v: 'Direction artistique · Paris' },
     { t: 'vide',  v: 24 },
     { t: 'p',     v: "Vous êtes dans la veine d'essai. Les pièces sont montées de part et d'autre, chacune sur son socle. Avancez : le flux vous porte." }
-  ], 7.2, 4.3, 1.55);
+  ], 7.2, 4.3);
   entree.position.set(0, 2.45, -7);
   monde.add(entree);
   // les deux pieds du totem
@@ -253,7 +287,7 @@ export async function demarrer() {
     ombre.position.set(0, 0.004, 0.1);
     g.add(ombre);
 
-    const spot = new THREE.SpotLight(0xe8f1fb, 26, 13, 0.62, 0.6, 1.7);
+    const spot = new THREE.SpotLight(0xf0f6ff, 34, 16, 0.64, 0.6, 1.7);
     spot.position.set(cote * (DEMI_L - 2.5), PLAFOND - 0.85, z + 0.5);
     spot.target.position.set(cote * (DEMI_L - 1.2), 2.5, z);
     spot.visible = false;            // allume seulement a l'approche
@@ -310,24 +344,42 @@ export async function demarrer() {
   fond.position.set(0, PLAFOND / 2, Z_FOND - 3);
   monde.add(fond);
 
-  const contact = plaque([
-    { t: 'lbl', v: 'Zone 04 · contact' },
+  // Le fond du hall n'est pas une plaque posee : c'est une fin de parcours.
+  // Le titre en grand sur la paroi, les coordonnees sur trois plaques
+  // distinctes en dessous, et une lueur rouge qui monte du sol.
+  const titreFin = plaque([
+    { t: 'lbl',   v: 'Zone 04 · fin de veine' },
     { t: 'titre', v: 'Parlons de' },
-    { t: 'titre', v: 'votre projet.' },
-    { t: 'vide', v: 20 },
-    { t: 'sous', v: 'maigretjaurys8@gmail.com' },
-    { t: 'sous', v: '06 09 97 74 01' },
-    { t: 'sous', v: 'Paris & Île-de-France' },
-    { t: 'vide', v: 16 },
-    { t: 'p', v: "Disponible dès maintenant pour une alternance en direction artistique." }
-  ], 7.0, 4.2);
-  contact.position.set(0, 2.6, Z_FOND - 2.9);
-  monde.add(contact);
-  const sFond = new THREE.SpotLight(0xe8f1fb, 40, 22, 0.66, 0.6, 1.5);
-  sFond.position.set(0, PLAFOND - 0.6, Z_FOND + 4);
-  sFond.target.position.set(0, 2.6, Z_FOND - 2.9);
+    { t: 'titre', v: 'votre projet.' }
+  ], 7.4, 2.5);
+  titreFin.position.set(0, 3.5, Z_FOND - 2.85);
+  monde.add(titreFin);
+
+  const coord = [
+    ['E-mail', 'maigretjaurys8@gmail.com'],
+    ['Téléphone', '06 09 97 74 01'],
+    ['Disponible', 'Dès maintenant · Paris & IDF']
+  ];
+  coord.forEach(function (c, i) {
+    const m = plaque([{ t: 'lbl', v: c[0] }, { t: 'sous', v: c[1] }], 2.9, 1.0);
+    m.position.set((i - 1) * 3.05, 1.5, Z_FOND - 2.8);
+    monde.add(m);
+  });
+
+  const sFond = new THREE.SpotLight(0xf2f7ff, 55, 26, 0.72, 0.55, 1.4);
+  sFond.position.set(0, PLAFOND - 0.5, Z_FOND + 5.5);
+  sFond.target.position.set(0, 2.6, Z_FOND - 2.85);
   monde.add(sFond); monde.add(sFond.target);
-  braise.position.set(0, 1.4, Z_FOND + 2);
+
+  // la lueur rouge du fond : on sait qu'on arrive au bout
+  const lueur = new THREE.Mesh(
+    new THREE.PlaneGeometry(DEMI_L * 2, 0.12),
+    new THREE.MeshBasicMaterial({ color: ROUGE })
+  );
+  lueur.position.set(0, 0.07, Z_FOND - 2.72);
+  monde.add(lueur);
+  braise.position.set(0, 0.9, Z_FOND - 1.4);
+  braise.intensity = 16;
 
   // ═══════════ déplacement : le flux ═══════════
   const pos = new THREE.Vector3(0, OEIL, 8.5);
@@ -395,35 +447,92 @@ export async function demarrer() {
   addEventListener('keyup', e => bas.delete(e.key.toLowerCase()));
   addEventListener('blur', () => bas.clear());
 
-  // ── manette tactile ──
-  const man = document.getElementById('manette');
-  const manP = document.getElementById('manetteP');
+  // ── au doigt ──
+  // Un joystick pour parcourir un couloir, c'etait une mauvaise idee : sur un
+  // telephone on glisse pour regarder et on TAPE une piece pour s'y rendre.
+  // La manette reste, en appoint, pour qui veut se deplacer librement.
+  var TACTILE = matchMedia('(pointer:coarse)').matches;
+  var doigt = new THREE.Vector2();
+  if(typeof compris!=='function'){ /* defini plus bas, fonction hissee */ }
+  var depart=null, aGlisse=false;
+
+  cv.addEventListener('pointerdown', function(e){
+    if(e.pointerType==='mouse' && !TACTILE) return;
+    compris();
+    depart={x:e.clientX, y:e.clientY, t:performance.now()};
+    aGlisse=false;
+  });
+  cv.addEventListener('pointermove', function(e){
+    if(!depart) return;
+    var dx=e.clientX-depart.x, dy=e.clientY-depart.y;
+    if(!aGlisse && Math.hypot(dx,dy)>12) aGlisse=true;
+    if(aGlisse){
+      lacet   -= dx*0.0055;
+      tangage -= dy*0.0035;
+      tangage = Math.max(-0.95, Math.min(0.95, tangage));
+      depart.x=e.clientX; depart.y=e.clientY;
+    }
+  });
+  cv.addEventListener('pointerup', function(e){
+    if(!depart) return;
+    var fugace = performance.now()-depart.t < 600;
+    depart=null;
+    if(aGlisse || !fugace) return;
+    // une tape : on pointe la ou le doigt s'est pose
+    var r=cv.getBoundingClientRect();
+    doigt.set(((e.clientX-r.left)/r.width)*2-1, -(((e.clientY-r.top)/r.height)*2-1));
+    rayon.setFromCamera(doigt, cam);
+    var t=rayon.intersectObjects(cibles, false);
+    if(t.length){ ouvrir(t[0].object); return; }
+    // Au doigt, une piece lointaine fait quelques dizaines de pixels : exiger
+    // de la toucher au pixel pres serait cruel. On prend la plus proche dans
+    // un rayon raisonnable autour du point touche.
+    var meilleure=null, dMin=1e9;
+    var v=new THREE.Vector3();
+    for(var i=0;i<cibles.length;i++){
+      cibles[i].getWorldPosition(v);
+      var d=v.clone().project(cam);
+      if(d.z>1) continue;
+      var sx=(d.x*0.5+0.5)*r.width, sy=(-d.y*0.5+0.5)*r.height;
+      var dist=Math.hypot(sx-(e.clientX-r.left), sy-(e.clientY-r.top));
+      if(dist<dMin){ dMin=dist; meilleure=cibles[i]; }
+    }
+    if(meilleure && dMin < Math.min(r.width,r.height)*0.17) ouvrir(meilleure);
+    else if(ouverte) fermerFiche();
+  });
+  cv.addEventListener('pointercancel', function(){ depart=null; });
+
+  // la manette, pour se deplacer librement
+  var man = document.getElementById('manette');
+  var manP = document.getElementById('manetteP');
   if (man) {
-    const rayonMan = 44;
-    const prendre = e => {
-      const t = e.touches ? e.touches[0] : e;
-      const r = man.getBoundingClientRect();
-      let dx = t.clientX - (r.left + r.width / 2);
-      let dy = t.clientY - (r.top + r.height / 2);
-      const d = Math.hypot(dx, dy) || 1;
-      const k = Math.min(1, d / rayonMan);
+    var RAYON = 48, idDoigt = null;
+    function prendre(e){
+      var r = man.getBoundingClientRect();
+      var dx = e.clientX - (r.left + r.width / 2);
+      var dy = e.clientY - (r.top + r.height / 2);
+      var d = Math.hypot(dx, dy) || 1;
+      var k = Math.min(1, d / RAYON);
       joy.x = (dx / d) * k; joy.y = (dy / d) * k; joy.actif = true;
-      manP.style.transform = `translate(${joy.x * rayonMan}px,${joy.y * rayonMan}px)`;
-    };
-    man.addEventListener('touchstart', e => { e.preventDefault(); prendre(e); }, { passive: false });
-    man.addEventListener('touchmove',  e => { e.preventDefault(); prendre(e); }, { passive: false });
-    man.addEventListener('touchend',   () => { joy.actif = false; joy.x = joy.y = 0; manP.style.transform = ''; });
-    // le reste de l'écran oriente la caméra
-    addEventListener('touchmove', e => {
-      if (joy.actif) return;
-      const t = e.touches[0];
-      if (tPrec) { lacet -= (t.clientX - tPrec.x) * 0.004; tangage -= (t.clientY - tPrec.y) * 0.003;
-        tangage = Math.max(-1, Math.min(1, tangage)); }
-      tPrec = { x: t.clientX, y: t.clientY };
-    }, { passive: true });
-    addEventListener('touchend', () => { tPrec = null; });
+      manP.style.transform = 'translate(' + (joy.x*RAYON) + 'px,' + (joy.y*RAYON) + 'px)';
+      compris();
+    }
+    man.addEventListener('pointerdown', function(e){
+      e.preventDefault(); e.stopPropagation();
+      idDoigt = e.pointerId; man.setPointerCapture(e.pointerId); prendre(e);
+    });
+    man.addEventListener('pointermove', function(e){
+      if (idDoigt !== e.pointerId) return;
+      e.preventDefault(); e.stopPropagation(); prendre(e);
+    });
+    function lacher(e){
+      if (idDoigt !== e.pointerId) return;
+      idDoigt = null; joy.actif = false; joy.x = joy.y = 0;
+      manP.style.transform = '';
+    }
+    man.addEventListener('pointerup', lacher);
+    man.addEventListener('pointercancel', lacher);
   }
-  let tPrec = null;
 
   // ── menu : approche automatique ──
   let apresVol = null;
@@ -443,6 +552,12 @@ export async function demarrer() {
     b.addEventListener('click', () => { allerA(+b.dataset.zone); b.blur(); });
   });
 
+  // le guidage parle la langue de l'appareil
+  if (matchMedia('(pointer:coarse)').matches) {
+    const t = elGuide && elGuide.querySelector('.guide-t');
+    if (t) t.innerHTML = 'Touchez une pi&egrave;ce pour l\'ouvrir &middot; glissez pour regarder';
+  }
+
   // le guidage disparait des qu'on a compris
   let aBouge = false;
   function compris() {
@@ -452,8 +567,8 @@ export async function demarrer() {
   }
 
   // on peut arriver directement sur une zone
-  const depart = ['#entree', '#pieces', '#parcours', '#contact'].indexOf(location.hash);
-  if (depart > 0) { pos.z = ZONES[depart].z; compris(); }
+  const zoneDepart = ['#entree', '#pieces', '#parcours', '#contact'].indexOf(location.hash);
+  if (zoneDepart > 0) { pos.z = ZONES[zoneDepart].z; compris(); }
 
   // ── viser une pièce ──
   const rayon = new THREE.Raycaster();
@@ -560,8 +675,9 @@ export async function demarrer() {
       const pousse = bas.has('shift') ? 42 : 26;
       vit.addScaledVector(AV, av * pousse * dt);
       vit.addScaledVector(LAT, lat * pousse * dt);
-      // la soufflerie souffle toujours un peu vers le fond
-      vit.z -= 0.9 * dt;
+      // Pas de derive automatique : on reste ou on s'arrete. L'idee du flux
+      // qui porte etait jolie, mais on se retrouvait au bout du hall sans
+      // avoir rien touche — surtout au doigt, ou l'on ne maintient rien.
       vit.multiplyScalar(Math.pow(0.0016, dt));   // traînée
       pos.addScaledVector(vit, dt);
 
@@ -576,6 +692,9 @@ export async function demarrer() {
       tangage += ((-sy * 0.42) - tangage) * 0.07;
     }
 
+    // le souffle suit le deplacement reel : a l'arret il retombe
+    if (SON && SON.estActif()) SON.flux(Math.min(1.3, vit.length() / 5.5));
+
     cam.position.copy(pos);
     cam.rotation.set(0, 0, 0, 'YXZ');
     cam.rotation.y = lacet; cam.rotation.x = tangage;
@@ -583,7 +702,7 @@ export async function demarrer() {
     // seules les veilleuses proches sont allumees : quatre lumieres au plus
     for (const v of veilleuses) {
       const d = Math.abs(v.userData.z - pos.z);
-      const on = d < 26;
+      const on = d < 30;
       if (v.visible !== on) v.visible = on;
     }
 
