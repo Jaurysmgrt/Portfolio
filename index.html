@@ -2237,6 +2237,20 @@ function localFallback(){
   vmFallback.style.display='block';
 }
 
+// Numerotation automatique : ajouter une piece ne demande plus de renumeroter.
+(function(){
+  var n=0;
+  allItems.forEach(function(it){
+    if(it.classList.contains('gal-video')) return;
+    if(it.classList.contains('brand-secondary')){
+      var v=it.querySelector('.gal-num'); if(v) v.textContent=''; return;   // jamais visible dans la galerie
+    }
+    var el=it.querySelector('.gal-num');
+    if(!el){ el=document.createElement('span'); el.className='gal-num'; it.appendChild(el); }
+    n++; el.textContent=(n<10?'0':'')+n;
+  });
+})();
+
 allItems.forEach(function(item){
   // Sans ca, les 21 pieces de la galerie sont injoignables au clavier.
   if(item.offsetParent!==null || !item.classList.contains('brand-secondary')){
