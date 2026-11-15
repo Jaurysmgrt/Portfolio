@@ -191,8 +191,11 @@ body.loaded .hn2 span{transition-delay:.38s;transform:translateY(0)}
 .ft.on,.ft:hover{background:var(--red);border-color:var(--red);color:#fff}
 
 /* GALLERY · masonry, items masqués = display:none via JS */
-.gallery{columns:3 280px;gap:10px;column-fill:balance}
-.gal-item{break-inside:avoid;margin-bottom:10px;position:relative;overflow:hidden;cursor:pointer;display:block;background:#0a0a08}
+/* Grille a colonnes fixes : les trous d'air irreguliers de columns venaient
+   de break-inside sur des formats tres differents. Ici chaque colonne suit
+   le meme rythme, et les pieces gardent leurs proportions. */
+.gallery{columns:3 300px;gap:14px;column-fill:balance;orphans:1;widows:1}
+.gal-item{break-inside:avoid;margin-bottom:14px;position:relative;overflow:hidden;cursor:pointer;display:block;background:#0a0a08}
 .gal-item img{width:100%;height:auto;display:block;transform:none;transition:transform .6s cubic-bezier(.25,.46,.45,.94),filter .5s}
 .gal-item:hover img{transform:scale(1.04);filter:brightness(.58) saturate(1.05)}
 .gal-ov{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;opacity:0;transition:opacity .35s}
@@ -1379,7 +1382,8 @@ body{
 .rvm.in{opacity:1;transform:perspective(1300px) translate3d(0,0,0)}
 
 /* ============ LA LIGNE DIRECTRICE ============ */
-.fil{position:fixed;right:1.5rem;top:50%;transform:translateY(-50%);z-index:400;
+.fil{position:fixed;right:1.5rem;top:50%;left:auto;width:auto;transform:translateY(-50%);z-index:400;
+  backdrop-filter:none;-webkit-backdrop-filter:none;
   display:flex;flex-direction:column;gap:1.45rem;align-items:flex-end;
   opacity:0;transition:opacity .8s ease .4s}
 body.loaded .fil{opacity:1}
@@ -1399,16 +1403,11 @@ body.loaded .fil{opacity:1}
 .fil-pt:hover b,.fil-pt.ici b{color:var(--cream)}
 .fil-pt:hover::after,.fil-pt.ici::after{width:13px;background:var(--red2)}
 
-/* ============ LE PASSAGE ============ */
-.passage{position:fixed;inset:0;z-index:7000;pointer-events:none;
-  background:var(--bg);opacity:0;transition:opacity .34s ease;
-  display:flex;align-items:center;justify-content:center}
-.passage.on{opacity:1;pointer-events:auto}
-.passage-trait{width:0;height:1px;
-  background:linear-gradient(90deg,transparent,var(--chrome-hi) 18%,#fff 50%,var(--chrome-hi) 82%,transparent);
-  box-shadow:0 0 20px rgba(204,214,224,.5),0 0 60px rgba(212,42,27,.3);
-  transition:width .5s cubic-bezier(.22,1,.36,1)}
-.passage.on .passage-trait{width:min(72vw,820px)}
+/* ============ LE TRAVELLING ============ */
+/* Pendant le trajet, la page recule tres legerement : on sent la camera,
+   on ne voit pas de coupure. */
+body.voyage .sec,body.voyage .about-intro,body.voyage .tz,body.voyage .porte{
+  transition:filter .35s ease;filter:saturate(.82) brightness(.9)}
 
 /* ─── telephone : le fil devient une reglette en haut, toujours lisible ─── */
 @media(max-width:860px){
@@ -1427,11 +1426,11 @@ body.loaded .fil{opacity:1}
 }
 @media(prefers-reduced-motion:reduce){
   .rv,.rvl,.rvr,.rvm{transform:none!important}
-  .passage{display:none}
+  body.voyage .sec,body.voyage .about-intro,body.voyage .tz,body.voyage .porte{filter:none}
 }
 
 /* ============ LE BOUTON SON ============ */
-.son{position:fixed;left:1.5rem;bottom:1.5rem;z-index:400;
+.son{position:fixed;right:1.5rem;bottom:1.8rem;z-index:400;
   display:flex;align-items:center;gap:.55rem;
   background:rgba(10,13,18,.6);border:1px solid var(--border);
   padding:.55rem .85rem;cursor:pointer;backdrop-filter:blur(10px);
@@ -1449,8 +1448,46 @@ body.loaded .son{opacity:1}
 .son[aria-pressed="true"] .son-onde i:nth-child(3){animation-delay:.36s}
 .son[aria-pressed="true"] .son-onde i:nth-child(4){animation-delay:.1s}
 @keyframes onde{0%,100%{height:3px}50%{height:11px}}
-@media(max-width:860px){.son{bottom:4.4rem;left:1rem;padding:.45rem .7rem}}
+
 @media(prefers-reduced-motion:reduce){.son-onde i{animation:none!important}}
+
+/* ============ ERGONOMIE DES ELEMENTS FLOTTANTS ============ */
+/* Le fil et le bouton son passaient par-dessus les visuels, illisibles.
+   Ils ont maintenant leur propre fond, calme, qui ne mange pas l'image. */
+.fil{background:linear-gradient(90deg,rgba(6,7,10,0),rgba(6,7,10,.78) 42%);
+  padding:1.1rem .5rem 1.1rem 2.4rem;border-radius:2px}
+.son{background:rgba(6,7,10,.78)}
+
+/* ============ RESPIRATION ============ */
+/* Le haut des sections etait trop loin de la barre : beaucoup de vide
+   pour rien, surtout sur telephone ou chaque ecran compte. */
+@media(max-width:860px){
+  .sec{padding-top:3.4rem!important;padding-bottom:3.4rem!important}
+  .about-intro{padding-top:3rem!important}
+  .ai-txt,.about-intro p{font-size:.92rem!important;line-height:1.78!important}
+  .sec-title{margin-bottom:1rem}
+  /* le bouton son rejoint la reglette : plus rien ne flotte sur le contenu */
+  .son{position:fixed;left:auto;right:.7rem;bottom:calc(3.9rem + env(safe-area-inset-bottom,0px));
+    padding:.4rem .6rem;background:rgba(6,7,10,.88)}
+  .son span:last-child{display:none}
+  .fil{background:rgba(8,10,14,.93);padding:.55rem 1rem calc(.55rem + env(safe-area-inset-bottom,0px))}
+}
+@media(max-width:600px){
+  .sec{padding-left:1.4rem!important;padding-right:1.4rem!important}
+}
+
+/* les voiles plein ecran ne restent pas composites quand ils sont fermes */
+.cmod:not(.on),.lb:not(.on),.vm:not(.on){visibility:hidden}
+.cmod:not(.on) .cmod-bg{backdrop-filter:none;-webkit-backdrop-filter:none}
+
+/* les filtres tiennent sur une ligne et se balayent : pas de bloc a deux etages */
+@media(max-width:860px){
+  .filter{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;
+    -webkit-overflow-scrolling:touch;margin-left:-1.4rem;margin-right:-1.4rem;
+    padding:0 1.4rem .3rem;scroll-padding-left:1.4rem}
+  .filter::-webkit-scrollbar{display:none}
+  .filter-btn,.filter>*{flex:0 0 auto;white-space:nowrap}
+}
 </style>
 </head>
 <body>
@@ -1458,7 +1495,7 @@ body.loaded .son{opacity:1}
 <a class="skip" href="#portfolio">Aller aux projets</a>
 
 <!-- LA LIGNE DIRECTRICE : on voit la structure d'un coup d'oeil, on saute ou on veut -->
-<nav class="fil" id="fil" aria-label="Sections du portfolio">
+<div class="fil" id="fil" role="navigation" aria-label="Sections du portfolio">
   <span class="fil-ligne"></span>
   <span class="fil-curseur" id="filCurseur"></span>
   <a class="fil-pt" href="#about-intro"><b>01</b><i>&Agrave; propos</i></a>
@@ -1466,10 +1503,9 @@ body.loaded .son{opacity:1}
   <a class="fil-pt" href="#xp"><b>03</b><i>Exp&eacute;riences</i></a>
   <a class="fil-pt" href="#form"><b>04</b><i>Formations</i></a>
   <a class="fil-pt" href="#contact"><b>05</b><i>Contact</i></a>
-</nav>
+</div>
 
-<!-- le passage d'une zone a l'autre : un cut, pas un saut -->
-<div class="passage" id="passage" aria-hidden="true"><span class="passage-trait"></span></div>
+
 
 <!-- le son : coupe par defaut, jamais impose -->
 <button class="son" id="son" aria-pressed="false" aria-label="Activer le son">
@@ -2662,30 +2698,46 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
 // passe par un cut : le voile tombe, le trait de lumiere balaie, on arrive.
 // Sur telephone le fil devient une reglette en bas, toujours visible.
 (function(){
-  var fil=document.getElementById('fil'), curseur=document.getElementById('filCurseur'),
-      passage=document.getElementById('passage');
+  var fil=document.getElementById('fil'), curseur=document.getElementById('filCurseur');
   if(!fil) return;
   var pts=[].slice.call(fil.querySelectorAll('.fil-pt'));
   var sobre=window.matchMedia('(prefers-reduced-motion:reduce)').matches;
 
   function cible(a){ return document.querySelector(a.getAttribute('href')); }
 
-  // ── le cut ──
-  var enCours=false;
+  // ── le travelling ──
+  // Pas de voile, pas de coupure : on traverse reellement le site. Les
+  // sections defilent et arrivent avec leur profondeur, donc le trajet se
+  // voit comme un mouvement de camera, pas comme une transition.
+  var enCours=null;
+  function hauteurNav(){ var n=document.querySelector('nav'); return n?n.getBoundingClientRect().height:0; }
   function allerVers(el, pousser){
     if(!el) return;
     if(sobre){ el.scrollIntoView({behavior:'smooth',block:'start'}); return; }
-    if(enCours) return; enCours=true;
-    passage.classList.add('on');
-    setTimeout(function(){
-      el.scrollIntoView({behavior:'auto',block:'start'});
-      if(pousser) history.replaceState(null,'','#'+el.id);
-      setTimeout(function(){
-        passage.classList.remove('on');
-        setTimeout(function(){ enCours=false; },360);
-      },140);
-    },430);
+    if(enCours) cancelAnimationFrame(enCours);
+    var depart=window.scrollY||window.pageYOffset;
+    var arrivee=Math.max(0, el.getBoundingClientRect().top + depart - hauteurNav() + 1);
+    var delta=arrivee-depart;
+    if(Math.abs(delta)<4) return;
+    // le trajet dure selon la distance, jamais moins de 0,7 s ni plus de 1,5 s
+    var duree=Math.min(1800, Math.max(700, Math.abs(delta)*0.5));
+    var t0=null;
+    document.body.classList.add('voyage');
+    enCours=requestAnimationFrame(function pas(t){
+      if(t0===null) t0=t;
+      var k=Math.min(1,(t-t0)/duree);
+      var e=k<.5 ? 4*k*k*k : 1-Math.pow(-2*k+2,3)/2;   // lent, rapide, lent
+      window.scrollTo(0, depart+delta*e);
+      if(k<1) enCours=requestAnimationFrame(pas);
+      else { enCours=null; document.body.classList.remove('voyage');
+             if(pousser) history.replaceState(null,'','#'+el.id); }
+    });
   }
+  // on reprend la main des qu'on touche la molette : jamais prisonnier
+  ['wheel','touchstart','keydown'].forEach(function(ev){
+    addEventListener(ev,function(){ if(enCours){ cancelAnimationFrame(enCours); enCours=null;
+      document.body.classList.remove('voyage'); } },{passive:true});
+  });
 
   // tous les liens internes passent par le cut : menu, fil, boutons
   document.querySelectorAll('a[href^="#"]').forEach(function(a){
