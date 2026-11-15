@@ -2349,19 +2349,22 @@ function openProject(group){
     var vposter = (typeof v==='object' && v.poster) ? v.poster : '';
     var posterImg = vposter ? '<img class="pp-vposter" src="'+vposter+'" alt="">' : '';
     var vw=v.w||337,vh=v.h||600;
-    var vlabel=(typeof v==='object'&&v.label)?v.label:'Vidéo '+(vi+1);
+    var seule=(c.videos||[]).length===1;
+    var vlabel=(typeof v==='object'&&v.label)?v.label:(seule?'':'Vidéo '+(vi+1));
     vidHtml+='<div class="pp-visual pp-vid" data-vsrc="'+vsrc+'">'
       +'<span class="pp-visual-fr" style="aspect-ratio:'+vw+'/'+vh+'">'+posterImg+playSvg+'</span>'
       +'<div class="pp-visual-cap">'+vlabel+'</div></div>';
   });
   var hasVid = c.videos && c.videos.length;
   var vidSection = hasVid
-    ? '<div class="pp-vis-label">Les vidéos</div><div class="pp-visuals'+(c.videos.length===1?' solo':'')+'">'+vidHtml+'</div>'
+    ? '<div class="pp-vis-label">'+(c.videos.length===1?'La vidéo':'Les vidéos')+'</div>'
+      +'<div class="pp-visuals'+(c.videos.length===1?' solo':'')+'">'+vidHtml+'</div>'
     : '';
   // section visuels seulement s'il y a des affiches ou slots
   var hasVis = imgs.length;
   var visSection = hasVis
-    ? '<div class="pp-vis-label">Les visuels</div><div class="pp-visuals'+(imgs.length===1?' solo':'')+'">'+visHtml+'</div>'
+    ? '<div class="pp-vis-label">'+(imgs.length===1?'Le visuel':'Les visuels')+'</div>'
+      +'<div class="pp-visuals'+(imgs.length===1?' solo':'')+'">'+visHtml+'</div>'
     : '';
   // store campaign images for the project lightbox
   ppImgs = imgs;

@@ -147,16 +147,52 @@ export async function demarrer() {
   // Le texte s'ajuste a la plaque : on mesure d'abord la hauteur qu'il prend a
   // l'echelle 1, puis on choisit l'echelle pour qu'il occupe la plaque. Sans
   // ca, une plaque large restait aux trois quarts vide.
-  function hauteurTexte(g, lignes, largeurUtile) {
-    let y = 112;
+  // Le texte des plaques etait pose avec des avances codees en dur : 70 px
+  // apres un libelle, 94 apres un titre. Or un titre en Anton occupe environ
+  // 71 px de capitales pour 70 d'avance : huit pixels de marge sur mille.
+  // A la moindre variation de police, le libelle rouge et le titre se
+  // telescopaient. On mesure maintenant chaque ligne pour de vrai.
+  function reglage(t, e) {
+    // ls est un ratio de la taille : l'interlettrage suit la reduction.
+    if (t === 'lbl')   return { px: 28*e, fam: '"IBM Plex Mono", monospace', poids: '500 ',
+                                c: '#ff4433',               ls: 0.286, maj: true,  ap: 30*e };
+    if (t === 'titre') return { px: 86*e, fam: 'Anton, sans-serif',         poids: '',
+                                c: '#ffffff',               ls: 0.012, maj: false, ap: 22*e };
+    if (t === 'sous')  return { px: 30*e, fam: '"IBM Plex Mono", monospace', poids: '500 ',
+                                c: '#a9b7c6',               ls: 0.2,   maj: true,  ap: 24*e };
+    return             { px: 34*e, fam: '"IBM Plex Sans", sans-serif', poids: '300 ',
+                                c: 'rgba(226,236,246,.70)', ls: 0,     maj: false, ap: 16*e };
+  }
+  function appliquer(g, r, px) {
+    g.font = r.poids + px.toFixed(1) + 'px ' + r.fam;
+    g.letterSpacing = (px * r.ls).toFixed(2) + 'px';
+  }
+
+  // Un seul parcours sert a deux choses : mesurer la hauteur reelle du bloc,
+  // puis le dessiner. Les deux ne peuvent donc pas diverger.
+  // Et aucune ligne ne sort de la plaque : les paragraphes se coupent, les
+  // titres et les intitules se reduisent jusqu'a tenir. Avant, un intitule
+  // trop long comme "2026 · MASTER DIRECTION ARTISTIQUE" etait simplement
+  // tranche par le bord de la texture.
+  function poser(g, lignes, e, largeurUtile, dessiner, marge) {
+    let y = 44 * e;
     for (const l of lignes) {
-      if (l.t === 'lbl') y += 70;
-      else if (l.t === 'titre') y += 94;
-      else if (l.t === 'sous') y += 60;
-      else if (l.t === 'vide') y += (l.v || 30);
-      else {
-        g.font = '300 34px "IBM Plex Sans", sans-serif';
-        y += couper(g, l.v, largeurUtile).length * 48 + 14;
+      if (l.t === 'vide') { y += (l.v || 30) * e; continue; }
+      const r = reglage(l.t, e);
+      appliquer(g, r, r.px);
+      const txt = r.maj ? String(l.v).toUpperCase() : l.v;
+      const morceaux = (l.t === 'p') ? couper(g, txt, largeurUtile) : [txt];
+      for (const m of morceaux) {
+        let px = r.px;
+        appliquer(g, r, px);
+        const w = g.measureText(m).width;
+        if (w > largeurUtile) { px = r.px * (largeurUtile / w); appliquer(g, r, px); }
+        const me = g.measureText(m);
+        const haut = me.actualBoundingBoxAscent  || px * 0.74;
+        const bas  = me.actualBoundingBoxDescent || px * 0.2;
+        y += haut;
+        if (dessiner) { g.fillStyle = r.c; g.fillText(m, marge, y); }
+        y += bas + r.ap * (px / r.px);
       }
     }
     return y;
@@ -167,35 +203,23 @@ export async function demarrer() {
     const c = document.createElement('canvas');
     c.height = S; c.width = Math.round(S * (larg / haut));
     const g = c.getContext('2d');
+    g.textBaseline = 'alphabetic';
+    const marge = 64, utile = c.width - marge * 2;
+
     if (!ech) {
-      const h1 = hauteurTexte(g, lignes, c.width - 128);
-      ech = Math.max(0.75, Math.min(3.2, (S * 0.82 - 60) / Math.max(1, h1 - 60)));
+      // deux passes : la coupure des paragraphes depend de l'echelle, donc
+      // une seule mesure se trompe des que le texte se reorganise.
+      ech = Math.max(0.6, Math.min(3.2, (S * 0.88) / Math.max(1, poser(g, lignes, 1, utile, false, marge))));
+      const h2 = poser(g, lignes, ech, utile, false, marge);
+      if (h2 > S * 0.94) ech *= (S * 0.9) / h2;
     }
+
     g.fillStyle = '#0d1219'; g.fillRect(0, 0, c.width, c.height);
     g.strokeStyle = 'rgba(190,210,230,.20)'; g.lineWidth = 3;
     g.strokeRect(1.5, 1.5, c.width - 3, c.height - 3);
     g.fillStyle = '#d42a1b'; g.fillRect(0, 0, c.width, 8);
-    g.textBaseline = 'alphabetic';
-    let y = 56 + 56 * ech;
-    for (const l of lignes) {
-      if (l.t === 'lbl') {
-        g.font = `500 ${28*ech}px "IBM Plex Mono", monospace`; g.fillStyle = '#ff4433';
-        g.letterSpacing = `${8*ech}px`; g.fillText(String(l.v).toUpperCase(), 64, y); y += 70*ech;
-      } else if (l.t === 'titre') {
-        g.font = `${86*ech}px Anton, sans-serif`; g.fillStyle = '#ffffff';
-        g.letterSpacing = '1px'; g.fillText(l.v, 64, y); y += 94*ech;
-      } else if (l.t === 'sous') {
-        g.font = `500 ${30*ech}px "IBM Plex Mono", monospace`; g.fillStyle = '#a9b7c6';
-        g.letterSpacing = `${6*ech}px`; g.fillText(String(l.v).toUpperCase(), 64, y); y += 60*ech;
-      } else if (l.t === 'vide') {
-        y += l.v || 30;
-      } else {
-        g.font = `300 ${34*ech}px "IBM Plex Sans", sans-serif`;
-        g.fillStyle = 'rgba(226,236,246,.70)'; g.letterSpacing = '0px';
-        for (const li of couper(g, l.v, c.width - 128)) { g.fillText(li, 64, y); y += 48*ech; }
-        y += 14;
-      }
-    }
+    poser(g, lignes, ech, utile, true, marge);
+
     const tex = new THREE.CanvasTexture(c);
     tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
     const a = acier();
@@ -291,6 +315,10 @@ export async function demarrer() {
     actions.push(m);
     return m;
   }
+
+  // En portrait, le champ horizontal est trois fois plus etroit qu'en
+  // paysage : ce qui tient a l'ecran d'un cote ne tient pas de l'autre.
+  const ETROIT = innerWidth < innerHeight;
 
   // ═══════════ zone 01 — l'entrée ═══════════
   const entree = plaque([
@@ -413,15 +441,24 @@ export async function demarrer() {
       { t: 'sous', v: 'Premiere · After Effects · Lightroom' }
     ]}
   ];
+  const P_X = ETROIT ? 2.5 : 4.4;    // ecart a l'axe : la voie reste libre
+  const P_L = ETROIT ? 3.4 : 5.4;    // largeur du panneau
+  const P_H = ETROIT ? 4.2 : 3.7;    // en portrait, un panneau debout
   panneaux.forEach((pn, i) => {
-    const m = plaque(pn.l, 5.0, 3.6);
-    m.position.set(pn.cote * (DEMI_L - 0.6), 2.5, Z_PARCOURS - i * 7);
-    m.rotation.y = -pn.cote * (Math.PI / 2 - 0.34);
+    const z = Z_PARCOURS - i * 8;
+    const x = pn.cote * P_X;
+    const m = plaque(pn.l, P_L, P_H);
+    m.position.set(x, 2.45, z);
+    m.rotation.y = -pn.cote * 0.26;   // juste tourne vers l'axe, pas de profil
     monde.add(m);
-    const sp = new THREE.SpotLight(0xdfeaf7, 26, 14, 0.68, 0.6, 1.6);
-    sp.position.set(pn.cote * (DEMI_L - 2.2), PLAFOND - 0.8, Z_PARCOURS - i * 7 + 1);
-    sp.target.position.set(pn.cote * (DEMI_L - 0.6), 2.5, Z_PARCOURS - i * 7);
+    const sp = new THREE.SpotLight(0xdfeaf7, 30, 16, 0.7, 0.6, 1.6);
+    sp.position.set(x * 0.5, PLAFOND - 0.8, z + 2.6);
+    sp.target.position.set(x, 2.45, z);
     monde.add(sp); monde.add(sp.target);
+    // un pied, comme le totem d'entree : le panneau est pose, pas accroche
+    const pied = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 0.62, 12), acier());
+    pied.position.set(x, 0.31, z);
+    monde.add(pied);
   });
 
   // ═══════════ zone 04 — contact, le fond du hall ═══════════
@@ -436,8 +473,6 @@ export async function demarrer() {
   // peint a meme la paroi, et les trois plaques en dessous FONT quelque chose.
   // En portrait, trois plaques cote a cote debordent de l'ecran : on les
   // empile. Le telephone lit une colonne, pas une frise.
-  const ETROIT = innerWidth < innerHeight;
-
   const titreFin = lettrage([
     { t: 'lbl',   v: 'Zone 04 · fin de veine' },
     { t: 'titre', v: 'Parlons de' },
@@ -555,7 +590,7 @@ export async function demarrer() {
   const ZONES = [
     { n: '01', t: 'Entrée',      z: 8.5 },
     { n: '02', t: 'Les pièces',  z: -24 },
-    { n: '03', t: 'Le parcours', z: Z_PARCOURS + 4 },
+    { n: '03', t: 'Le parcours', z: Z_PARCOURS + (ETROIT ? 14 : 9) },
     { n: '04', t: 'Contact',     z: Z_FOND + 7 }
   ];
 
