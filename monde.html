@@ -78,10 +78,11 @@ body.vise .mire::before,body.vise .mire::after{background:var(--red2)}
 body.vise .mire i{border-color:var(--red2)}
 
 /* le cartel de la pièce visée */
-.cartel{position:fixed;left:50%;top:calc(50% + 46px);transform:translateX(-50%) translateY(6px);
+.cartel{position:fixed;left:50%;top:calc(50% + 46px);transform:translate(-50%,6px);
   text-align:center;opacity:0;transition:opacity .25s ease,transform .25s ease;pointer-events:none;
   max-width:min(80vw,520px)}
-body.vise .cartel{opacity:1;transform:translateX(-50%) translateY(0)}
+body.vise .cartel{opacity:1;transform:translate(-50%,0)}
+body.libre .mire{opacity:0}
 .cartel-t{font-family:'Anton',sans-serif;font-size:1.25rem;color:var(--cream);letter-spacing:.01em;line-height:1.15}
 .cartel-c{display:block;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.54rem;
   letter-spacing:.18em;text-transform:uppercase;color:var(--chrome);margin-top:.35rem}
@@ -154,6 +155,84 @@ body.tactile .mire{opacity:.35}
 @media(prefers-reduced-motion:reduce){
   .in-trait,.in-nom span,#intro{transition:none}
 }
+
+/* ─────────── rail de zones ─────────── */
+.rail{position:fixed;right:1.7rem;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:1.5rem;align-items:flex-end}
+.rail-ligne{position:absolute;right:5px;top:4px;bottom:4px;width:1px;background:var(--border)}
+.rail-curseur{position:absolute;right:2px;width:7px;height:7px;background:var(--red2);
+  border-radius:50%;box-shadow:0 0 10px rgba(255,68,51,.8);
+  transition:top .45s cubic-bezier(.22,1,.36,1);top:4px}
+.rail-pt{position:relative;background:none;border:none;cursor:pointer;padding:0 14px 0 0;
+  display:flex;align-items:center;gap:.6rem;font-family:'IBM Plex Mono',ui-monospace,monospace}
+.rail-pt b{font-size:.52rem;letter-spacing:.14em;color:var(--chrome);font-weight:500;transition:color .25s}
+.rail-pt i{font-style:normal;font-size:.52rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--chrome);opacity:0;transform:translateX(6px);
+  transition:opacity .25s ease,transform .25s ease,color .25s}
+.rail-pt::after{content:'';position:absolute;right:2px;top:50%;width:7px;height:1px;
+  background:var(--chrome);transform:translateY(-50%);transition:width .25s,background .25s}
+.rail-pt:hover i,.rail-pt:focus-visible i{opacity:1;transform:none;color:var(--cream)}
+.rail-pt:hover b,.rail-pt.ici b{color:var(--cream)}
+.rail-pt:hover::after{width:13px;background:var(--red2)}
+.rail-pt.ici i{opacity:1;transform:none;color:var(--cream)}
+
+/* ─────────── guidage ─────────── */
+.guide{position:fixed;left:50%;bottom:16%;transform:translateX(-50%);
+  display:flex;flex-direction:column;align-items:center;gap:1rem;
+  transition:opacity .6s ease,transform .6s ease}
+.guide.parti{opacity:0;transform:translateX(-50%) translateY(10px);pointer-events:none}
+.guide-t{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.58rem;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.guide-t b{display:inline-block;color:var(--cream);border:1px solid var(--border);
+  padding:.2rem .5rem;margin:0 .25rem}
+.guide-f{width:1px;height:46px;background:linear-gradient(to bottom,transparent,var(--red2));
+  animation:descend 1.9s cubic-bezier(.5,0,.5,1) infinite}
+@keyframes descend{0%{opacity:0;transform:translateY(-14px) scaleY(.5)}
+  40%{opacity:1;transform:none}100%{opacity:0;transform:translateY(14px) scaleY(.5)}}
+
+/* ─────────── la fiche ─────────── */
+.fiche{position:fixed;top:0;right:0;bottom:0;width:min(432px,92vw);z-index:30;
+  background:linear-gradient(177deg,#141b25,#0a0e14);
+  border-left:1px solid var(--border);box-shadow:-40px 0 90px -40px rgba(0,0,0,.9);
+  transform:translateX(102%);transition:transform .72s cubic-bezier(.76,0,.18,1);
+  overflow-y:auto;overscroll-behavior:contain}
+.fiche.on{transform:none}
+.fiche-in{padding:5rem 2.4rem 3rem}
+.fiche-x{position:absolute;top:1.5rem;right:1.6rem;background:none;border:none;cursor:pointer;
+  font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.54rem;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--chrome);transition:color .2s}
+.fiche-x:hover{color:var(--red2)}
+.fiche-n{display:block;font-size:.56rem;letter-spacing:.24em;color:var(--red2);margin-bottom:1rem}
+.fiche-t{font-family:'Anton',sans-serif;font-size:1.9rem;line-height:1.04;color:var(--cream);
+  letter-spacing:.01em;margin-bottom:.6rem}
+.fiche-c{display:block;font-size:.54rem;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--chrome);margin-bottom:1.6rem}
+.fiche-d{font-size:.88rem;line-height:1.85;color:var(--muted);margin-bottom:1.8rem}
+.fiche-vis{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:2rem}
+.fiche-vis img{width:100%;height:auto;display:block;border:1px solid var(--border)}
+.fiche-go{display:inline-block;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.56rem;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--cream);text-decoration:none;
+  border:1px solid var(--border);padding:.85rem 1.5rem;transition:background .25s,border-color .25s}
+.fiche-go:hover{background:var(--red);border-color:var(--red)}
+body.fiche-ouverte .mire,body.fiche-ouverte .cartel,body.fiche-ouverte .guide{opacity:0}
+body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;transition:opacity .3s ease}
+.menu,.rail{transition:opacity .4s ease .25s}
+
+/* ─────────── voile de transition ─────────── */
+.voile{position:fixed;inset:0;z-index:50;pointer-events:none;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--bg);opacity:0;transition:opacity .42s ease}
+.voile.on{opacity:1;pointer-events:auto}
+.voile span{width:0;height:1px;background:linear-gradient(90deg,transparent,#fff,transparent);
+  box-shadow:0 0 24px rgba(220,232,245,.6);transition:width .5s cubic-bezier(.22,1,.36,1)}
+.voile.on span{width:min(60vw,700px)}
+
+@media(max-width:760px){
+  .rail{right:1rem;gap:1.1rem}
+  .rail-pt i{display:none}
+  .fiche{width:100%}
+  .guide{bottom:22%}
+}
 </style>
 </head>
 <body>
@@ -181,7 +260,7 @@ body.tactile .mire{opacity:.35}
 
   <div class="cmd mono">
     <span><b>Z</b><b>Q</b><b>S</b><b>D</b> se d&eacute;placer</span>
-    <span><b>Souris</b> regarder</span>
+    <span><b>Souris</b> d&eacute;signer &middot; bords pour tourner</span>
     <span><b>Clic</b> ouvrir</span>
     <span><b>R</b> revenir &agrave; l'entr&eacute;e</span>
   </div>
@@ -195,7 +274,39 @@ body.tactile .mire{opacity:.35}
   </div>
 
   <div class="manette" id="manette"><i id="manetteP"></i></div>
+
+  <!-- le rail : ou l'on est dans le hall, en permanence -->
+  <div class="rail" id="rail">
+    <span class="rail-ligne"></span>
+    <span class="rail-curseur" id="railCurseur"></span>
+    <button class="rail-pt" data-zone="0"><b>01</b><i>Entr&eacute;e</i></button>
+    <button class="rail-pt" data-zone="1"><b>02</b><i>Les pi&egrave;ces</i></button>
+    <button class="rail-pt" data-zone="2"><b>03</b><i>Le parcours</i></button>
+    <button class="rail-pt" data-zone="3"><b>04</b><i>Contact</i></button>
+  </div>
+
+  <!-- le fl&eacute;chage du d&eacute;part -->
+  <div class="guide" id="guide">
+    <span class="guide-t">Maintenez <b>Z</b> pour avancer</span>
+    <span class="guide-f"></span>
+  </div>
 </div>
+
+<!-- la fiche d'une pi&egrave;ce, qui vient se poser par-dessus le hall -->
+<aside class="fiche" id="fiche" aria-hidden="true">
+  <button class="fiche-x" id="ficheX" aria-label="Fermer">Fermer &times;</button>
+  <div class="fiche-in">
+    <span class="fiche-n mono" id="ficheN">01</span>
+    <h2 class="fiche-t" id="ficheT"></h2>
+    <span class="fiche-c mono" id="ficheC"></span>
+    <p class="fiche-d" id="ficheD"></p>
+    <div class="fiche-vis" id="ficheVis"></div>
+    <a class="fiche-go" id="ficheGo" href="index.html">Voir la fiche compl&egrave;te &rarr;</a>
+  </div>
+</aside>
+
+<!-- le voile de transition, repris du trait de lumiere -->
+<div class="voile" id="voile" aria-hidden="true"><span></span></div>
 
 <div id="intro">
   <div class="in-stage">

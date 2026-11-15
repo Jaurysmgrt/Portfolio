@@ -182,7 +182,7 @@ export async function demarrer() {
 
     const g = new THREE.Group();
     g.position.set(cote * (DEMI_L - 1.45), 0, z);
-    g.rotation.y = -cote * (Math.PI / 2 - 0.24);
+    g.rotation.y = -cote * (Math.PI / 2 - 0.46);
     monde.add(g);
 
     const socle = new THREE.Mesh(new THREE.BoxGeometry(L + 0.5, 0.12, 0.72), acier());
@@ -214,7 +214,7 @@ export async function demarrer() {
     const num = new THREE.Mesh(new THREE.PlaneGeometry(1.15, 1.15),
       new THREE.MeshBasicMaterial({ map: tn, transparent: true, depthWrite: false }));
     num.rotation.x = -Math.PI / 2;
-    num.rotation.z = cote > 0 ? Math.PI / 2 : -Math.PI / 2;
+    num.rotation.z = Math.PI;        // se lit en arrivant, pas de biais
     num.position.set(cote * (DEMI_L - 3.4), 0.015, z);
     monde.add(num);
 
@@ -270,7 +270,7 @@ export async function demarrer() {
   panneaux.forEach((pn, i) => {
     const m = plaque(pn.l, 5.0, 3.6);
     m.position.set(pn.cote * (DEMI_L - 0.6), 2.5, Z_PARCOURS - i * 7);
-    m.rotation.y = -pn.cote * (Math.PI / 2 - 0.16);
+    m.rotation.y = -pn.cote * (Math.PI / 2 - 0.34);
     monde.add(m);
     const sp = new THREE.SpotLight(0xdfeaf7, 26, 14, 0.68, 0.6, 1.6);
     sp.position.set(pn.cote * (DEMI_L - 2.2), PLAFOND - 0.8, Z_PARCOURS - i * 7 + 1);
@@ -324,6 +324,11 @@ export async function demarrer() {
   const elZ  = document.getElementById('coordZ');
   const elCT = document.getElementById('cartelT');
   const elCC = document.getElementById('cartelC');
+  const railC = document.getElementById('railCurseur');
+  const railEl = document.getElementById('rail');
+  let railH = railEl ? railEl.getBoundingClientRect().height : 200;
+  const elFiche = document.getElementById('fiche');
+  const elGuide = document.getElementById('guide');
 
   // ── souris : regard ──
   let verrou = false;
@@ -340,10 +345,17 @@ export async function demarrer() {
   });
   // sans verrou : le regard suit doucement le curseur, on n'est jamais bloqué
   let sx = 0, sy = 0;
+  const souris = new THREE.Vector2(0, 0);
   addEventListener('pointermove', e => {
+    souris.set((e.clientX / innerWidth) * 2 - 1, -((e.clientY / innerHeight) * 2 - 1));
     if (verrou) return;
-    sx = (e.clientX / innerWidth) * 2 - 1;
-    sy = (e.clientY / innerHeight) * 2 - 1;
+    // Zone morte : au centre, le curseur DESIGNE. Ce n'est qu'en s'approchant
+    // des bords qu'il fait tourner la tete. Sans ca, viser et tourner se battent.
+    const MORT = 0.46;
+    const bx = (e.clientX / innerWidth) * 2 - 1;
+    const by = (e.clientY / innerHeight) * 2 - 1;
+    sx = Math.abs(bx) > MORT ? (bx - Math.sign(bx) * MORT) / (1 - MORT) : 0;
+    sy = Math.abs(by) > MORT ? (by - Math.sign(by) * MORT) / (1 - MORT) : 0;
   }, { passive: true });
 
   // ── clavier ──
@@ -351,8 +363,8 @@ export async function demarrer() {
     const k = e.key.toLowerCase();
     bas.add(k);
     if (k === 'r') allerA(0);
-    if (k === 'escape' && document.exitPointerLock) document.exitPointerLock();
-    if (['z','q','s','d','w','a','arrowup','arrowdown','arrowleft','arrowright',' '].includes(k)) e.preventDefault();
+    if (k === 'escape') { if (ouverte) fermerFiche(); else if (document.exitPointerLock) document.exitPointerLock(); }
+    if (['z','q','s','d','w','a','arrowup','arrowdown','arrowleft','arrowright',' '].includes(k)) { compris(); e.preventDefault(); }
   });
   addEventListener('keyup', e => bas.delete(e.key.toLowerCase()));
   addEventListener('blur', () => bas.clear());
@@ -388,25 +400,96 @@ export async function demarrer() {
   let tPrec = null;
 
   // ── menu : approche automatique ──
+  let apresVol = null;
   function allerA(i) {
+    fermerFiche();
     const z = ZONES[i].z;
-    vol = { t: 0, de: pos.clone(), vers: new THREE.Vector3(0, OEIL, z),
-            lacetDe: lacet, lacetVers: 0 };
+    vol = { t: 0, duree: 1.6, de: pos.clone(), vers: new THREE.Vector3(0, OEIL, z),
+            lacetDe: lacet, lacetVers: 0, tangageDe: tangage, tangageVers: 0 };
+    majHash(i);
   }
-  document.querySelectorAll('#menu button[data-zone]').forEach(b => {
+  function majHash(i) {
+    const h = ['entree', 'pieces', 'parcours', 'contact'][i];
+    if (location.hash !== '#' + h) history.replaceState(null, '', '#' + h);
+  }
+  document.querySelectorAll('[data-zone]').forEach(b => {
     b.addEventListener('click', () => { allerA(+b.dataset.zone); b.blur(); });
   });
+
+  // le guidage disparait des qu'on a compris
+  let aBouge = false;
+  function compris() {
+    if (aBouge) return; aBouge = true;
+    elGuide.classList.add('parti');
+    setTimeout(() => elGuide.remove(), 800);
+  }
+
+  // on peut arriver directement sur une zone
+  const depart = ['#entree', '#pieces', '#parcours', '#contact'].indexOf(location.hash);
+  if (depart > 0) { pos.z = ZONES[depart].z; compris(); }
 
   // ── viser une pièce ──
   const rayon = new THREE.Raycaster();
   const centre = new THREE.Vector2(0, 0);
   let vise = null;
 
+  let ouverte = null;
+
+  const _wp = new THREE.Vector3(), _q = new THREE.Quaternion(), _n = new THREE.Vector3();
+
   function ouvrir(tab) {
+    if (ouverte === tab) return;
+    ouverte = tab;
     const p = tab.userData.p;
-    const cible = p.groupe ? 'index.html#p-' + p.groupe : 'index.html#portfolio';
-    location.href = cible;
+
+    tab.getWorldPosition(_wp);
+    tab.getWorldQuaternion(_q);
+    _n.set(0, 0, 1).applyQuaternion(_q);
+
+    const vers = _wp.clone().addScaledVector(_n, 5.2);
+    vers.y = OEIL;
+    vers.x = Math.max(-DEMI_L + 1.2, Math.min(DEMI_L - 1.2, vers.x));
+    // la fiche occupe la droite : on decale un peu pour ne pas cacher la piece
+    vers.x -= 0.9;
+
+    const dx = _wp.x - vers.x, dz = _wp.z - vers.z;
+    const lv = Math.atan2(-dx, -dz);
+    const tv = Math.atan2(_wp.y - OEIL, Math.hypot(dx, dz)) * 0.8;
+
+    if (document.exitPointerLock) document.exitPointerLock();
+    vol = { t: 0, duree: 1.15, de: pos.clone(), vers,
+            lacetDe: lacet, lacetVers: lv, tangageDe: tangage, tangageVers: tv };
+    apresVol = () => { sx = 0; sy = 0; };
+
+    document.getElementById('ficheN').textContent = String(tab.userData.i + 1).padStart(2, '0');
+    document.getElementById('ficheT').textContent = p.titre || '';
+    document.getElementById('ficheC').textContent = p.cat || '';
+    document.getElementById('ficheD').textContent = p.desc || '';
+    const vis = document.getElementById('ficheVis');
+    vis.innerHTML = '';
+    if (p.groupe) {
+      pieces.filter(q => q.groupe === p.groupe && q.src !== p.src).slice(0, 4).forEach(q => {
+        const im = document.createElement('img');
+        im.src = q.src; im.alt = q.titre || ''; im.loading = 'lazy';
+        vis.appendChild(im);
+      });
+    }
+    document.getElementById('ficheGo').href =
+      p.groupe ? 'index.html#p-' + p.groupe : 'index.html#portfolio';
+
+    elFiche.classList.add('on');
+    elFiche.setAttribute('aria-hidden', 'false');
+    document.body.classList.add('fiche-ouverte');
   }
+
+  function fermerFiche() {
+    if (!ouverte) return;
+    ouverte = null;
+    elFiche.classList.remove('on');
+    elFiche.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('fiche-ouverte');
+  }
+  document.getElementById('ficheX').addEventListener('click', fermerFiche);
 
   // ═══════════ boucle ═══════════
   function dimensionner() {
@@ -414,7 +497,8 @@ export async function demarrer() {
     renderer.setSize(w, h, false);
     cam.aspect = w / h; cam.updateProjectionMatrix();
   }
-  addEventListener('resize', dimensionner); dimensionner();
+  addEventListener('resize', () => { dimensionner(); if (railEl) railH = railEl.getBoundingClientRect().height; });
+  dimensionner();
 
   const AV = new THREE.Vector3(), LAT = new THREE.Vector3();
   let dernier = performance.now();
@@ -425,11 +509,13 @@ export async function demarrer() {
 
     // approche automatique
     if (vol) {
-      vol.t = Math.min(1, vol.t + dt / 1.5);
+      vol.t = Math.min(1, vol.t + dt / (vol.duree || 1.5));
       const e = vol.t < 0.5 ? 4 * vol.t ** 3 : 1 - Math.pow(-2 * vol.t + 2, 3) / 2;
       pos.lerpVectors(vol.de, vol.vers, e);
-      lacet = vol.lacetDe + (vol.lacetVers - vol.lacetDe) * e;
-      if (vol.t >= 1) vol = null;
+      lacet   = vol.lacetDe   + (vol.lacetVers   - vol.lacetDe)   * e;
+      tangage = vol.tangageDe + ((vol.tangageVers || 0) - vol.tangageDe) * e;
+      vit.set(0, 0, 0);
+      if (vol.t >= 1) { vol = null; if (apresVol) { apresVol(); apresVol = null; } }
     } else {
       // le flux : ZQSD règle le régime, l'inertie fait le reste
       let av = 0, lat = 0;
@@ -438,6 +524,7 @@ export async function demarrer() {
       if (bas.has('q') || bas.has('a') || bas.has('arrowleft')) lat -= 1;
       if (bas.has('d') || bas.has('arrowright')) lat += 1;
       if (joy.actif) { av -= joy.y; lat += joy.x; }
+      if (ouverte && (av || lat)) fermerFiche();
 
       AV.set(-Math.sin(lacet), 0, -Math.cos(lacet));
       LAT.set(Math.cos(lacet), 0, -Math.sin(lacet));
@@ -456,8 +543,8 @@ export async function demarrer() {
     }
 
     if (!verrou) {
-      lacet   += ((-sx * 0.85) - lacet) * 0.055;
-      tangage += (-sy * 0.3 - tangage) * 0.055;
+      lacet   -= sx * 1.35 * dt;              // on tourne tant que le curseur est au bord
+      tangage += ((-sy * 0.42) - tangage) * 0.07;
     }
 
     cam.position.copy(pos);
@@ -478,9 +565,9 @@ export async function demarrer() {
     lampes[2].intensity = 12;
 
     // visée
-    rayon.setFromCamera(centre, cam);
+    rayon.setFromCamera(verrou ? centre : souris, cam);
     const touche = rayon.intersectObjects(cibles, false);
-    const n = (touche.length && touche[0].distance < 17) ? touche[0].object : null;
+    const n = (touche.length && touche[0].distance < 26) ? touche[0].object : null;
     if (n !== vise) {
       vise = n;
       cibles.forEach(c => c.userData.cible = (c === vise ? 1 : 0));
@@ -500,8 +587,19 @@ export async function demarrer() {
     elZ.textContent = (vz >= 0 ? '' : '−') + Math.abs(vz).toFixed(1).padStart(5, '0') + ' m';
     let zi = 0;
     for (let i = 0; i < ZONES.length; i++) if (pos.z <= ZONES[i].z + 6) zi = i;
-    if (elZT.textContent !== ZONES[zi].t) { elZN.textContent = 'Zone ' + ZONES[zi].n; elZT.textContent = ZONES[zi].t; }
-    document.querySelectorAll('#menu button[data-zone]').forEach((b, i) => b.classList.toggle('ici', i === zi));
+    if (elZT.textContent !== ZONES[zi].t) {
+      elZN.textContent = 'Zone ' + ZONES[zi].n;
+      elZT.textContent = ZONES[zi].t;
+      elZT.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],
+                   {duration:420,easing:'cubic-bezier(.22,1,.36,1)'});
+      if (!vol) majHash(zi);
+    }
+    document.querySelectorAll('[data-zone]').forEach(b => b.classList.toggle('ici', +b.dataset.zone === zi));
+    // le curseur du rail glisse selon l'avancee reelle dans le hall
+    if (railC) {
+      const k = Math.max(0, Math.min(1, (ZONES[0].z - pos.z) / (ZONES[0].z - ZONES[3].z)));
+      railC.style.top = (4 + k * (railH - 8)) + 'px';
+    }
 
     renderer.render(monde, cam);
   }
