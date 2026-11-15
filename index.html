@@ -1386,7 +1386,7 @@ body{
   backdrop-filter:none;-webkit-backdrop-filter:none;
   display:flex;flex-direction:column;gap:1.45rem;align-items:flex-end;
   opacity:0;transition:opacity .8s ease .4s}
-body.loaded .fil{opacity:1}
+/* l'apparition du fil est pilotee plus bas, apres le hero */
 .fil-ligne{position:absolute;right:5px;top:5px;bottom:5px;width:1px;background:var(--border)}
 .fil-curseur{position:absolute;right:2px;width:7px;height:7px;border-radius:50%;
   background:var(--red2);box-shadow:0 0 10px rgba(255,68,51,.8);top:5px;
@@ -1511,6 +1511,58 @@ body.glisse{overflow-x:hidden}
 @media(prefers-reduced-motion:reduce){
   #scene{position:static!important;transform:none!important}
   body.glisse{height:auto!important}
+}
+
+/* ============ MOINS, MAIS PLUS GRAND ============ */
+/* Un site immersif n'est pas un site charge : c'est un site ou le travail
+   occupe la place et ou rien d'autre ne demande l'attention. */
+
+/* La galerie passe de trois colonnes a deux : chaque piece double de taille. */
+@media(min-width:1000px){
+  .gallery{columns:2;gap:22px}
+  .gal-item{margin-bottom:22px}
+  #portfolio,#xp,#form{padding-left:5vw;padding-right:5vw}
+}
+@media(min-width:1600px){
+  .gallery{column-gap:30px}
+  .gal-item{margin-bottom:30px}
+  #portfolio,#xp,#form{padding-left:8vw;padding-right:8vw}
+}
+
+/* De l'air. Beaucoup. C'est le silence qui fait entendre le reste. */
+@media(min-width:861px){
+  .sec{padding-top:9rem;padding-bottom:9rem}
+  .about-intro{padding-top:8rem;padding-bottom:8rem}
+  .tz{padding-top:6.5rem;padding-bottom:7rem}
+  .sec-head{margin-bottom:4rem}
+}
+
+/* Le fil se fait oublier tant qu'on ne le cherche pas. */
+.fil{gap:1.15rem;opacity:0;pointer-events:none;transition:opacity .5s ease}
+body.loaded.engage .fil{opacity:.5;pointer-events:auto}
+body.engage .fil:hover,body.engage .fil:focus-within{opacity:1}
+.fil-pt b{font-size:.44rem}
+.fil-ligne{background:rgba(190,210,230,.09)}
+
+/* Le bouton son : une icone, le mot n'apparait qu'au survol. */
+.son{padding:.5rem .6rem;opacity:0}
+body.loaded .son{opacity:.45}
+.son:hover,.son:focus-visible{opacity:1}
+.son .son-t{max-width:0;overflow:hidden;white-space:nowrap;transition:max-width .3s ease}
+.son:hover .son-t,.son:focus-visible .son-t{max-width:3rem}
+.son[aria-pressed="true"]{opacity:1}
+
+@media(max-width:860px){
+  body.loaded .fil{opacity:1;pointer-events:auto}
+  .son{opacity:.9}
+}
+
+/* la reglette du bas doit rester lisible, meme posee sur une photo */
+@media(max-width:860px){
+  .fil{background:rgba(6,8,11,.94)!important;
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-top:1px solid var(--border);box-shadow:0 -14px 30px -18px rgba(0,0,0,.9)}
+  .son{bottom:calc(4.1rem + env(safe-area-inset-bottom,0px));right:.8rem}
 }
 </style>
 </head>
@@ -1637,8 +1689,8 @@ body.glisse{overflow-x:hidden}
   </div>
 </div>
 
-<div class="scroll-progress" id="scrollProg"></div>
-<div id="c1"></div><div id="c2"></div>
+
+
 
 <nav id="nav">
   <a href="#" class="nav-logo">J<span>.</span>M</a>
@@ -1661,8 +1713,7 @@ body.glisse{overflow-x:hidden}
 <div id="scene">
 <section class="hero">
   <div class="hero-grid-bg"></div>
-  <div class="hero-vline hero-vline1"></div>
-  <div class="hero-vline hero-vline2"></div>
+  
   <div class="hero-ghost">DA</div>
   <div class="hero-topbar">
     <span>Paris · France</span>
@@ -1701,25 +1752,9 @@ body.glisse{overflow-x:hidden}
   <div class="tz-strip" id="tzStrip"></div>
 </section>
 
-<!-- ENTREE DU MONDE -->
-<a class="porte" href="monde.html" id="porte">
-  <span class="porte-grille" aria-hidden="true"></span>
-  <span class="porte-trait" aria-hidden="true"></span>
-  <span class="porte-in">
-    <span class="porte-lbl">Projet &middot; Exp&eacute;rience 3D</span>
-    <span class="porte-t">La Soufflerie</span>
-    <span class="porte-p">Un hall d'essai en WebGL o&ugrave; mes pi&egrave;ces sont mont&eacute;es comme des maquettes. Con&ccedil;u et d&eacute;velopp&eacute; de bout en bout : architecture de l'espace, mise en lumi&egrave;re, navigation, interface. &Agrave; parcourir sur ordinateur, quand vous avez deux minutes.</span>
-    <span class="porte-go">Parcourir l'exp&eacute;rience &rarr;</span>
-  </span>
-</a>
 
 <!-- MARQUEE -->
-<div class="mq">
-  <div class="mq-track">
-    <span>Direction Artistique</span><span class="mq-dot"> · </span><span>Publicité</span><span class="mq-dot"> · </span><span>Graphisme</span><span class="mq-dot"> · </span><span>Photographie</span><span class="mq-dot"> · </span><span>Vidéo</span><span class="mq-dot"> · </span><span>Luxe</span><span class="mq-dot"> · </span><span>ESP Paris 2026</span><span class="mq-dot"> · </span>
-    <span>Direction Artistique</span><span class="mq-dot"> · </span><span>Publicité</span><span class="mq-dot"> · </span><span>Graphisme</span><span class="mq-dot"> · </span><span>Photographie</span><span class="mq-dot"> · </span><span>Vidéo</span><span class="mq-dot"> · </span><span>Luxe</span><span class="mq-dot"> · </span><span>ESP Paris 2026</span><span class="mq-dot"> · </span>
-  </div>
-</div>
+
 
 <!-- À PROPOS -->
 <section class="about-intro" id="about-intro">
@@ -2005,15 +2040,8 @@ body.glisse{overflow-x:hidden}
   setTimeout(function(){ if(!document.body.classList.contains('loaded')){ ouvrir(); finir(); } }, 4000);
 })();
 
-// CURSOR
-var c1=document.getElementById('c1'),c2=document.getElementById('c2');
-var mx=0,my=0,rx=0,ry=0;
-document.addEventListener('mousemove',function(e){mx=e.clientX;my=e.clientY;c1.style.left=mx+'px';c1.style.top=my+'px'});
-(function ac(){rx+=(mx-rx)*.1;ry+=(my-ry)*.1;c2.style.left=rx+'px';c2.style.top=ry+'px';requestAnimationFrame(ac)})();
-document.querySelectorAll('a,button,.gal-item,.vi,.sk-row,.sw-p').forEach(function(el){
-  el.addEventListener('mouseenter',function(){document.body.classList.add('hov')});
-  el.addEventListener('mouseleave',function(){document.body.classList.remove('hov')});
-});
+// Le curseur personnalise a ete retire : il se battait avec le pointeur
+// du systeme sans rien apporter.
 
 // NAV
 window.addEventListener('scroll',function(){document.getElementById('nav').classList.toggle('compact',window.scrollY>60)});
@@ -2570,13 +2598,7 @@ window.addEventListener('scroll',function(){
   });tick=true}
 });
 
-// SCROLL PROGRESS
-var scrollProg=document.getElementById('scrollProg');
-window.addEventListener('scroll',function(){
-  var h=document.documentElement.scrollHeight-window.innerHeight;
-  var scrolled=(window.scrollY/h)*100;
-  scrollProg.style.width=scrolled+'%';
-});
+// La barre de progression a ete retiree : le fil de sections dit deja ou on est.
 
 // MAGNETIC HERO BUTTON
 var heroBtn=document.querySelector('.hero-btn');
@@ -2834,7 +2856,13 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
       curseur.style.top=Math.round(q.top-r.top+q.height/2-3.5)+'px';
     }
   }
-  addEventListener('scroll',function(){ if(!tic) tic=requestAnimationFrame(majFil); },{passive:true});
+  var hero=document.querySelector('.hero');
+  function engagement(){
+    var h=hero?hero.offsetHeight*0.55:400;
+    document.body.classList.toggle('engage', (window.scrollY||0) > h);
+  }
+  addEventListener('scroll',function(){ engagement(); if(!tic) tic=requestAnimationFrame(majFil); },{passive:true});
+  engagement();
   addEventListener('resize',function(){ if(!tic) tic=requestAnimationFrame(majFil); },{passive:true});
   majFil();
   // le hero n'est pas dans le fil : on le laisse vide tant qu'on y est
