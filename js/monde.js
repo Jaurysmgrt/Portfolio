@@ -19,8 +19,34 @@ const PLAFOND = 6.2;
 const OEIL    = 1.68;
 const PAS     = 13;
 
+// le son, s'il est demande : synthetise, jamais charge
+let SON = null;
+function bruitage(nom) { if (SON && SON.estActif()) SON.son[nom](); }
+
 export async function demarrer() {
   const cv = document.getElementById('veine');
+
+  (function brancherSon() {
+    const btn = document.getElementById('son');
+    if (!btn) return;
+    let on = false;
+    const etat = v => { on = v; btn.setAttribute('aria-pressed', v ? 'true' : 'false');
+      try { localStorage.setItem('jm-son', v ? '1' : '0'); } catch (e) {} };
+    const charger = () => import('./son.js').then(m => { SON = m; m.allumer(); etat(true); m.son.tension(); });
+    btn.addEventListener('click', () => {
+      if (!SON) return charger();
+      if (on) { SON.eteindre(); etat(false); } else { SON.allumer(); etat(true); SON.son.tic(); }
+    });
+    let voulu = false;
+    try { voulu = localStorage.getItem('jm-son') === '1'; } catch (e) {}
+    if (voulu) {
+      const reveil = () => { document.removeEventListener('pointerdown', reveil);
+        document.removeEventListener('keydown', reveil);
+        import('./son.js').then(m => { SON = m; m.allumer(); etat(true); }); };
+      document.addEventListener('pointerdown', reveil, { once: true });
+      document.addEventListener('keydown', reveil, { once: true });
+    }
+  })();
 
   const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.8));
@@ -403,6 +429,7 @@ export async function demarrer() {
   let apresVol = null;
   function allerA(i) {
     fermerFiche();
+    bruitage('balai');
     const z = ZONES[i].z;
     vol = { t: 0, duree: 1.6, de: pos.clone(), vers: new THREE.Vector3(0, OEIL, z),
             lacetDe: lacet, lacetVers: 0, tangageDe: tangage, tangageVers: 0 };
@@ -440,6 +467,7 @@ export async function demarrer() {
   function ouvrir(tab) {
     if (ouverte === tab) return;
     ouverte = tab;
+    bruitage('clac');
     const p = tab.userData.p;
 
     tab.getWorldPosition(_wp);
@@ -485,6 +513,7 @@ export async function demarrer() {
   function fermerFiche() {
     if (!ouverte) return;
     ouverte = null;
+    bruitage('clic');
     elFiche.classList.remove('on');
     elFiche.setAttribute('aria-hidden', 'true');
     document.body.classList.remove('fiche-ouverte');
@@ -572,7 +601,7 @@ export async function demarrer() {
       vise = n;
       cibles.forEach(c => c.userData.cible = (c === vise ? 1 : 0));
       document.body.classList.toggle('vise', !!vise);
-      if (vise) { elCT.textContent = vise.userData.p.titre || ''; elCC.textContent = vise.userData.p.cat || ''; }
+      if (vise) { elCT.textContent = vise.userData.p.titre || ''; elCC.textContent = vise.userData.p.cat || ''; bruitage('tic'); }
     }
     for (const c of cibles) {
       const u = c.userData;
