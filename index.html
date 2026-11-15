@@ -1188,6 +1188,85 @@ footer a:hover::after{width:100%}
   .lo-sh,.lo-beam,.lo-stage,.lo-hud,.lo-name span{transition:none}
   #loader.allume .lo-beam{width:min(78vw,900px)}
 }
+
+/* ============ FIN DE PAGE PROJET : on enchaine, on ne bute pas ============ */
+.pp-next{margin-top:4.5rem;opacity:0;transform:translateY(20px);
+  transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+.pp-next.in{opacity:1;transform:none}
+.pp-next-link{position:relative;display:block;overflow:hidden;text-decoration:none;
+  height:clamp(150px,26vh,250px);
+  border:1px solid var(--border);box-shadow:inset 0 1px 0 var(--edge);
+  background:linear-gradient(177deg,var(--paper2),var(--paper3));
+  transition:border-color .4s}
+.pp-next-link:hover{border-color:rgba(200,40,26,.6)}
+.pp-next-img{position:absolute;top:0;bottom:0;right:0;width:62%;height:100%;object-fit:cover;
+  object-position:center;opacity:.5;filter:grayscale(.75) contrast(1.05);
+  transition:opacity .6s ease,filter .6s ease}
+.pp-next-link:hover .pp-next-img{opacity:.85;filter:grayscale(0) contrast(1)}
+.pp-next-vo{position:absolute;inset:0;
+  background:linear-gradient(90deg,var(--bg) 0%,var(--bg) 30%,rgba(8,9,11,.72) 52%,rgba(8,9,11,.18) 78%,rgba(8,9,11,0))}
+.pp-next-in{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+  gap:.45rem;padding:0 clamp(1.4rem,4vw,2.6rem)}
+.pp-next-lbl{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.56rem;
+  letter-spacing:.24em;text-transform:uppercase;color:var(--red2)}
+.pp-next-name{font-family:'Anton',sans-serif;font-size:clamp(1.5rem,4vw,2.6rem);
+  line-height:1;color:var(--cream);letter-spacing:.01em}
+.pp-next-cat{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.54rem;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--chrome)}
+.pp-next-go{position:absolute;right:clamp(1.4rem,4vw,2.6rem);top:50%;transform:translateY(-50%);
+  font-family:'Anton',sans-serif;font-size:1.6rem;color:var(--cream);
+  transition:transform .4s cubic-bezier(.22,1,.36,1),color .3s}
+.pp-next-link:hover .pp-next-go{transform:translateY(-50%) translateX(8px);color:var(--red2)}
+.pp-next-foot{display:flex;gap:2rem;flex-wrap:wrap;justify-content:space-between;
+  margin-top:1.4rem;padding-top:1.3rem;border-top:1px solid var(--border)}
+.pp-foot-a{background:none;border:none;padding:0;cursor:pointer;
+  font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.58rem;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--chrome);transition:color .25s}
+.pp-foot-a:hover{color:var(--red2)}
+@media(max-width:600px){
+  .pp-next{margin-top:3rem}
+  .pp-next-go{font-size:1.2rem}
+  .pp-next-img{width:100%}
+  .pp-next-vo{background:linear-gradient(90deg,var(--bg) 4%,rgba(8,9,11,.86) 55%,rgba(8,9,11,.6))}
+  .pp-next-foot{gap:1rem}
+}
+@media(prefers-reduced-motion:reduce){.pp-next{opacity:1;transform:none;transition:none}}
+
+/* ===== Visuels de page projet : plus aucun recadrage ===== */
+.pp-visuals{align-items:start;gap:14px!important}
+.pp-visuals.solo{grid-template-columns:minmax(0,min(100%,460px));justify-content:center}
+.pp-visual{background:transparent!important;overflow:visible!important}
+.pp-visual-fr{position:relative;display:block;overflow:hidden;background:var(--paper3);
+  border:1px solid var(--border);box-shadow:inset 0 1px 0 var(--edge),0 18px 40px -24px rgba(0,0,0,.9);
+  transition:border-color .35s}
+.pp-visual:not(.pp-slot):hover .pp-visual-fr{border-color:rgba(200,40,26,.6)}
+.pp-visual img{width:100%;height:auto!important;object-fit:contain!important;
+  transform:none!important;transition:filter .45s ease!important}
+.pp-visual:not(.pp-slot):hover img{filter:brightness(1.08)}
+.pp-vid .pp-visual-fr>img,.pp-vposter{position:absolute;inset:0;width:100%;height:100%!important;object-fit:cover!important}
+/* l'ombrage de survol et la loupe ne couvrent plus que l'image */
+.pp-visual:not(.pp-slot)::after{display:none}
+.pp-visual:not(.pp-slot) .pp-visual-fr::after{content:'';position:absolute;inset:0;
+  background:rgba(8,9,11,0);transition:background .35s;pointer-events:none}
+.pp-visual:not(.pp-slot):hover .pp-visual-fr::after{background:rgba(8,9,11,.22)}
+/* legende sous la piece, elle ne mange plus la typo de l'affiche */
+.pp-visual-cap{position:static!important;background:none!important;
+  padding:.55rem 0 0!important;font-family:'IBM Plex Mono',ui-monospace,monospace;
+  font-size:.52rem!important;font-weight:400!important;letter-spacing:.14em!important;
+  color:var(--chrome)!important}
+.pp-slot{min-height:220px}
+@media(max-width:600px){
+  .pp-visuals{grid-template-columns:1fr!important;gap:18px!important}
+  .pp-visuals.solo{grid-template-columns:1fr!important}
+}
+
+/* un visuel qui n'arrive pas ne doit jamais afficher une icone cassee */
+.pp-visual.pp-ko .pp-visual-fr{min-height:180px;display:flex;align-items:center;justify-content:center}
+.pp-visual.pp-ko img,.pp-visual.pp-ko .pp-zoom{display:none}
+.pp-visual.pp-ko{pointer-events:none}
+.pp-visual.pp-ko .pp-visual-fr::before{content:'Visuel indisponible';
+  font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.54rem;
+  letter-spacing:.18em;text-transform:uppercase;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -1832,7 +1911,10 @@ function openProject(group){
   var zoomSvg='<span class="pp-zoom"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3M11 8v6M8 11h6"/></svg></span>';
   var visHtml='';
   imgs.forEach(function(im,idx){
-    visHtml+='<div class="pp-visual" data-ppidx="'+idx+'"><img src="'+im.src+'" alt="'+im.title+'">'+zoomSvg+'<div class="pp-visual-cap">'+im.title+'</div></div>';
+    visHtml+='<div class="pp-visual" data-ppidx="'+idx+'">'
+      +'<span class="pp-visual-fr"><img src="'+im.src+'" alt="'+im.title+'" loading="lazy" decoding="async"'
+      +' onerror="this.closest(\'.pp-visual\').classList.add(\'pp-ko\')">'+zoomSvg+'</span>'
+      +'<div class="pp-visual-cap">'+im.title+'</div></div>';
   });
   // --- vidéos : vraies vidéos cliquables + slots à venir ---
   var playSvg='<span class="pp-vplay"><svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg></span>';
@@ -1843,19 +1925,49 @@ function openProject(group){
     var posterImg = vposter ? '<img class="pp-vposter" src="'+vposter+'" alt="">' : '';
     var vw=v.w||337,vh=v.h||600;
     var vlabel=(typeof v==='object'&&v.label)?v.label:'Vidéo '+(vi+1);
-    vidHtml+='<div class="pp-visual pp-vid" data-vsrc="'+vsrc+'" style="aspect-ratio:'+vw+'/'+vh+';">'+posterImg+playSvg+'<div class="pp-visual-cap">'+vlabel+'</div></div>';
+    vidHtml+='<div class="pp-visual pp-vid" data-vsrc="'+vsrc+'">'
+      +'<span class="pp-visual-fr" style="aspect-ratio:'+vw+'/'+vh+'">'+posterImg+playSvg+'</span>'
+      +'<div class="pp-visual-cap">'+vlabel+'</div></div>';
   });
   var hasVid = c.videos && c.videos.length;
   var vidSection = hasVid
-    ? '<div class="pp-vis-label">Les vidéos</div><div class="pp-visuals">'+vidHtml+'</div>'
+    ? '<div class="pp-vis-label">Les vidéos</div><div class="pp-visuals'+(c.videos.length===1?' solo':'')+'">'+vidHtml+'</div>'
     : '';
   // section visuels seulement s'il y a des affiches ou slots
   var hasVis = imgs.length;
   var visSection = hasVis
-    ? '<div class="pp-vis-label">Les visuels</div><div class="pp-visuals">'+visHtml+'</div>'
+    ? '<div class="pp-vis-label">Les visuels</div><div class="pp-visuals'+(imgs.length===1?' solo':'')+'">'+visHtml+'</div>'
     : '';
   // store campaign images for the project lightbox
   ppImgs = imgs;
+  // ── Fin de page : on propose la suite plutot qu'un cul-de-sac ──
+  var ordre=[...document.querySelectorAll('#gallery .gal-item[data-group]')]
+    .map(function(i){return i.dataset.group;})
+    .filter(function(g,i,a){return a.indexOf(g)===i;});
+  var suivant=ordre.length>1 ? ordre[(ordre.indexOf(group)+1)%ordre.length] : null;
+  var nextHtml='';
+  if(suivant && CAMPAIGNS[suivant]){
+    var nc=CAMPAIGNS[suivant];
+    var nimg=groupItems(suivant)[0];
+    nimg=nimg && nimg.querySelector('img') ? nimg.querySelector('img').getAttribute('src') : '';
+    nextHtml='<div class="pp-next">'
+      +'<a class="pp-next-link" href="#p-'+suivant+'" data-next="'+suivant+'">'
+        +(nimg?'<img class="pp-next-img" src="'+nimg+'" alt="" aria-hidden="true">':'')
+        +'<span class="pp-next-vo"></span>'
+        +'<span class="pp-next-in">'
+          +'<span class="pp-next-lbl">Projet suivant</span>'
+          +'<span class="pp-next-name">'+nc.name+'</span>'
+          +'<span class="pp-next-cat">'+nc.cat+'</span>'
+        +'</span>'
+        +'<span class="pp-next-go">&rarr;</span>'
+      +'</a>'
+      +'<div class="pp-next-foot">'
+        +'<button class="pp-foot-a" data-act="tous">&larr; Tous les projets</button>'
+        +'<button class="pp-foot-a" data-act="contact">Me contacter &rarr;</button>'
+      +'</div>'
+    +'</div>';
+  }
+
   ppWrap.innerHTML=
     '<div class="pp-head">'
       +'<img class="pp-logo-big" src="'+c.logo+'" alt="'+c.name+'">'
@@ -1869,12 +1981,27 @@ function openProject(group){
       +'<div class="pp-brief-txt">'+c.brief+'</div>'
     +'</div>'
     +visSection
-    +vidSection;
+    +vidSection
+    +nextHtml;
   pp.classList.add('on');
   document.body.style.overflow='hidden';
   pp.scrollTop=0;
   var vEls=ppWrap.querySelectorAll('.pp-visual');
   vEls.forEach(function(el,idx){setTimeout(function(){el.classList.add('in');}, 150+idx*80);});
+  var nx=ppWrap.querySelector('.pp-next');
+  if(nx){
+    setTimeout(function(){nx.classList.add('in');}, 250+vEls.length*80);
+    nx.querySelector('.pp-next-link').addEventListener('click',function(e){
+      e.preventDefault(); openProject(this.dataset.next);
+    });
+    nx.querySelectorAll('.pp-foot-a').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        closeProject();
+        if(btn.dataset.act==='contact'){ setTimeout(function(){openContact();},260); }
+        else { var g=document.getElementById('portfolio'); if(g) setTimeout(function(){g.scrollIntoView({behavior:'smooth'});},120); }
+      });
+    });
+  }
   // clic sur une vignette réelle -> agrandir
   ppWrap.querySelectorAll('.pp-visual[data-ppidx]').forEach(function(el){
     el.addEventListener('click',function(){openPpLb(parseInt(el.dataset.ppidx,10));});
