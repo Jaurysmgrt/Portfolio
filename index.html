@@ -1488,6 +1488,30 @@ body.loaded .son{opacity:1}
   .filter::-webkit-scrollbar{display:none}
   .filter-btn,.filter>*{flex:0 0 auto;white-space:nowrap}
 }
+
+
+/* Le travelling ne jouait qu'au clic sur un lien. En defilant — c'est a dire
+   tout le temps — rien ne bougeait. Maintenant chaque bloc vit sur l'axe Z en
+   permanence : il arrive de loin, se pose quand il passe au centre du regard,
+   et repart en arriere. On ne voit pas une transition, on est dedans. */
+
+
+/* ============ LE DÉFILEMENT ============ */
+/* Le contenu vit dans une seule couche, posée par-dessus la page. Le
+   navigateur defile normalement ; la couche, elle, rattrape la position avec
+   un retard. C'est ce retard qui donne la matiere : on ne saute pas d'un
+   pixel a l'autre, on glisse. Une seule transformation, donc c'est fluide.
+   Sur ecran tactile on n'y touche pas : l'inertie native est deja la, et la
+   remplacer la rendrait pire. */
+/* La couche n'est detachee QUE si le script la pilote. Sans cette condition,
+   un appareil tactile se retrouve avec une page fixe, donc impossible a
+   faire defiler. */
+body.glisse #scene{position:fixed;top:0;left:0;width:100%;z-index:1;will-change:transform}
+body.glisse{overflow-x:hidden}
+@media(prefers-reduced-motion:reduce){
+  #scene{position:static!important;transform:none!important}
+  body.glisse{height:auto!important}
+}
 </style>
 </head>
 <body>
@@ -1634,6 +1658,7 @@ body.loaded .son{opacity:1}
 </div>
 
 <!-- HERO -->
+<div id="scene">
 <section class="hero">
   <div class="hero-grid-bg"></div>
   <div class="hero-vline hero-vline1"></div>
@@ -1905,6 +1930,7 @@ body.loaded .son{opacity:1}
   <span class="ft-copy">© 2026 · Jaurys Maigret</span>
   <span class="ft-r">Portfolio · Direction Artistique · ESP Paris</span>
 </footer>
+</div><!-- /scene -->
 
 <script>
 // ═══ MISE SOUS TENSION ═══
@@ -2636,6 +2662,43 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
   verifie();
   [1200,3000,6000].forEach(function(t){setTimeout(verifie,t)});
 });
+// ═══ LE DÉFILEMENT ═══
+// Ce n'est pas un effet ajoute : c'est la matiere du site. Le contenu
+// rattrape la position du defilement avec un retard, donc tout glisse au
+// lieu de sauter. Une seule couche transformee : aucune image n'est
+// deformee, aucune composition n'est cassee, et ca reste fluide.
+(function(){
+  var scene=document.getElementById('scene');
+  if(!scene) return;
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  // le tactile a deja sa propre inertie, bien meilleure que tout ce qu'on
+  // pourrait recoder : on la laisse tranquille.
+  if(!matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+
+  document.body.classList.add('glisse');
+  var pos=0, raf=null;
+
+  function hauteur(){
+    document.body.style.height=scene.offsetHeight+'px';
+  }
+  if(window.ResizeObserver) new ResizeObserver(hauteur).observe(scene);
+  addEventListener('resize',hauteur,{passive:true});
+  hauteur();
+  // les filtres de la galerie changent la hauteur : on recalcule apres coup
+  document.querySelectorAll('.filter [data-f], .filter button').forEach(function(b){
+    b.addEventListener('click',function(){ setTimeout(hauteur,60); setTimeout(hauteur,700); });
+  });
+
+  function boucle(){
+    var cible=window.scrollY||window.pageYOffset;
+    var d=cible-pos;
+    if(Math.abs(d)<0.08){ pos=cible; }
+    else { pos+=d*0.105; }
+    scene.style.transform='translate3d(0,'+(-pos).toFixed(2)+'px,0)';
+    raf=requestAnimationFrame(boucle);
+  }
+  raf=requestAnimationFrame(boucle);
+})();
 // ═══ LE SON ═══
 // Synthetise, jamais charge. Coupe par defaut : personne ne doit etre
 // surpris par du son sur un portfolio. Le choix est retenu pour la visite.
