@@ -1085,7 +1085,11 @@ footer a:hover::after{width:100%}
 .tl-paper .tl-badge:not([style]){background:var(--red)!important;color:#fff!important;border:none}
 
 /* -- Le nom fantome et les titres evides : trait chrome, pas trait creme -- */
-.hn2 span{-webkit-text-stroke:1.5px rgba(154,166,178,.34)}
+/* Son nom de famille doit se lire. Contour + remplissage tres faible :
+   les lettres redeviennent des volumes sans voler la vedette au prenom. */
+.hn2 span{-webkit-text-stroke:1.7px rgba(176,190,204,.5);color:rgba(230,236,242,.05)}
+.hero-ghost{color:rgba(240,234,216,.015)}
+.hr-txt{color:var(--chrome)}
 .sec-title em{-webkit-text-stroke:1.5px rgba(154,166,178,.30)}
 
 /* ============ AVANT-GOUT : la planche-contact sous le hero ============ */
