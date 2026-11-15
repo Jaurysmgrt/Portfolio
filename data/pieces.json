@@ -1,0 +1,167 @@
+[
+ {
+  "src": "images/hermes-cardamusc.jpg",
+  "w": 800,
+  "h": 1200,
+  "titre": "Hermès, Cardamusc",
+  "cat": "Affiche · Parfum · Luxe",
+  "desc": "Affiche Saint-Valentin pour le parfum Cardamusc : chaleur épicée et délicatesse dans une même image.",
+  "groupe": "hermes",
+  "marque": "Hermès",
+  "secondaire": false
+ },
+ {
+  "src": "images/atol-chloe.jpg",
+  "w": 770,
+  "h": 1200,
+  "titre": "Atol, Chloé",
+  "cat": "Affiche · Recrutement",
+  "desc": "Campagne de recrutement Atol Les Opticiens. Direction artistique complète, menée en une semaine.",
+  "groupe": "atol",
+  "marque": "Atol",
+  "secondaire": false
+ },
+ {
+  "src": "images/halloween-talon-pointe.jpg",
+  "w": 675,
+  "h": 1200,
+  "titre": "Halloween chez Talon Pointe",
+  "cat": "Shooting · Halloween",
+  "desc": "",
+  "groupe": "halloween",
+  "marque": "Talon Pointe",
+  "secondaire": false
+ },
+ {
+  "src": "images/uber-rio-de-janeiro.jpg",
+  "w": 1200,
+  "h": 799,
+  "titre": "Uber, Rio de Janeiro",
+  "cat": "Campagne · Transport",
+  "desc": "Campagne de marque Uber, déclinaison Rio de Janeiro.",
+  "groupe": "uber",
+  "marque": "Uber",
+  "secondaire": false
+ },
+ {
+  "src": "images/uber-mexico-city.jpg",
+  "w": 1200,
+  "h": 800,
+  "titre": "Uber, Mexico City",
+  "cat": "Campagne · Transport",
+  "desc": "Campagne de marque Uber, déclinaison Mexico City.",
+  "groupe": "uber",
+  "marque": "Uber",
+  "secondaire": true
+ },
+ {
+  "src": "images/bmw-m-cockpit.jpg",
+  "w": 1200,
+  "h": 800,
+  "titre": "BMW M, Cockpit",
+  "cat": "Photo · Intérieur · Luxe",
+  "desc": "Photo intérieure BMW M, focus sur le tableau de bord. Shooting Talon Pointe.",
+  "groupe": "",
+  "marque": "",
+  "secondaire": false
+ },
+ {
+  "src": "images/porsche-911-showroom.jpg",
+  "w": 800,
+  "h": 1200,
+  "titre": "Porsche 911, Showroom",
+  "cat": "Photo · Luxe · Talon Pointe",
+  "desc": "Porsche 911 en concession, mise en scène showroom premium. Shooting Talon Pointe.",
+  "groupe": "",
+  "marque": "",
+  "secondaire": false
+ },
+ {
+  "src": "images/bmw-m4cs-drive-select.jpg",
+  "w": 1200,
+  "h": 798,
+  "titre": "BMW M4CS, Drive Select",
+  "cat": "Photo · Détail · Talon Pointe",
+  "desc": "Détail Drive Select BMW M4CS, macro sur la commande de sélection. Shooting Talon Pointe.",
+  "groupe": "",
+  "marque": "",
+  "secondaire": false
+ },
+ {
+  "src": "images/porsche-blason.jpg",
+  "w": 800,
+  "h": 1200,
+  "titre": "Porsche, Blason",
+  "cat": "Photo · Macro · Détail",
+  "desc": "Macro du blason Porsche, lumière rasante. Shooting Talon Pointe.",
+  "groupe": "",
+  "marque": "",
+  "secondaire": false
+ },
+ {
+  "src": "images/porsche-jante-carrera.jpg",
+  "w": 1200,
+  "h": 800,
+  "titre": "Porsche, Jante Carrera",
+  "cat": "Photo · Détail · Talon Pointe",
+  "desc": "Jante Carrera Porsche, composition graphique. Shooting Talon Pointe.",
+  "groupe": "",
+  "marque": "",
+  "secondaire": false
+ },
+ {
+  "src": "images/jeep-wrangler-rubicon.jpg",
+  "w": 800,
+  "h": 1200,
+  "titre": "Jeep Wrangler Rubicon",
+  "cat": "Photo · Outdoor · Talon Pointe",
+  "desc": "Jeep Wrangler Rubicon en extérieur, terrain et caractère. Shooting Talon Pointe.",
+  "groupe": "",
+  "marque": "",
+  "secondaire": false
+ },
+ {
+  "src": "images/nuit-1.jpg",
+  "w": 1616,
+  "h": 1080,
+  "titre": "Ciel étoilé, Toits",
+  "cat": "Photo · Nuit",
+  "desc": "Nuit claire au-dessus des toits, pose longue. Traînées d'étoiles filantes visibles.",
+  "groupe": "",
+  "marque": "",
+  "secondaire": false
+ },
+ {
+  "src": "images/nuit-2.jpg",
+  "w": 1616,
+  "h": 1080,
+  "titre": "Voie lactée, Lisière",
+  "cat": "Photo · Nuit",
+  "desc": "Voie lactée saisie depuis la lisière, silhouette d'arbre en premier plan.",
+  "groupe": "",
+  "marque": "",
+  "secondaire": false
+ },
+ {
+  "src": "images/nuit-3.jpg",
+  "w": 1616,
+  "h": 1080,
+  "titre": "Nuit claire, Grand arbre",
+  "cat": "Photo · Nuit",
+  "desc": "Arbre isolé sous un ciel dégagé, lumière chaude des villages à l'horizon.",
+  "groupe": "",
+  "marque": "",
+  "secondaire": false
+ },
+ {
+  "src": "images/nuit-4.jpg",
+  "w": 1616,
+  "h": 1080,
+  "titre": "Voie lactée, Feuillage",
+  "cat": "Photo · Nuit",
+  "desc": "Feuillage éclairé au premier plan, Voie lactée en profondeur dans un ciel dégagé.",
+  "groupe": "",
+  "marque": "",
+  "secondaire": false
+ }
+]
