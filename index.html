@@ -1103,6 +1103,52 @@ footer a:hover::after{width:100%}
 /* -- Le nom fantome et les titres evides : trait chrome, pas trait creme -- */
 .hn2 span{-webkit-text-stroke:1.5px rgba(154,166,178,.34)}
 .sec-title em{-webkit-text-stroke:1.5px rgba(154,166,178,.30)}
+
+/* ============ AVANT-GOUT : la planche-contact sous le hero ============ */
+.tz{padding:4.5rem 3rem 5rem;position:relative;border-top:1px solid var(--border);box-shadow:inset 0 1px 0 var(--edge)}
+.tz-head{display:flex;align-items:baseline;justify-content:space-between;gap:2rem;margin-bottom:1.6rem}
+.tz-lbl{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;color:var(--chrome);display:flex;align-items:center;gap:.9rem}
+.tz-lbl::after{content:'';width:clamp(40px,8vw,120px);height:1px;background:var(--border)}
+.tz-all{font-size:.62rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);text-decoration:none;white-space:nowrap;transition:color .25s}
+.tz-all:hover{color:var(--red2)}
+.tz-strip{display:flex;gap:16px;align-items:flex-start;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;scroll-snap-type:x proximity;padding-bottom:.4rem}
+.tz-strip::-webkit-scrollbar{display:none}
+.tzi{flex:0 0 auto;margin:0;cursor:pointer;scroll-snap-align:start;
+  opacity:0;transform:translateY(28px);
+  transition:opacity .9s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1);
+  transition-delay:var(--td,0ms)}
+.tz.in .tzi{opacity:1;transform:none}
+.tzi-fr{position:relative;background:var(--paper3);box-shadow:inset 0 1px 0 var(--edge),0 20px 44px -24px rgba(0,0,0,.9);overflow:hidden}
+.tzi-fr img{height:clamp(220px,34vh,390px);width:auto;max-width:none;display:block;transition:filter .5s}
+.tzi-fr::after{content:'';position:absolute;inset:0;border:1px solid var(--border);pointer-events:none;transition:border-color .35s}
+.tzi:hover .tzi-fr::after{border-color:rgba(200,40,26,.6)}
+.tzi:hover .tzi-fr img{filter:brightness(1.07)}
+.tzi-cap{display:flex;align-items:baseline;gap:.7rem;margin-top:.7rem;max-width:34ch}
+.tzi-n{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.56rem;letter-spacing:.14em;color:var(--red);flex:0 0 auto}
+.tzi-t{font-size:.68rem;font-weight:500;letter-spacing:.04em;color:var(--chrome);line-height:1.5}
+.tzi-c{display:block;font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.52rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:.18rem}
+.tz-end{flex:1 1 170px;min-width:150px;height:clamp(220px,34vh,390px);box-sizing:border-box;
+  display:flex;flex-direction:column;justify-content:flex-end;gap:.45rem;padding:1.3rem;
+  text-decoration:none;border:1px solid var(--border);
+  background:linear-gradient(177deg,var(--paper2) 0%,var(--paper) 45%,var(--paper3) 100%);
+  box-shadow:inset 0 1px 0 var(--edge);transition:border-color .35s,transform .35s;
+  opacity:0;transform:translateY(28px);
+  transition:opacity .9s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1),border-color .35s;
+  transition-delay:var(--td,0ms)}
+.tz.in .tz-end{opacity:1;transform:none}
+.tz-end:hover{border-color:rgba(200,40,26,.6)}
+.tz-end-n{font-family:'Anton',sans-serif;font-size:clamp(1.8rem,3vw,2.6rem);line-height:.9;color:var(--cream)}
+.tz-end-t{font-size:.6rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:var(--chrome);line-height:1.6}
+.tz-end-a{font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:var(--red2);margin-top:.3rem}
+@media(max-width:900px){.tz{padding:3.2rem 1.5rem 3.6rem}.tz-strip{gap:12px}.tz-end{flex:0 0 160px}}
+@media(max-width:600px){
+  .tz{padding:2.6rem 0 3rem}
+  .tz-head{padding:0 1.5rem;margin-bottom:1.1rem}
+  .tz-strip{padding:0 1.5rem .4rem;scroll-padding-left:1.5rem}
+  .tzi-fr img{height:clamp(200px,42vh,320px)}
+  .tz-end{height:clamp(200px,42vh,320px);flex:0 0 150px;padding:1rem}
+}
+@media(prefers-reduced-motion:reduce){.tzi{opacity:1;transform:none;transition:none}}
 </style>
 </head>
 <body>
@@ -1257,6 +1303,15 @@ footer a:hover::after{width:100%}
     <a href="#contact" class="hero-btn" id="ctaContact" onclick="openContact(event)">Me contacter →</a>
   </div>
   <div class="hero-scroll"><span class="hs-lbl">Scroll</span><div class="hs-line"></div></div>
+</section>
+
+<!-- AVANT-GOUT : trois visuels avant meme d'avoir scrolle -->
+<section class="tz rv" id="apercu" aria-label="Apercu des projets">
+  <div class="tz-head">
+    <span class="tz-lbl">Aper&ccedil;u</span>
+    <a href="#portfolio" class="tz-all">Voir tous les projets &rarr;</a>
+  </div>
+  <div class="tz-strip" id="tzStrip"></div>
 </section>
 
 <!-- MARQUEE -->
@@ -2064,6 +2119,65 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
   verifie();
   [1200,3000,6000].forEach(function(t){setTimeout(verifie,t)});
 });
+// ═══ Avant-goût : trois visuels clonés depuis la galerie ═══
+// On réutilise les <img> existantes : même src, donc pas un octet d'image en plus.
+(function(){
+  var strip=document.getElementById('tzStrip'); if(!strip)return;
+  var choix=['Hermès, Cardamusc','Uber, Rio de Janeiro','Porsche, Blason'];
+  choix.forEach(function(titre,i){
+    var src=document.querySelector('#gallery .gal-item[data-title="'+titre+'"]');
+    if(!src)return;
+    var img=src.querySelector('img'); if(!img||!img.getAttribute('src'))return;
+
+    var fig=document.createElement('figure');
+    fig.className='tzi';
+    fig.style.setProperty('--td',(i*140)+'ms');
+    fig.setAttribute('role','button');
+    fig.setAttribute('aria-label','Ouvrir : '+titre);
+    fig.tabIndex=0;
+
+    var cadre=document.createElement('div'); cadre.className='tzi-fr';
+    var c=document.createElement('img');
+    c.src=img.getAttribute('src');
+    c.alt=img.getAttribute('alt')||titre;
+    c.setAttribute('decoding','async');
+    cadre.appendChild(c);
+
+    var cap=document.createElement('figcaption'); cap.className='tzi-cap';
+    var n=document.createElement('span'); n.className='tzi-n'; n.textContent=(i<9?'0':'')+(i+1);
+    var t=document.createElement('span'); t.className='tzi-t'; t.textContent=titre;
+    if(src.dataset.cat){
+      var sc=document.createElement('span'); sc.className='tzi-c'; sc.textContent=src.dataset.cat;
+      t.appendChild(sc);
+    }
+    cap.appendChild(n); cap.appendChild(t);
+
+    fig.appendChild(cadre); fig.appendChild(cap);
+    function ouvrir(){ src.click(); }
+    fig.addEventListener('click',ouvrir);
+    fig.addEventListener('keydown',function(e){
+      if(e.key==='Enter'||e.key===' '){ e.preventDefault(); ouvrir(); }
+    });
+    strip.appendChild(fig);
+  });
+  var sec=document.getElementById('apercu');
+  if(sec && !strip.children.length){ sec.style.display='none'; return; }
+
+  // Fin de planche : on compte les projets réels (une campagne = un projet)
+  var groupes={}, isoles=0;
+  document.querySelectorAll('#gallery .gal-item').forEach(function(it){
+    if(it.dataset.group) groupes[it.dataset.group]=1; else isoles++;
+  });
+  var total=isoles+Object.keys(groupes).length;
+  var fin=document.createElement('a');
+  fin.className='tz-end'; fin.href='#portfolio';
+  fin.style.setProperty('--td',(choix.length*140)+'ms');
+  var fn=document.createElement('span'); fn.className='tz-end-n'; fn.textContent=total;
+  var ft=document.createElement('span'); ft.className='tz-end-t'; ft.textContent='projets au total';
+  var fa=document.createElement('span'); fa.className='tz-end-a'; fa.textContent='Tout voir \u2192';
+  fin.appendChild(fn); fin.appendChild(ft); fin.appendChild(fa);
+  strip.appendChild(fin);
+})();
 // ═══ Inclinaison 3D suivant le curseur (ordinateur uniquement) ═══
 (function(){
   if(!window.matchMedia('(hover:hover) and (pointer:fine)').matches)return;
