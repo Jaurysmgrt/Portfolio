@@ -1525,6 +1525,8 @@ body.loaded .son{opacity:.45}
 .pp-vid::before,.pp-vid::after{display:none!important}
 .pp-vid .pp-visual-fr{background:linear-gradient(135deg,#1c222b,#0e1318)}
 .pp-vid .pp-visual-fr>.deco{display:none}
+/* une video verticale ne doit pas creuser la rangee ou elle se trouve */
+.pp-vid-haut .pp-visual-fr{max-height:440px;width:auto;max-width:100%;margin-inline:auto}
 .pp-vid .pp-vplay{position:absolute!important;top:50%;left:50%;z-index:3;
   transform:translate(-50%,-50%);transition:transform .35s cubic-bezier(.34,1.4,.64,1)}
 .pp-vid:hover .pp-vplay{transform:translate(-50%,-50%) scale(1.12)}
@@ -2289,8 +2291,11 @@ var CAMPAIGNS = {
     cat: "Campagne · Eau premium",
     logo: "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjQwIDgwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjEyMCIgeT0iNTQiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI0NiIgZm9udC13ZWlnaHQ9IjMwMCIgbGV0dGVyLXNwYWNpbmc9IjE4IiBmaWxsPSIjZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5WT1NTPC90ZXh0Pjwvc3ZnPg==",
     meta: { "Type": "Campagne de marque", "Secteur": "Eau premium / Boisson", "Année": "2026" },
-    brief: "Campagne de marque VOSS : sortir l'eau premium de la table dressée pour la poser dans la rue. Même bouteille, même logo, aucun autre élément graphique — c'est le verre, la lumière et le geste qui portent la marque. Le dispositif court du studio à l'extérieur : packshot à contre-jour, double page magazine et carrousel social. Projet d'équipe mené à l'ESP Paris, sur un brief donné en début de semaine.",
-    videos: [],
+    brief: "Campagne de marque VOSS : sortir l'eau premium de la table dressée pour la poser dans la rue. Même bouteille, même logo, aucun autre élément graphique — c'est le verre, la lumière et le geste qui portent la marque. Le dispositif court du studio à l'extérieur : packshot à contre-jour, double page magazine, carrousel social et deux films. Projet d'équipe mené à l'ESP Paris, sur un brief donné en début de semaine.",
+    videos: [
+      {src:"https://youtu.be/Z0sWZ85BZWs",poster:"https://img.youtube.com/vi/Z0sWZ85BZWs/maxresdefault.jpg",label:"Le film",w:16,h:9},
+      {src:"https://youtu.be/jALFTSEXKDU",poster:"images/voss-rue.jpg",label:"Format vertical",w:9,h:16}
+    ],
     posterSlots: 0,
     videoSlots: 0
   },
@@ -2365,11 +2370,14 @@ function openProject(group){
   (c.videos||[]).forEach(function(v,vi){
     var vsrc = (typeof v==='string') ? v : v.src;
     var vposter = (typeof v==='object' && v.poster) ? v.poster : '';
-    var posterImg = vposter ? '<img class="pp-vposter" src="'+vposter+'" alt="">' : '';
+    var posterImg = vposter ? '<img class="pp-vposter" src="'+vposter+'" alt=""'
+      + (/img\.youtube\.com/.test(vposter)
+         ? ' onerror="this.onerror=null;this.src=this.src.replace(\'maxresdefault\',\'hqdefault\')"' : '')
+      + '>' : '';
     var vw=v.w||337,vh=v.h||600;
     var seule=(c.videos||[]).length===1;
     var vlabel=(typeof v==='object'&&v.label)?v.label:(seule?'':'Vidéo '+(vi+1));
-    vidHtml+='<div class="pp-visual pp-vid" data-vsrc="'+vsrc+'">'
+    vidHtml+='<div class="pp-visual pp-vid'+(vh>vw?' pp-vid-haut':'')+'" data-vsrc="'+vsrc+'">'
       +'<span class="pp-visual-fr" style="aspect-ratio:'+vw+'/'+vh+'">'+posterImg+playSvg+'</span>'
       +'<div class="pp-visual-cap">'+vlabel+'</div></div>';
   });
@@ -2536,7 +2544,7 @@ document.addEventListener('keydown',function(e){
 var vm=document.getElementById('vmodal'),vmv=document.getElementById('vmvid');
 var vmyt=document.getElementById('vmyt');
 var vmLoad=document.getElementById('vmLoad'),vmFallback=document.getElementById('vmFallback');
-function ytId(url){var m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|watch\?v=))([\w-]{11})/);return m?m[1]:null;}
+function ytId(url){var m=url.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|shorts\/|live\/|watch\?v=))([\w-]{11})/);return m?m[1]:null;}
 var vmytWrap=document.getElementById('vmytWrap');
 var vmCurrentYt=null,ytPlayer=null,ytApiReady=false,ytApiLoading=false,ytPending=null,ytGuard=null,vmLocalGuard=null;
 
