@@ -1299,6 +1299,17 @@ footer a:hover::after{width:100%}
   .lb-img-wrap img{max-height:56vh;width:100%}
   .lb-info{padding:1.4rem 1.3rem 1.6rem!important}
 }
+
+/* ============ LE FLUX : de l'air en soufflerie, derriere le nom ============ */
+.hero-flux{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:0;
+  opacity:0;transition:opacity 1.6s ease .3s}
+body.loaded .hero-flux{opacity:1}
+.hero-topbar,.hero-body,.hero-bottom{position:relative;z-index:1}
+/* Ceux-la sont deja en absolu : leur mettre position:relative les remettrait
+   dans le flux et casserait la mise en page. On ne touche qu'au z-index. */
+.hero-scroll{z-index:1}
+.hero-ghost{z-index:0}
+@media(prefers-reduced-motion:reduce){.hero-flux{display:none}}
 </style>
 </head>
 <body>
@@ -1428,6 +1439,7 @@ footer a:hover::after{width:100%}
 <!-- HERO -->
 <section class="hero">
   <div class="hero-grid-bg"></div>
+  <canvas class="hero-flux" id="heroFlux" aria-hidden="true"></canvas>
   <div class="hero-vline hero-vline1"></div>
   <div class="hero-vline hero-vline2"></div>
   <div class="hero-ghost">DA</div>
@@ -2407,6 +2419,138 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
   verifie();
   [1200,3000,6000].forEach(function(t){setTimeout(verifie,t)});
 });
+// ═══ LE FLUX ═══
+// Des filets d'air traversent le hero de gauche a droite et contournent le
+// bloc du nom, comme la fumee autour d'un modele en soufflerie. Le curseur
+// devient un second obstacle. Aucune image n'est touchee.
+(function(){
+  var cv=document.getElementById('heroFlux'); if(!cv||!cv.getContext) return;
+  if(window.matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  // Sur un telephone le flux est a peine lisible et coute de la batterie :
+  // on ne le lance pas.
+  if(window.matchMedia('(max-width:600px)').matches){ cv.remove(); return; }
+  var ctx=cv.getContext('2d',{alpha:true});
+  var hero=cv.closest('.hero');
+  var W=0,H=0,lignes=[],obstacles=[],souris=null,raf=null,visible=true,phase=0;
+  var FIN=window.matchMedia('(hover:hover) and (pointer:fine)').matches;
+  var PAS=7;                 // longueur d'un segment, en px
+
+  function dimensionner(){
+    var r=hero.getBoundingClientRect();
+    var dpr=Math.min(window.devicePixelRatio||1,2);
+    W=Math.round(r.width); H=Math.round(r.height);
+    cv.width=Math.round(W*dpr); cv.height=Math.round(H*dpr);
+    cv.style.width=W+'px'; cv.style.height=H+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    majObstacles(); semer();
+  }
+
+  // Le bloc du nom est le modele place dans la veine d'essai.
+  function majObstacles(){
+    obstacles.length=0;
+    var r=hero.getBoundingClientRect();
+    ['.hn:not(.hn2) span','.hn2 span'].forEach(function(sel){
+      var e=document.querySelector(sel); if(!e) return;
+      var b=e.getBoundingClientRect(); if(!b.width) return;
+      obstacles.push({x:b.left-r.left+b.width/2, y:b.top-r.top+b.height/2,
+                      rx:b.width*0.56, ry:b.height*0.62, f:1});
+    });
+    if(souris) obstacles.push(souris);
+  }
+
+  function semer(){
+    lignes.length=0;
+    var ecart = W<700 ? 30 : 26;
+    for(var y=-20; y<H+20; y+=ecart){
+      lignes.push({y0:y,
+        a: 0.07+Math.random()*0.14,
+        rouge: Math.random()<0.075,
+        p: Math.random()*6.28, f: 0.0016+Math.random()*0.0022, amp: 3+Math.random()*7,
+        pts:[]});
+    }
+  }
+
+  // Champ de vitesse : ecoulement vers la droite + contournement des obstacles.
+  function vy(x,y,L){
+    var v=(L.y0-y)*0.018;                     // le flux se recolle apres l'obstacle
+    v += Math.cos(x*L.f+L.p)*L.amp*0.012;     // la fumee n'est jamais parfaitement droite
+    for(var i=0;i<obstacles.length;i++){
+      var o=obstacles[i];
+      var dx=(x-o.x)/o.rx, dy=(y-o.y)/o.ry;
+      var d2=dx*dx+dy*dy;
+      if(d2<9 && d2>1e-4){
+        var d=Math.sqrt(d2);
+        v += (dy/d) * o.f * 2.1/(d2+0.42);
+      }
+    }
+    return v;
+  }
+
+  function tracer(){
+    for(var i=0;i<lignes.length;i++){
+      var L=lignes[i], pts=L.pts; pts.length=0;
+      var x=-30, y=L.y0;
+      pts.push(x,y);
+      while(x<W+30){
+        y += vy(x,y,L)*PAS*0.42;
+        x += PAS;
+        pts.push(x,y);
+      }
+    }
+  }
+
+  function dessiner(){
+    ctx.clearRect(0,0,W,H);
+    ctx.lineCap='butt';
+    ctx.setLineDash([96,150]);
+    for(var i=0;i<lignes.length;i++){
+      var L=lignes[i], p=L.pts;
+      if(p.length<4) continue;
+      ctx.lineDashOffset = -phase*(0.8+(i%5)*0.22);
+      ctx.beginPath();
+      ctx.moveTo(p[0],p[1]);
+      for(var k=2;k<p.length;k+=2) ctx.lineTo(p[k],p[k+1]);
+      ctx.strokeStyle = L.rouge ? 'rgba(232,55,42,'+(L.a*1.9).toFixed(3)+')'
+                                : 'rgba(190,204,218,'+L.a.toFixed(3)+')';
+      ctx.lineWidth = L.rouge ? 1.2 : 1;
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+  }
+
+  function boucle(){
+    raf=null; if(!visible) return;
+    phase+=1.5;
+    tracer(); dessiner();
+    raf=requestAnimationFrame(boucle);
+  }
+  function relancer(){ if(!raf && visible) raf=requestAnimationFrame(boucle); }
+
+  if(FIN){
+    hero.addEventListener('pointermove',function(e){
+      var r=hero.getBoundingClientRect();
+      if(!souris){ souris={x:0,y:0,rx:110,ry:110,f:1.6}; obstacles.push(souris); }
+      souris.x=e.clientX-r.left; souris.y=e.clientY-r.top;
+    },{passive:true});
+    hero.addEventListener('pointerleave',function(){
+      var i=obstacles.indexOf(souris); if(i>=0) obstacles.splice(i,1); souris=null;
+    },{passive:true});
+  }
+
+  if(window.IntersectionObserver){
+    new IntersectionObserver(function(es){ visible=es[0].isIntersecting; relancer(); },
+      {threshold:0}).observe(hero);
+  }
+  document.addEventListener('visibilitychange',function(){
+    if(document.hidden){ visible=false; } else { visible=true; relancer(); }
+  });
+
+  var deb;
+  addEventListener('resize',function(){ clearTimeout(deb); deb=setTimeout(dimensionner,180); },{passive:true});
+  if(document.fonts && document.fonts.ready) document.fonts.ready.then(majObstacles);
+
+  dimensionner(); relancer();
+})();
 // ═══ Avant-goût : trois visuels clonés depuis la galerie ═══
 // On réutilise les <img> existantes : même src, donc pas un octet d'image en plus.
 (function(){

@@ -3,8 +3,10 @@
 `cv-source.html` est la source du CV. Le PDF à la racine du dossier
 (`CV-Jaurys-Maigret.pdf`) en est le rendu, en A4, sur une page.
 
-Même direction artistique que le site : plaques métal, arête de lumière,
-relevés en IBM Plex Mono, le rouge comme seul accent.
+Version claire. Même grammaire que le site — Anton pour les titres,
+IBM Plex Mono pour les relevés, le rouge comme seul accent, la grille de
+mesure en fond — mais sur papier clair, lisible et imprimable sans vider
+une cartouche.
 
 ## Modifier le CV
 
@@ -27,6 +29,15 @@ au-dessus du seuil de 0,4 mm en dessous duquel un téléphone peine à lire.
 Il pointe vers https://jaurysmgrt.github.io/Portfolio
 
 Vérifié : il se décode depuis le PDF à 300 et 600 dpi.
+
+## La photo
+
+L'emplacement est prêt en haut de la colonne de gauche. Tant qu'il n'y a
+pas de fichier, il affiche le monogramme JM.
+
+Pour l'intégrer : dépose ton portrait dans `images/profil.jpg` (format
+portrait, cadrage serré sur le visage, au moins 800 px de large), puis
+regénère le PDF. Le build l'encode automatiquement dans le fichier.
 
 ## À vérifier avant d'envoyer
 
