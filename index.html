@@ -1564,6 +1564,39 @@ body.loaded .son{opacity:.45}
     border-top:1px solid var(--border);box-shadow:0 -14px 30px -18px rgba(0,0,0,.9)}
   .son{bottom:calc(4.1rem + env(safe-area-inset-bottom,0px));right:.8rem}
 }
+
+/* ============ VIGNETTES VIDÉO DES PAGES PROJET ============ */
+/* Le cadre a ete encapsule dans .pp-visual-fr, mais l'ancienne regle laissait
+   .pp-vid en flex : le cadre se reduisait donc a la largeur du bouton play, et
+   la legende se retrouvait a cote au lieu d'etre dessous. Les decors (rayures,
+   voile) passent sur le cadre, la ou ils ont un sens. */
+.pp-vid{display:block!important;background:transparent!important;cursor:pointer}
+.pp-vid::before,.pp-vid::after{display:none!important}
+.pp-vid .pp-visual-fr{background:linear-gradient(135deg,#1c222b,#0e1318)}
+.pp-vid .pp-visual-fr>.deco{display:none}
+.pp-vid .pp-vplay{position:absolute!important;top:50%;left:50%;z-index:3;
+  transform:translate(-50%,-50%);transition:transform .35s cubic-bezier(.34,1.4,.64,1)}
+.pp-vid:hover .pp-vplay{transform:translate(-50%,-50%) scale(1.12)}
+.pp-vid .pp-visual-cap{position:static!important;z-index:auto}
+
+/* ============ LE BOUTON SON S'ENCASTRE DANS LA RÉGLETTE ============ */
+/* Il flottait par-dessus les boutons de filtre. Sur telephone il fait
+   maintenant partie de la barre du bas : plus rien ne survole le contenu. */
+@media(max-width:860px){
+  .fil{padding-right:3.4rem!important}
+  .son{bottom:calc(.5rem + env(safe-area-inset-bottom,0px))!important;right:.55rem!important;
+    background:transparent!important;border:none!important;padding:.35rem!important;
+    backdrop-filter:none;opacity:.75}
+  .son[aria-pressed="true"]{opacity:1}
+}
+
+/* la bande "projet suivant" : l'oeuvre derriere doit rester une matiere,
+   pas une seconde typographie qui se bat avec la premiere */
+@media(max-width:860px){
+  .pp-next-img{opacity:.3}
+  .pp-next-link:hover .pp-next-img{opacity:.5}
+  .pp-next-vo{background:linear-gradient(90deg,var(--bg) 2%,rgba(8,9,11,.92) 48%,rgba(8,9,11,.74))}
+}
 </style>
 </head>
 <body>
