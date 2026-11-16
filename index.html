@@ -1807,18 +1807,18 @@ footer{padding-right:max(1.5rem,7rem)}
 .recit.vivant .ch.on .ln:nth-child(4){transition-delay:.14s}
 .recit.vivant .ch.on .ln:nth-child(5){transition-delay:.18s}
 .recit.vivant .ch.on .ln:nth-child(6){transition-delay:.22s}
-.recit.vivant .ch.sort .ln{opacity:0;transform:translate3d(0,-36px,0);transition-duration:.45s,.6s}
+.recit.vivant .ch.sort .ln{opacity:0;transform:translate3d(0,-28px,0);transition:opacity .35s ease,transform .5s cubic-bezier(.5,0,.75,0)}
 /* l'annee : arrive enorme et se pose, puis s'etire avec le defilement */
-.recit.vivant .ch-an{overflow:hidden;padding-bottom:.04em}
-.recit.vivant .ch-an span{transform:translate3d(0,105%,0) scale(1.35);transform-origin:0 100%;transition:transform .7s cubic-bezier(.16,1,.3,1)}
-.recit.vivant .ch.on .ch-an span{transform:translate3d(calc(var(--t,.5) * -3vw),0,0)}
-.recit.vivant .ch.sort .ch-an span{transform:translate3d(0,-105%,0) scale(.9);transition-duration:.6s}
+.recit.vivant .ch-an{overflow:visible}
+.recit.vivant .ch-an span{opacity:0;transform:translate3d(0,24%,0) scale(1.5);transform-origin:0 100%;transition:transform .8s cubic-bezier(.16,1,.3,1),opacity .45s ease}
+.recit.vivant .ch.on .ch-an span{opacity:1;transform:translate3d(calc(var(--t,.5) * -3vw),0,0)}
+.recit.vivant .ch.sort .ch-an span{opacity:0;transform:translate3d(0,-18%,0) scale(.86);transition:transform .5s cubic-bezier(.5,0,.75,0),opacity .35s ease .1s}
 .recit.vivant .ch-an.ln{transform:none;opacity:1}
 /* le visuel : se devoile par une fenetre qui s'ouvre, en partant de plus grand */
 .recit.vivant .ch-vis{clip-path:inset(18% 22% 18% 22%);opacity:0;transform:scale(1.25) rotate(-3deg);
   transition:clip-path .7s cubic-bezier(.16,1,.3,1),opacity .4s,transform .8s cubic-bezier(.16,1,.3,1)}
 .recit.vivant .ch.on .ch-vis{clip-path:inset(-10% -10% -10% -10%);opacity:1;transform:translate3d(0,calc((.5 - var(--t,.5)) * 8vh),0) scale(calc(1.04 - var(--t,0) * .08))}
-.recit.vivant .ch.sort .ch-vis{opacity:0;transform:translate3d(0,-12vh,0) scale(.82) rotate(2deg);transition-duration:.45s}
+.recit.vivant .ch.sort .ch-vis{opacity:0;transform:translate3d(0,-8vh,0) scale(.9);transition:opacity .4s ease,transform .55s cubic-bezier(.5,0,.75,0),clip-path .55s}
 @media(max-width:860px){
   .ch{grid-template-columns:1fr;gap:1.6rem}
   .ch-vis{min-height:0;order:-1}
@@ -1870,7 +1870,7 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
 .recit.vivant .ch[data-i="2"] .ch-txt{max-width:52%;margin-left:auto}
 /* 2023 : le mot se remplit de rouge au fil du defilement */
 .ch-mot b{position:relative}
-.ch-mot b::after{content:attr(data-t);position:absolute;inset:0;color:var(--red2);-webkit-text-stroke:0;clip-path:inset(0 calc((1 - var(--t,1)) * 100%) 0 0)}
+.ch-mot b::after{content:attr(data-t);position:absolute;inset:0;color:var(--red2);-webkit-text-stroke:0;opacity:calc(var(--t,1) * 1.4 - .2);transition:opacity .2s linear}
 .recit:not(.vivant) .ch-mot b::after{display:none}
 /* 2024 : les deux noms arrivent de chaque cote et se croisent */
 .recit.vivant .ch[data-i="2"] .ch-duo{width:100%;flex-direction:row;justify-content:space-between;align-items:baseline}
@@ -1888,7 +1888,7 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
   transform:translate3d(calc(var(--t,0) * -20vw),0,0)}
 .recit.vivant .ch[data-i="4"] .ch-vis{position:relative}
 /* 2026 : M1 se remplit de bas en haut, comme une jauge */
-.recit.vivant .ch[data-i="5"] .ch-mot b::after{clip-path:inset(calc((1 - var(--t,0)) * 100%) 0 0 0)}
+
 .recit.vivant .ch[data-i="5"] .ch-vis{transform:translate3d(0,30vh,0) rotate(6deg);clip-path:none}
 .recit.vivant .ch[data-i="5"].on .ch-vis{transform:none}
 @media(max-width:860px){
@@ -1897,6 +1897,16 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
   .recit.vivant .ch[data-i="2"] .ch-nom{font-size:3.4rem}
   .recit.vivant .ch[data-i="1"] .ch-txt,.recit.vivant .ch[data-i="3"] .ch-txt{order:0}
 }
+
+/* sorties propres a chaque chapitre (apres les entrees, donc prioritaires) */
+.recit.vivant .ch[data-i="2"].sort .ch-nom:first-child{transform:translate3d(-40vw,0,0);opacity:0;transition:transform .6s cubic-bezier(.5,0,.75,0),opacity .4s}
+.recit.vivant .ch[data-i="2"].sort .ch-nom-c{transform:translate3d(40vw,0,0);opacity:0;transition:transform .6s cubic-bezier(.5,0,.75,0),opacity .4s}
+.recit.vivant .ch[data-i="2"] .ch-nom{transition:transform .8s cubic-bezier(.16,1,.3,1),opacity .4s}
+.recit.vivant .ch[data-i="3"].sort .ch-vis{transform:scale(.55) rotate(-8deg);opacity:0}
+.recit.vivant .ch[data-i="4"].sort .ch-vis{transform:translate3d(-70vw,0,0) skewX(28deg);opacity:0}
+/* le nom du hero : plus de masque, les lettres arrivent entieres */
+.hn{overflow:visible}
+.hero .hn > span{transform:none!important}
 </style>
 </head>
 <body>
@@ -2144,7 +2154,6 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
     <div class="ch-vis" aria-hidden="true"><div class="ch-mot ch-mot-rouge"><b data-t="M1">M1</b><i>La suite s'&eacute;crit en alternance</i></div></div>
   </article>
   <div class="rc-barre"><i></i></div>
-  <div class="rc-volet" aria-hidden="true"><b></b></div>
  </div>
 </section>
 
@@ -3488,30 +3497,10 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   var PAR=62;   // hauteur de defilement d'un chapitre, en vh
   sec.classList.add('vivant');
   sec.style.height=(100+n*PAR)+'vh';
-  var top=0, course=1, cur=-1;
+  var top=0, course=1, cur=-1, minuterie=0;
   function mesurer(){ var y=0; for(var e=sec;e;e=e.offsetParent) y+=e.offsetTop; top=y; course=Math.max(1,sec.offsetHeight-innerHeight); }
   mesurer(); addEventListener('resize',mesurer,{passive:true}); addEventListener('load',mesurer);
   if(window.ResizeObserver) new ResizeObserver(mesurer).observe(document.body);
-  // le volet : une forme differente a chaque chapitre, qui balaie l'ecran
-  var vol=sec.querySelector('.rc-volet'), volB=vol&&vol.querySelector('b');
-  var FORMES=[
-    ['inset(0 100% 0 0)','inset(0 0 0 0)','inset(0 0 0 100%)'],
-    ['inset(100% 0 0 0)','inset(0 0 0 0)','inset(0 0 100% 0)'],
-    ['polygon(0 0,0 0,0 100%,0 100%)','polygon(0 0,120% 0,100% 100%,0 100%)','polygon(100% 0,120% 0,100% 100%,100% 100%)'],
-    ['circle(0% at 50% 50%)','circle(75% at 50% 50%)','circle(0% at 50% 50%)'],
-    ['inset(48% 0 48% 0)','inset(0 0 0 0)','inset(0 0 0 0)'],
-    ['inset(0 0 100% 0)','inset(0 0 0 0)','inset(100% 0 0 0)']
-  ];
-  var ANS=['Jaurys','2023','2024','2025','2025','2026'];
-  function volet(i,avance){
-    if(!vol||!vol.animate) return;
-    var f=FORMES[i%FORMES.length]; if(!avance) f=[f[2],f[1],f[0]];
-    if(volB) volB.textContent=ANS[i]||'';
-    var dernier=(i===4);
-    vol.animate([{clipPath:f[0]},{clipPath:f[1],offset:.45},{clipPath:f[1],offset:.55},{clipPath:dernier?'inset(0 0 0 100%)':f[2]}],
-      {duration:720,easing:'cubic-bezier(.7,0,.3,1)'});
-    if(volB) volB.animate([{transform:'translate3d(0,40%,0)',opacity:0},{transform:'none',opacity:1,offset:.5},{transform:'translate3d(0,-30%,0)',opacity:0}],{duration:720,easing:'cubic-bezier(.16,1,.3,1)'});
-  }
   function aller(i){ window.scrollTo({top:top+course*(i+.5)/n,behavior:'smooth'}); }
   rail.forEach(function(b){ b.addEventListener('click',function(){ aller(+b.dataset.i); }); });
   function image(){
@@ -3520,8 +3509,17 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
       var p=Math.max(0,Math.min(1,(y-top)/course));
       var f=p*n, i=Math.min(n-1,Math.floor(f)), t=Math.max(0,Math.min(1,f-i));
       if(i!==cur){
-        if(cur>=0) volet(i, i>cur);
-        chs.forEach(function(c,k){ c.classList.toggle('on',k===i); c.classList.toggle('sort',k===cur && k!==i); });
+        var ancien=cur;
+        if(ancien>=0){
+          // l'ancien chapitre sort d'abord ; le nouveau entre juste apres :
+          // les deux ne se superposent jamais
+          chs.forEach(function(c,k){ c.classList.remove('on'); c.classList.toggle('sort',k===ancien); });
+          clearTimeout(minuterie);
+          minuterie=setTimeout(function(){ chs.forEach(function(c,k){ c.classList.toggle('on',k===cur); if(k!==cur && k!==ancien) c.classList.remove('sort'); }); },380);
+          setTimeout(function(){ chs.forEach(function(c,k){ if(k!==cur) c.classList.remove('sort'); }); },900);
+        } else {
+          chs.forEach(function(c,k){ c.classList.toggle('on',k===i); c.classList.remove('sort'); });
+        }
         rail.forEach(function(b,k){ b.classList.toggle('on',k===i); });
         if(num) num.textContent=('0'+i).slice(-2);
         cur=i;
