@@ -403,7 +403,7 @@ void main(){float s=uV*0.018+0.0015;
       if (elNum) elNum.textContent = pr.carte ? 'Famille ' + pr.famNum : n;
       if (elX) elX.textContent = pr.carte ? pr.famNum : n;
       if (elTot) elTot.textContent = pr.carte ? String(pr.nb).padStart(2, '0') + ' pièces' : '/ ' + String(pr.nb).padStart(2, '0');
-      el.classList.toggle('sur-carte', !!pr.carte);
+      el.classList.toggle('sur-carte', !!pr.carte); el.classList.toggle('sur-video', !!pr.video);
       if (elT) { elT.textContent = pr.titre; elT.animate([{ opacity: 0, transform: 'translateY(40%)' }, { opacity: 1, transform: 'none' }], { duration: 520, easing: 'cubic-bezier(.16,1,.3,1)' }); }
       if (elC) elC.textContent = pr.cat;
       if (elFam && elFam.dataset.f !== pr.fam) {

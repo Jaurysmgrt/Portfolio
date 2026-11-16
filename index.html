@@ -1916,12 +1916,6 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
 .recit.vivant .ch[data-i="4"] .ch-vis,.recit.vivant .ch[data-i="4"].on .ch-vis{transform:none;clip-path:none;opacity:1}
 .recit.vivant .ch[data-i="4"] .ch-logo-tp{opacity:0;transform:translate3d(0,14px,0);transition:opacity .5s ease .75s,transform .7s cubic-bezier(.16,1,.3,1) .75s}
 .recit.vivant .ch[data-i="4"].on .ch-logo-tp{opacity:1;transform:none}
-.recit.vivant .ch[data-i="4"] .ch-voiture{transform:translate3d(120vw,0,0)}
-.recit.vivant .ch[data-i="4"].on .ch-voiture{animation:arrive 1.25s cubic-bezier(.16,1,.3,1) both}
-.recit.vivant .ch[data-i="4"].on .ch-voiture svg{transform:translate3d(calc(var(--t,0) * -3vw),0,0)}
-.recit.vivant .ch[data-i="4"].on .roue{animation:roule 1.25s cubic-bezier(.16,1,.3,1) both}
-.recit.vivant .ch[data-i="4"].sort .ch-voiture{animation:repart .6s cubic-bezier(.55,0,.85,.3) both}
-.recit.vivant .ch[data-i="4"].sort .roue{animation:roule2 .6s cubic-bezier(.55,0,.85,.3) both}
 .recit.vivant .ch[data-i="4"].sort .ch-logo-tp{opacity:0;transition:opacity .25s}
 @keyframes arrive{0%{transform:translate3d(120vw,0,0) skewX(-14deg)}70%{transform:translate3d(-2.5vw,0,0) skewX(5deg)}85%{transform:translate3d(.8vw,0,0) skewX(-1deg)}100%{transform:none}}
 @keyframes roule{from{transform:rotate(0)}to{transform:rotate(-1260deg)}}
@@ -1934,24 +1928,69 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
 @media(prefers-reduced-motion:reduce){.ch-voiture,.ch-voiture .roue{animation:none!important;transform:none!important}}
 @media(max-width:860px){.ch[data-i="4"] .ch-vis{gap:1.4vh}}
 
-/* ═══ La fumee : au freinage, puis le depart en trombe ═══
-   Des bouffees en degrade radial (pas de flou calcule) : legeres a afficher.
-   Elles restent sur la route quand la voiture s'en va. */
-.ch-route{position:relative;width:min(720px,46vw)}
-.ch-route .ch-voiture{width:100%}
-.fumee{position:absolute;inset:0;pointer-events:none;z-index:2}
-.fumee i{position:absolute;bottom:2%;width:16%;aspect-ratio:2.2/1;margin-left:-8%;border-radius:50%;opacity:0;
-  background:radial-gradient(ellipse at 50% 60%,rgba(214,222,232,.42),rgba(190,200,212,.2) 40%,rgba(160,170,184,0) 70%);transform:scale(.2);transform-origin:50% 100%}
-.recit.vivant .ch[data-i="4"].on .fumee i.frein{animation:bouffee 1.6s cubic-bezier(.2,.7,.3,1) both;animation-delay:var(--d)}
-.recit.vivant .ch[data-i="4"].sort .fumee i.depart{animation:bouffee 1.5s cubic-bezier(.2,.7,.3,1) both;animation-delay:var(--d)}
-@keyframes bouffee{
-  0%{opacity:0;transform:translate3d(0,0,0) scale(.25)}
-  14%{opacity:var(--o,.85)}
-  100%{opacity:0;transform:translate3d(var(--dx),var(--dy),0) scale(var(--s))}}
-/* la chapitre qui part garde sa route visible le temps que la fumee retombe */
-.recit.vivant .ch[data-i="4"].sort .ch-vis{transform:none!important;opacity:1!important;clip-path:none}
-@media(max-width:860px){.ch-route{width:78vw}}
-@media(prefers-reduced-motion:reduce){.fumee{display:none}}
+
+/* ═══ Petits details ═══ */
+/* Prologue : un viseur d'appareil photo, puis le declic */
+.ch-photo{position:relative}
+.vf,.vf-pt,.flash{position:absolute;pointer-events:none;opacity:0}
+.vf{width:9%;aspect-ratio:1;border:0 solid #fff}
+.vf1{top:5%;left:6%;border-top-width:2px;border-left-width:2px}
+.vf2{top:5%;right:6%;border-top-width:2px;border-right-width:2px}
+.vf3{bottom:5%;left:6%;border-bottom-width:2px;border-left-width:2px}
+.vf4{bottom:5%;right:6%;border-bottom-width:2px;border-right-width:2px}
+.vf-pt{top:30%;left:50%;width:16px;height:16px;margin:-8px;border:2px solid var(--red2)}
+.flash{inset:0;background:#fff}
+.recit.vivant .ch[data-i="0"].on .vf{animation:vise .6s cubic-bezier(.16,1,.3,1) .35s both}
+.recit.vivant .ch[data-i="0"].on .vf-pt{animation:mise .9s ease .45s both}
+.recit.vivant .ch[data-i="0"].on .flash{animation:declic .5s ease-out 1.25s both}
+@keyframes vise{from{opacity:0;transform:scale(1.6)}to{opacity:.9;transform:none}}
+@keyframes mise{0%{opacity:0;transform:scale(2)}40%{opacity:1;transform:scale(1)}60%{opacity:.2}80%{opacity:1}100%{opacity:1}}
+@keyframes declic{0%{opacity:0}12%{opacity:.85}100%{opacity:0}}
+/* Stages : un tampon « 1 mois » sur chaque nom */
+.ch-nom{position:relative}
+.tampon{position:absolute;right:-.4em;top:-.5em;font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:clamp(.85rem,1.4vw,1.2rem);background:rgba(6,7,10,.85);letter-spacing:.2em;text-transform:uppercase;
+  color:var(--red2);border:2px solid var(--red2);padding:.35em .6em;-webkit-text-stroke:0;line-height:1;transform:rotate(-12deg);opacity:0;white-space:nowrap}
+.tampon.t2{right:auto;left:-.4em;transform:rotate(9deg)}
+.recit.vivant .ch[data-i="2"].on .tampon{animation:tampon .45s cubic-bezier(.3,1.6,.5,1) 1s both}
+.recit.vivant .ch[data-i="2"].on .tampon.t2{animation-delay:1.25s}
+@keyframes tampon{from{opacity:0;scale:2.6}to{opacity:1;scale:1}}
+.recit:not(.vivant) .tampon{opacity:1}
+/* ESP : une selection de logiciel de graphisme se pose sur B3 */
+.selec{position:absolute;inset:-6% -5%;border:1px dashed rgba(255,255,255,.75);opacity:0;pointer-events:none}
+.selec i{position:absolute;width:9px;height:9px;background:#fff;border:1px solid #06070a}
+.selec i:nth-child(1){left:-5px;top:-5px}.selec i:nth-child(2){right:-5px;top:-5px}.selec i:nth-child(3){left:-5px;bottom:-5px}.selec i:nth-child(4){right:-5px;bottom:-5px}
+.fleche{position:absolute;width:30px;height:30px;right:-10%;bottom:-14%;opacity:0;filter:drop-shadow(0 4px 8px rgba(0,0,0,.6))}
+.recit.vivant .ch[data-i="3"].on .fleche{animation:fleche 1.1s cubic-bezier(.65,0,.35,1) .7s both}
+.recit.vivant .ch[data-i="3"].on .selec{animation:selec .7s cubic-bezier(.16,1,.3,1) 1.1s both}
+@keyframes fleche{0%{opacity:0;transform:translate3d(120px,90px,0)}20%{opacity:1}60%{opacity:1;transform:translate3d(0,0,0)}75%{transform:translate3d(0,0,0) scale(.85)}90%{transform:none}100%{opacity:1;transform:none}}
+@keyframes selec{from{opacity:0;clip-path:inset(100% 0 0 100%)}to{opacity:1;clip-path:inset(-10px)}}
+/* Master : la phrase s'ecrit a la machine, avec son curseur */
+.recit.vivant .ch[data-i="5"] .frappe{clip-path:inset(0 100% 0 0)}
+.recit.vivant .ch[data-i="5"].on .frappe{animation:frappe 1.6s steps(30,end) .9s both}
+.recit.vivant .ch[data-i="5"] .ch-mot{position:relative}
+.recit.vivant .ch[data-i="5"].on .frappe::after{content:'';display:inline-block;width:.55em;height:1em;margin-left:.3em;vertical-align:-.15em;background:var(--red2);animation:curseur 1s steps(1) 2.5s infinite both}
+@keyframes frappe{to{clip-path:inset(0 -2em 0 0)}}
+@keyframes curseur{0%{opacity:1}50%{opacity:0}}
+/* Projets : un curseur qui dit ce que fait le clic */
+.sel-curseur{position:fixed;left:0;top:0;width:86px;height:86px;margin:-43px 0 0 -43px;border-radius:50%;border:1px solid var(--red2);background:rgba(212,42,27,.16);
+  backdrop-filter:blur(4px);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:.56rem;letter-spacing:.18em;text-transform:uppercase;
+  pointer-events:none;z-index:900;opacity:0;scale:.4;transition:opacity .25s,scale .35s cubic-bezier(.16,1,.3,1)}
+.sel-curseur.vu{opacity:1;scale:1}
+@media(hover:hover) and (pointer:fine){body.avec-3d #selection .cv-3d{cursor:none}}
+@media(prefers-reduced-motion:reduce){.vf,.vf-pt,.flash,.fleche,.selec,.tampon{animation:none!important}.frappe{clip-path:none!important}}
+
+/* ═══ Talon Pointe : la voiture (pilotee en JS) et sa fumee (canvas) ═══ */
+.ch-route{position:relative;width:min(760px,50vw)}
+.ch-voiture{width:100%;will-change:transform}
+.ch-voiture svg{display:block;width:100%;height:auto;overflow:visible}
+.ch-voiture .caisse{transform-box:view-box;transform-origin:320px 176px}
+.ch-voiture .jante{transform-box:fill-box;transform-origin:center}
+.recit.vivant .ch[data-i="4"] .ch-voiture{transform:translate3d(130vw,0,0)}
+.fumee-cv{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;display:none}
+.recit.vivant .fumee-cv{display:block}
+.recit.vivant .ch[data-i="4"].sort .ch-vis{transform:none!important;opacity:1!important;clip-path:none!important}
+.recit.vivant .ch[data-i="4"].sort{z-index:3}
+@media(max-width:860px){.ch-route{width:82vw}}
 </style>
 </head>
 <body>
@@ -2145,7 +2184,7 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
       <p class="ch-p ln">Cr&eacute;atif, curieux, impliqu&eacute;. Je cr&eacute;e des visuels qui racontent quelque chose.</p>
       <p class="ch-p ln">Cr&eacute;er, imaginer, donner vie : c'est ce qui fait battre mon quotidien. J'aborde la publicit&eacute; comme un terrain de jeu o&ugrave; le concept prime autant que l'esth&eacute;tique.</p>
     </div>
-    <div class="ch-vis" aria-hidden="true"><figure class="ch-photo"><img src="images/profil.jpg" alt="" width="900" height="1353" loading="lazy" decoding="async"></figure></div>
+    <div class="ch-vis" aria-hidden="true"><figure class="ch-photo"><img src="images/profil.jpg" alt="" width="900" height="1353" loading="lazy" decoding="async"><span class="vf vf1"></span><span class="vf vf2"></span><span class="vf vf3"></span><span class="vf vf4"></span><span class="vf-pt"></span><span class="flash"></span></figure></div>
   </article>
   <article class="ch" data-i="1">
     <div class="ch-txt">
@@ -2165,7 +2204,7 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
       <p class="ch-p ln"><strong>AGCO</strong>, chargé de communication : contenu social media pour un groupe &agrave; dimension mondiale, newsletters BtoC, retouche visuelle, analyse de performance.</p>
       <p class="ch-p ln"><strong>Tredelec</strong>, chargé de communication : contenu publicitaire pour les r&eacute;seaux sociaux, animation des comptes, id&eacute;es cr&eacute;atives, benchmarks concurrentiels.</p>
     </div>
-    <div class="ch-vis" aria-hidden="true"><div class="ch-duo"><span class="ch-nom">AGCO</span><span class="ch-et">&amp;</span><span class="ch-nom ch-nom-c">Tredelec</span></div></div>
+    <div class="ch-vis" aria-hidden="true"><div class="ch-duo"><span class="ch-nom">AGCO<em class="tampon">1 mois</em></span><span class="ch-et">&amp;</span><span class="ch-nom ch-nom-c">Tredelec<em class="tampon t2">1 mois</em></span></div></div>
   </article>
   <article class="ch" data-i="3">
     <div class="ch-txt">
@@ -2175,9 +2214,10 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
       <p class="ch-p ln">Les codes de la publicit&eacute;, le graphisme et la conception de campagnes.</p>
       <ul class="ch-tags ln"><li>Cr&eacute;ation publicitaire</li><li>Graphisme</li><li>Suite Adobe</li></ul>
     </div>
-    <div class="ch-vis" aria-hidden="true"><div class="ch-mot"><b data-t="B3">B3</b><i>2025 &rarr; 2026</i></div></div>
+    <div class="ch-vis" aria-hidden="true"><div class="ch-mot"><b data-t="B3">B3<span class="selec" aria-hidden="true"><i></i><i></i><i></i><i></i></span><svg class="fleche" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2l7 19 2.6-7.4L20 11z" fill="#fff" stroke="#06070a" stroke-width="1.4" stroke-linejoin="round"/></svg></b><i>2025 &rarr; 2026</i></div></div>
   </article>
   <article class="ch" data-i="4">
+    <canvas class="fumee-cv" aria-hidden="true"></canvas>
     <div class="ch-txt">
       <span class="ch-tag ln">Chapitre 04 &middot; Talon Pointe</span>
       <h3 class="ch-an ln"><span>2025</span></h3>
@@ -2186,18 +2226,73 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
       <p class="ch-p ln">R&eacute;seaux sociaux, calendrier &eacute;ditorial, storytelling visuel et image de marque.</p>
     </div>
     <div class="ch-vis" aria-hidden="true"><div class="ch-logo ch-logo-tp"><img src="images/logo-talon-pointe.svg" alt="" loading="lazy" decoding="async"></div>
-      <div class="ch-route"><div class="fumee" aria-hidden="true"></div>
-      <div class="ch-voiture"><svg viewBox="0 0 600 190" aria-hidden="true">
-        <defs><linearGradient id="carro" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a323d"/><stop offset=".55" stop-color="#11161d"/><stop offset="1" stop-color="#07090d"/></linearGradient></defs>
-        <ellipse cx="305" cy="168" rx="270" ry="10" fill="rgba(0,0,0,.6)"/>
-        <path d="M18 140 L24 120 Q40 106 96 100 L184 92 Q222 68 270 60 Q322 52 376 58 Q420 66 456 88 L528 96 Q570 104 580 122 L584 140 Z" fill="url(#carro)" stroke="#a9b7c6" stroke-width="1.6"/>
-        <path d="M204 92 Q232 72 268 65 Q294 61 304 61 L304 92 Z M314 61 Q362 60 394 70 Q418 78 438 90 L314 92 Z" fill="#0d1218" stroke="rgba(169,183,198,.55)" stroke-width="1.2"/>
-        <path d="M60 116 L560 112" stroke="rgba(255,255,255,.18)" stroke-width="1"/>
-        <rect x="560" y="106" width="20" height="7" rx="2" fill="#ff4433"/>
-        <rect x="24" y="110" width="16" height="6" rx="2" fill="#e8eef5"/>
-        <g class="roue"><circle cx="150" cy="140" r="33" fill="#05070a" stroke="#a9b7c6" stroke-width="2"/><circle cx="150" cy="140" r="20" fill="none" stroke="#ff4433" stroke-width="2"/><path d="M150 120 V160 M130 140 H170 M136 126 L164 154 M164 126 L136 154" stroke="#a9b7c6" stroke-width="2"/></g>
-        <g class="roue"><circle cx="470" cy="140" r="33" fill="#05070a" stroke="#a9b7c6" stroke-width="2"/><circle cx="470" cy="140" r="20" fill="none" stroke="#ff4433" stroke-width="2"/><path d="M470 120 V160 M450 140 H490 M456 126 L484 154 M484 126 L456 154" stroke="#a9b7c6" stroke-width="2"/></g>
-      </svg></div></div></div>
+      <div class="ch-route">
+      <div class="ch-voiture"><svg viewBox="0 0 640 220" aria-hidden="true">
+<defs>
+  <linearGradient id="vCaisse" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#5b6776"/><stop offset=".22" stop-color="#2c3440"/><stop offset=".5" stop-color="#151a21"/><stop offset=".78" stop-color="#0b0e12"/><stop offset="1" stop-color="#040507"/></linearGradient>
+  <linearGradient id="vEpaule" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".25" stop-color="#fff" stop-opacity=".22"/><stop offset=".5" stop-color="#fff" stop-opacity=".5"/><stop offset=".72" stop-color="#fff" stop-opacity=".18"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+  <linearGradient id="vVitre" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#3b4757"/><stop offset=".45" stop-color="#0b0f14"/><stop offset=".7" stop-color="#1b2430"/><stop offset="1" stop-color="#090c10"/></linearGradient>
+  <linearGradient id="vBas" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".75"/></linearGradient>
+  <radialGradient id="vPneu" cx=".5" cy=".5" r=".5"><stop offset=".72" stop-color="#0a0b0d"/><stop offset=".9" stop-color="#1a1d22"/><stop offset="1" stop-color="#050607"/></radialGradient>
+  <radialGradient id="vJante" cx=".42" cy=".38" r=".7"><stop offset="0" stop-color="#eef2f6"/><stop offset=".5" stop-color="#a9b4c0"/><stop offset="1" stop-color="#5d6773"/></radialGradient>
+  <radialGradient id="vFaisceau" cx="1" cy=".5" r="1"><stop offset="0" stop-color="#e8f1ff" stop-opacity=".5"/><stop offset="1" stop-color="#e8f1ff" stop-opacity="0"/></radialGradient>
+  <radialGradient id="vFeu" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ff3a28" stop-opacity=".9"/><stop offset="1" stop-color="#ff3a28" stop-opacity="0"/></radialGradient>
+  <radialGradient id="vOmbre" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#000" stop-opacity=".9"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+</defs>
+<ellipse class="v-ombre" cx="318" cy="220" rx="310" ry="10" fill="url(#vOmbre)"/>
+<path class="v-faisceau" d="M30 142 L-190 116 L-190 186 Z" fill="url(#vFaisceau)"/>
+<g class="caisse">
+  
+  <path d="M38 190 L96 190 A53 53 0 1 1 198 190 L420 190 A54 54 0 1 1 524 190 L600 190
+           C612 188 620 178 622 164 L624 146 C624 138 620 132 612 128
+           C584 112 540 82 492 58 C452 40 410 33 372 33 C344 33 322 40 300 54
+           L252 100 C214 104 168 104 126 108
+           C96 110 66 116 44 130 C26 141 18 152 16 166 C15 178 22 188 38 190 Z" fill="url(#vCaisse)" stroke="#8d9cad" stroke-width="1.1"/>
+  
+  <path d="M50 126 C80 113 170 104 252 101 M300 55 C330 37 380 31 430 38 C480 46 540 82 600 120" fill="none" stroke="url(#vEpaule)" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M120 140 C250 132 420 126 606 134" fill="none" stroke="rgba(255,255,255,.13)" stroke-width="10" stroke-linecap="round" opacity=".5"/>
+  
+  <path d="M410 128 C460 118 540 116 606 128" fill="none" stroke="rgba(255,255,255,.18)" stroke-width="1.2"/>
+  
+  <path d="M38 190 L96 190 A53 53 0 1 1 198 190 L420 190 A54 54 0 1 1 524 190 L600 190 C610 189 616 184 619 176 L22 176 C24 184 30 189 38 190 Z" fill="url(#vBas)"/>
+  
+  <path d="M262 103 L306 60 C328 46 352 41 382 40 L388 103 Z" fill="url(#vVitre)" stroke="rgba(160,175,190,.55)" stroke-width="1"/>
+  <path d="M396 103 L391 41 C424 43 450 52 474 70 C486 80 490 92 486 103 Z" fill="url(#vVitre)" stroke="rgba(160,175,190,.55)" stroke-width="1"/>
+  <path d="M276 96 L318 58 L330 54 L292 96 Z" fill="rgba(255,255,255,.08)"/>
+  
+  <path d="M256 104 C258 140 262 164 268 184 M398 104 C404 134 406 160 404 184" fill="none" stroke="rgba(0,0,0,.6)" stroke-width="1.4"/>
+  <rect x="352" y="118" width="26" height="5" rx="2.5" fill="#0a0d11" stroke="rgba(255,255,255,.25)" stroke-width=".8"/>
+  <path d="M248 98 C252 90 266 88 276 92 L274 102 C266 104 254 104 248 98 Z" fill="#1c232c" stroke="#8d9cad" stroke-width=".9"/>
+  
+  <path d="M38 128 C52 116 82 110 104 112 C96 122 70 130 42 134 Z" fill="#dfe8f2"/>
+  <path d="M46 130 C60 122 80 118 96 117" stroke="#fff" stroke-width="1.4" fill="none"/>
+  
+  <path d="M18 168 C24 162 42 160 58 162 L56 176 L22 178 Z" fill="#05070a" stroke="rgba(255,255,255,.12)" stroke-width=".8"/>
+  <path d="M560 182 L600 182 M566 186 L598 186" stroke="rgba(255,255,255,.18)" stroke-width="1.2"/>
+  
+  <path d="M596 124 C606 128 616 134 622 140 L620 146 C612 140 602 134 592 130 Z" fill="#ff3a28"/>
+  <ellipse class="v-feu" cx="612" cy="136" rx="30" ry="16" fill="url(#vFeu)"/>
+  
+  <path d="M520 92 L560 108 M516 98 L556 114" stroke="rgba(0,0,0,.55)" stroke-width="2"/>
+  
+  <path d="M96 190 A53 53 0 1 1 198 190 M420 190 A54 54 0 1 1 524 190" fill="#030405" stroke="#2a313a" stroke-width="2"/>
+</g>
+<g class="roue"><circle cx="147" cy="176" r="46" fill="url(#vPneu)"/><circle cx="147" cy="176" r="33" fill="#12161c"/>
+  <path d="M126 160 A27 27 0 0 1 168 160" fill="none" stroke="#e0301e" stroke-width="7"/>
+  <g class="jante"><circle cx="147" cy="176" r="33" fill="none" stroke="url(#vJante)" stroke-width="3"/>
+    <g fill="url(#vJante)"><path d="M144 146 L150 146 L149 168 L145 168 Z"/><path d="M144 146 L150 146 L149 168 L145 168 Z" transform="rotate(72 147 176)"/><path d="M144 146 L150 146 L149 168 L145 168 Z" transform="rotate(144 147 176)"/><path d="M144 146 L150 146 L149 168 L145 168 Z" transform="rotate(216 147 176)"/><path d="M144 146 L150 146 L149 168 L145 168 Z" transform="rotate(288 147 176)"/>
+    <path d="M136 148 L141 147 L144 168 L141 168 Z"/><path d="M136 148 L141 147 L144 168 L141 168 Z" transform="rotate(72 147 176)"/><path d="M136 148 L141 147 L144 168 L141 168 Z" transform="rotate(144 147 176)"/><path d="M136 148 L141 147 L144 168 L141 168 Z" transform="rotate(216 147 176)"/><path d="M136 148 L141 147 L144 168 L141 168 Z" transform="rotate(288 147 176)"/></g>
+    <circle cx="147" cy="176" r="8" fill="#1a1f26" stroke="#aab4bf" stroke-width="1.5"/></g></g>
+<g class="roue"><circle cx="472" cy="176" r="47" fill="url(#vPneu)"/><circle cx="472" cy="176" r="34" fill="#12161c"/>
+  <path d="M451 160 A27 27 0 0 1 493 160" fill="none" stroke="#e0301e" stroke-width="7"/>
+  <g class="jante"><circle cx="472" cy="176" r="34" fill="none" stroke="url(#vJante)" stroke-width="3"/>
+    <g fill="url(#vJante)"><path d="M469 145 L475 145 L474 168 L470 168 Z"/><path d="M469 145 L475 145 L474 168 L470 168 Z" transform="rotate(72 472 176)"/><path d="M469 145 L475 145 L474 168 L470 168 Z" transform="rotate(144 472 176)"/><path d="M469 145 L475 145 L474 168 L470 168 Z" transform="rotate(216 472 176)"/><path d="M469 145 L475 145 L474 168 L470 168 Z" transform="rotate(288 472 176)"/>
+    <path d="M461 147 L466 146 L469 168 L466 168 Z"/><path d="M461 147 L466 146 L469 168 L466 168 Z" transform="rotate(72 472 176)"/><path d="M461 147 L466 146 L469 168 L466 168 Z" transform="rotate(144 472 176)"/><path d="M461 147 L466 146 L469 168 L466 168 Z" transform="rotate(216 472 176)"/><path d="M461 147 L466 146 L469 168 L466 168 Z" transform="rotate(288 472 176)"/></g>
+    <circle cx="472" cy="176" r="8" fill="#1a1f26" stroke="#aab4bf" stroke-width="1.5"/></g></g>
+</svg></div></div></div>
   </article>
   <article class="ch" data-i="5">
     <div class="ch-txt">
@@ -2208,7 +2303,7 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
       <p class="ch-p ch-mini ln">Photoshop, Illustrator, InDesign, Premiere, After Effects, Lightroom &middot; Fran&ccedil;ais natif, anglais B2 &middot; Permis B</p>
       <div class="ch-cta ln"><a href="#contact" class="hero-btn" onclick="openContact(event)">&Eacute;crivons la suite &rarr;</a><a href="CV-Jaurys-Maigret.pdf" class="hero-btn2" download>CV &middot; PDF</a></div>
     </div>
-    <div class="ch-vis" aria-hidden="true"><div class="ch-mot ch-mot-rouge"><b data-t="M1">M1</b><i>La suite s'&eacute;crit en alternance</i></div></div>
+    <div class="ch-vis" aria-hidden="true"><div class="ch-mot ch-mot-rouge"><b data-t="M1">M1</b><i class="frappe">La suite s'&eacute;crit en alternance</i></div></div>
   </article>
   <div class="rc-barre"><i></i></div>
  </div>
@@ -3558,21 +3653,6 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   function mesurer(){ var y=0; for(var e=sec;e;e=e.offsetParent) y+=e.offsetTop; top=y; course=Math.max(1,sec.offsetHeight-innerHeight); }
   mesurer(); addEventListener('resize',mesurer,{passive:true}); addEventListener('load',mesurer);
   if(window.ResizeObserver) new ResizeObserver(mesurer).observe(document.body);
-  // les bouffees de fumee de la voiture (positions des roues : 25 % et 78 %)
-  var fum=sec.querySelector('.fumee');
-  if(fum){
-    function bouffee(cls,x,d,dx,dy,sc,o){
-      var b=document.createElement('i'); b.className=cls;
-      b.style.left=x+'%'; b.style.setProperty('--d',d+'s'); b.style.setProperty('--dx',dx+'%'); b.style.setProperty('--dy',dy+'%');
-      b.style.setProperty('--s',sc); b.style.setProperty('--o',o); fum.appendChild(b);
-    }
-    var r=function(a,b){ return a+Math.random()*(b-a); };
-    // au freinage : les pneus fument aux deux roues, la fumee part vers l'arriere (a droite)
-    for(var k=0;k<9;k++){ bouffee('frein',25+r(-3,4),.5+k*.05,r(30,220),r(-40,-5),r(1.8,3.4),r(.45,.75)); }
-    for(var k2=0;k2<11;k2++){ bouffee('frein',78+r(-3,4),.45+k2*.05,r(40,280),r(-50,-5),r(2,3.8),r(.5,.8)); }
-    // au depart : patinage, un gros nuage derriere la roue arriere
-    for(var k3=0;k3<20;k3++){ bouffee('depart',70+r(-4,16),k3*.03,r(20,320),r(-90,-5),r(2.6,5.4),r(.55,.9)); }
-  }
   function aller(i){ window.scrollTo({top:top+course*(i+.5)/n,behavior:'smooth'}); }
   rail.forEach(function(b){ b.addEventListener('click',function(){ aller(+b.dataset.i); }); });
   function image(){
@@ -3588,7 +3668,7 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
           chs.forEach(function(c,k){ c.classList.remove('on'); c.classList.toggle('sort',k===ancien); });
           clearTimeout(minuterie);
           minuterie=setTimeout(function(){ chs.forEach(function(c,k){ c.classList.toggle('on',k===cur); if(k!==cur && k!==ancien) c.classList.remove('sort'); }); },380);
-          setTimeout(function(){ chs.forEach(function(c,k){ if(k!==cur) c.classList.remove('sort'); }); },1700);
+          setTimeout(function(){ chs.forEach(function(c,k){ if(k!==cur) c.classList.remove('sort'); }); },2600);
         } else {
           chs.forEach(function(c,k){ c.classList.toggle('on',k===i); c.classList.remove('sort'); });
         }
@@ -3632,6 +3712,118 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   maj(); setTimeout(maj,500); setTimeout(maj,2000);
 })();
 </script>
-<script type="module" src="js/experiences.js?v=14"></script>
+<script>
+// Le curseur de l'arc : il dit ce que fera le clic (entrer, ouvrir, lire)
+(function(){
+  if(!matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+  var sec=document.getElementById('selection'); if(!sec) return;
+  var c=document.createElement('div'); c.className='sel-curseur'; c.setAttribute('aria-hidden','true'); document.body.appendChild(c);
+  var x=0,y=0,cx=0,cy=0,dedans=false,raf=0;
+  function lib(){ return sec.classList.contains('sur-carte')?'Entrer':(sec.classList.contains('sur-video')?'Lire':'Ouvrir'); }
+  function pas(){ cx+=(x-cx)*.22; cy+=(y-cy)*.22; c.style.transform='translate3d('+cx.toFixed(1)+'px,'+cy.toFixed(1)+'px,0)'; c.textContent=lib();
+    if(dedans||Math.abs(x-cx)>.5) raf=requestAnimationFrame(pas); else raf=0; }
+  sec.addEventListener('pointermove',function(e){
+    if(!e.target.classList.contains('cv-3d')){ if(dedans){dedans=false;c.classList.remove('vu');} return; }
+    x=e.clientX; y=e.clientY; if(!dedans){ dedans=true; cx=x; cy=y; c.classList.add('vu'); }
+    if(!raf) raf=requestAnimationFrame(pas);
+  });
+  sec.addEventListener('pointerleave',function(){ dedans=false; c.classList.remove('vu'); });
+})();
+</script>
+<script>
+// ═══ LA VOITURE DE TALON POINTE ═══
+// Une petite physique : freinage a deceleration constante (la vitesse baisse
+// lineairement), l'avant plonge pendant le freinage et la caisse rebondit a
+// l'arret ; au depart, l'arriere s'ecrase et les pneus patinent. Les roues
+// tournent exactement de la distance parcourue. La fumee est un vrai systeme
+// de particules texturees, emises au contact des pneus.
+(function(){
+  var ch=document.querySelector('#histoire .ch[data-i="4"]'); if(!ch) return;
+  var sec=document.getElementById('histoire');
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches){ return; }
+  var voit=ch.querySelector('.ch-voiture'), caisse=ch.querySelector('.caisse'), feu=ch.querySelector('.v-feu');
+  var jantes=[].slice.call(ch.querySelectorAll('.jante')), roues=[].slice.call(ch.querySelectorAll('.roue'));
+  var cv=ch.querySelector('.fumee-cv'), g=cv.getContext('2d');
+  var etat='attente', t0=0, x=innerWidth*1.3, ang=0, raf=0, parts=[], derniere=0, W=0, H=0;
+
+  // trois textures de fumee, dessinees une fois : des nuages de taches douces
+  var sprites=[0,1,2].map(function(){
+    var c=document.createElement('canvas'); c.width=c.height=128; var q=c.getContext('2d');
+    for(var i=0;i<22;i++){
+      var px=64+(Math.random()-.5)*60, py=64+(Math.random()-.5)*44, r=14+Math.random()*30;
+      var gr=q.createRadialGradient(px,py,0,px,py,r);
+      gr.addColorStop(0,'rgba(220,226,234,'+(.035+Math.random()*.045)+')'); gr.addColorStop(1,'rgba(226,232,240,0)');
+      q.fillStyle=gr; q.beginPath(); q.arc(px,py,r,0,7); q.fill();
+    }
+    return c;
+  });
+  function taille(){ var r=ch.getBoundingClientRect(); W=cv.width=Math.round(r.width); H=cv.height=Math.round(r.height); }
+  function contact(i){ // point ou le pneu touche le sol, dans le repere du canvas
+    var rr=roues[i].getBoundingClientRect(), rc=cv.getBoundingClientRect();
+    return {x:rr.left+rr.width/2-rc.left, y:rr.bottom-rc.top-rr.height*.04, r:rr.width/2};
+  }
+  function emettre(i,n,vx,vy,taille0,vie,a){
+    var p=contact(i);
+    for(var k=0;k<n;k++) parts.push({x:p.x+(Math.random()-.5)*p.r*.8, y:p.y-Math.random()*p.r*.3,
+      vx:vx*(.6+Math.random()*.8), vy:vy*(.5+Math.random()), s:taille0*(.5+Math.random()*.6), gs:taille0*(1.8+Math.random()*2.2),
+      rot:Math.random()*6.28, vr:(Math.random()-.5)*1.2, v:0, vie:vie*(.7+Math.random()*.6), a:a*(.6+Math.random()*.5), sp:sprites[k%3]});
+  }
+  var reb=function(t){ return Math.exp(-5.5*t)*Math.cos(13*t); };
+  function poser(px,pitch,dAng){
+    voit.style.transform='translate3d('+px.toFixed(1)+'px,0,0)';
+    caisse.style.transform='rotate('+pitch.toFixed(3)+'deg)';
+    ang+=dAng; jantes.forEach(function(j){ j.style.transform='rotate('+ang.toFixed(1)+'deg)'; });
+  }
+  function boucle(ts){
+    raf=0; var t=(ts-t0)/1000, dt=Math.min(.05,(ts-(derniere||ts))/1000); derniere=ts;
+    var larg=voit.getBoundingClientRect().width||600, rpx=46/640*larg;
+    var D=innerWidth*1.25, prev=x;
+    if(etat==='arrive'){
+      var T=1.7, u=Math.min(1,t/T);
+      x=D*Math.pow(1-u,2);                          // deceleration constante
+      var freinage=u<1? (u>.25?1:u/.25) : 0;
+      var pitch=u<1? -1.6*freinage*(1-u*.2) : -1.6*.8*reb(t-T);
+      poser(x,pitch,-(prev-x)/rpx*57.3);
+      if(feu) feu.style.opacity=(u<1?1:.55).toString();
+      // les pneus fument pendant le gros du freinage
+      if(u>.3 && u<.98){ var vit=2*D*(1-u)/T; emettre(0,2,vit*.2,-14,larg*.045,1.5,.5); emettre(1,3,vit*.24,-18,larg*.055,1.7,.6); }
+      if(t>T+1.2) etat='garee';
+    } else if(etat==='repart'){
+      var patine=.45, T2=1.05;
+      if(t<patine){ // les roues patinent sur place, l'arriere s'ecrase
+        poser(0,1.4*Math.min(1,t/.15),-(28+t*40));
+        emettre(1,3,innerWidth*.22,-30,larg*.06,1.4,.42); emettre(0,1,innerWidth*.08,-16,larg*.04,1.1,.35);
+      } else {
+        var u2=Math.min(1,(t-patine)/T2);
+        x=-D*u2*u2;                                    // acceleration constante
+        poser(x,1.4*(1-u2),-(prev-x)/rpx*57.3-12*(1-u2));
+        if(u2<.3) emettre(1,2,innerWidth*.22,-24,larg*.06,1.2,.38);
+      }
+      if(t>patine+T2+1.6) etat='attente';
+    }
+    // la fumee : elle traine, s'etale, monte un peu et se dissipe
+    g.clearRect(0,0,W,H);
+    for(var i=parts.length-1;i>=0;i--){
+      var p=parts[i]; p.v+=dt;
+      if(p.v>p.vie){ parts.splice(i,1); continue; }
+      p.vx*=Math.pow(.18,dt); p.vy=p.vy*Math.pow(.5,dt)-14*dt;
+      p.x+=p.vx*dt; p.y+=p.vy*dt; p.s+=p.gs*dt; p.rot+=p.vr*dt;
+      var k=p.v/p.vie, al=p.a*Math.min(1,p.v/.15)*Math.pow(1-k,2);
+      g.globalAlpha=al; g.save(); g.translate(p.x,p.y); g.rotate(p.rot); g.drawImage(p.sp,-p.s,-p.s*.75,p.s*2,p.s*1.5); g.restore();
+    }
+    g.globalAlpha=1;
+    if(etat==='arrive'||etat==='repart'||parts.length) raf=requestAnimationFrame(boucle);
+  }
+  function lancer(e){ etat=e; t0=performance.now(); derniere=0; taille(); if(!raf) raf=requestAnimationFrame(boucle); }
+  new MutationObserver(function(){
+    var on=ch.classList.contains('on'), sort=ch.classList.contains('sort');
+    if(on && (etat==='attente'||etat==='repart')){ parts=[]; x=innerWidth*1.25; lancer('arrive'); }
+    else if(sort && (etat==='arrive'||etat==='garee')){ lancer('repart'); }
+    else if(!on && !sort && etat!=='repart'){ etat='attente'; voit.style.transform=''; }
+  }).observe(ch,{attributes:true,attributeFilter:['class']});
+  addEventListener('resize',function(){ if(etat!=='attente') taille(); },{passive:true});
+})();
+</script>
+<script type="module" src="js/experiences.js?v=15"></script>
 </body>
 </html>
