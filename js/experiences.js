@@ -201,6 +201,9 @@ vec3 objectTangent=vec3(tangent.xyz);
     if (b.enabled) b.strength = 0.25 + p3 * 0.1 + eclat * 1.4 + p4 * 0.3;
     // la typographie accompagne : le nom s'ecarte, le reste du hero s'efface
     if (hero) { hero.style.setProperty('--o1', p1.toFixed(3)); hero.style.setProperty('--o2', p2.toFixed(3)); }
+    // la transition « le trait » : un filet rouge traverse l'ecran, puis le monde se referme dessus
+    const tl = clamp((pBrut - 0.7) / 0.12), tc = doux(clamp((pBrut - 0.8) / 0.15)), tf = clamp((pBrut - 0.95) / 0.05);
+    el.style.setProperty('--tl', tl.toFixed(3)); el.style.setProperty('--tc', tc.toFixed(3)); el.style.setProperty('--tf', tf.toFixed(3));
     c.render(); return true;
   };
 }

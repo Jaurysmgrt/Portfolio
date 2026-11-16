@@ -2503,6 +2503,14 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 @media(max-width:860px){.dispo-mob{display:flex;position:fixed;left:50%;transform:translateX(-50%);top:21px;z-index:501;align-items:center;gap:.4rem;white-space:nowrap;
   font-family:'IBM Plex Mono',monospace;font-size:.48rem;letter-spacing:.16em;text-transform:uppercase;color:#fff;background:var(--red);padding:.32rem .55rem;text-decoration:none}
   .dispo-mob i{width:5px;height:5px;border-radius:50%;background:#fff;animation:pouls 1.8s ease-out infinite}}
+
+/* ═══ Transition « le trait » : la 3D se referme sur un filet rouge, l'histoire est deja dessous ═══ */
+.trait-ouv{display:none}
+body.avec-3d #ouverture{z-index:3}
+body.avec-3d #ouverture .colle{clip-path:inset(calc(var(--tc,0) * 50%) 0 calc(var(--tc,0) * 50%) 0)}
+body.avec-3d .trait-ouv{display:block;position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;z-index:5;pointer-events:none;
+  background:var(--red2);box-shadow:0 0 18px 2px rgba(255,68,51,.6);transform:scaleX(calc(var(--tl,0) + var(--tf,0) * .6));opacity:calc(var(--tl,0) * 4 - var(--tf,0) * 5)}
+body.avec-3d #histoire{margin-top:-100vh;margin-top:-100svh;z-index:1}
 </style>
 </head>
 <body>
@@ -2647,7 +2655,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 
 <!-- HERO -->
 <div id="scene">
-<div id="ouverture" class="piste-3d"><div class="colle">
+<div id="ouverture" class="piste-3d"><div class="colle"><i class="trait-ouv" aria-hidden="true"></i>
 <canvas class="cv-3d" aria-hidden="true"></canvas>
 <section class="hero">
   <div class="hero-grid-bg"></div>
@@ -2691,7 +2699,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
  <div class="colle">
   <div class="rc-fond" aria-hidden="true"><span class="rc-num">00</span></div>
   <div class="rc-tete"><span class="rc-lbl">Mon histoire</span><ol class="rc-rail"><li><button type="button" data-i="0">Prologue</button></li><li><button type="button" data-i="1">Amiens</button></li><li><button type="button" data-i="2">Stages</button></li><li><button type="button" data-i="3">ESP Paris</button></li><li><button type="button" data-i="4">Talon Pointe</button></li><li><button type="button" data-i="5">Master</button></li></ol></div>
-  <article class="ch" data-i="0" data-poids="1.7">
+  <article class="ch" data-i="0" data-poids="1.05">
     <div class="ch-txt">
       <span class="ch-tag ln">Prologue</span>
       <h3 class="ch-an ln"><span>Jaurys</span></h3>
@@ -2701,7 +2709,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
     </div>
     <div class="ch-vis" aria-hidden="true"><figure class="tirage"><div class="ti-img"><i class="ti-vf"></i><i class="ti-af"></i><img src="images/profil.jpg" alt="" width="900" height="1353" loading="lazy" decoding="async"></div><figcaption><span class="cap-avant">Souriez&hellip;</span><span class="cap-apres">Jaurys &middot; Paris</span></figcaption></figure><i class="ecran-flash"></i></div>
   </article>
-  <article class="ch" data-i="1" data-poids="1.6">
+  <article class="ch" data-i="1" data-poids="2.3">
     <div class="ch-txt">
       <span class="ch-tag ln">Chapitre 01 &middot; Amiens</span>
       <h3 class="ch-an ln"><span>2023</span></h3>
@@ -4569,6 +4577,6 @@ if(window.__jmSon) window.__jmSon('avion');
   setTimeout(function(){ var l=document.querySelectorAll('.c-big .l'); if(l.length && l[l.length-1].textContent==='.') l[l.length-1].classList.add('point'); },300);
 })();
 </script>
-<script type="module" src="js/experiences.js?v=21"></script>
+<script type="module" src="js/experiences.js?v=23"></script>
 </body>
 </html>
