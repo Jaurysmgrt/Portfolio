@@ -41,10 +41,10 @@
   --chrome:#a9b7c6;--chrome-hi:#dde6ef;
   --edge:rgba(255,255,255,.12);                         /* arete qui capte la lumiere */
 }
-html{scroll-behavior:smooth;overflow-x:hidden;width:100%}
+html{scroll-behavior:smooth;overflow-x:clip;width:100%}
 body{
   font-family:'IBM Plex Sans',system-ui,sans-serif;font-weight:300;
-  background:var(--bg);color:var(--cream);overflow-x:hidden;cursor:none;width:100%;max-width:100vw;position:relative;
+  background:var(--bg);color:var(--cream);overflow-x:clip;cursor:none;width:100%;max-width:100vw;position:relative;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.055'/%3E%3C/svg%3E");
 }
 #c1,#c2{pointer-events:none;position:fixed;z-index:9999;border-radius:50%;transform:translate(-50%,-50%)}
@@ -1467,7 +1467,7 @@ body.loaded .son{opacity:1}
    un appareil tactile se retrouve avec une page fixe, donc impossible a
    faire defiler. */
 body.glisse #scene{position:fixed;top:0;left:0;width:100%;z-index:1;will-change:transform}
-body.glisse{overflow-x:hidden}
+body.glisse{overflow-x:clip}
 @media(prefers-reduced-motion:reduce){
   #scene{position:static!important;transform:none!important}
   body.glisse{height:auto!important}
@@ -1613,6 +1613,49 @@ body.loaded .son{opacity:.45}
 
 /* Le repere de defilement n'a plus besoin de crier : on voit deja le travail */
 .hero-scroll{opacity:.5}
+
+/* ════════════════════════════════════════════════════════════════════
+   DEUX TEMPS FORTS EN 3D : l'ouverture et la selection.
+   Une piste dans la page, un cadre qui reste a l'ecran pendant qu'on la
+   parcourt. Sans WebGL ou en mouvement reduit, tout redevient une page.
+   ════════════════════════════════════════════════════════════════════ */
+.piste-3d{position:relative}
+.piste-3d .cv-3d{display:none}
+body.avec-3d #ouverture{height:230vh}
+body.avec-3d #selection{height:520vh}
+body.avec-3d .piste-3d .colle{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
+body.glisse.avec-3d .piste-3d .colle{position:absolute;top:0;left:0;right:0}
+body.avec-3d .piste-3d .cv-3d{display:block;position:absolute;inset:0;width:100%;height:100%;z-index:0}
+#selection{display:none}
+body.avec-3d #selection{display:block}
+
+/* l'ouverture : le hero passe devant le metal */
+body.avec-3d #ouverture .hero{position:relative;z-index:1;height:100%;min-height:0;background:transparent}
+body.avec-3d #ouverture .hero-grid-bg,body.avec-3d #ouverture .hero-ghost{display:none}
+body.avec-3d #ouverture .hn1{transform:translate3d(calc(var(--o1,0) * -24vw),calc(var(--o2,0) * -10vh),0)}
+body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 24vw),calc(var(--o2,0) * 10vh),0)}
+body.avec-3d #ouverture .hn{opacity:calc(1 - var(--o2,0))}
+body.avec-3d.loaded #ouverture .hero-topbar,body.avec-3d.loaded #ouverture .hero-col-l,
+body.avec-3d.loaded #ouverture .hero-col-r,body.avec-3d.loaded #ouverture .hero-bottom,
+body.avec-3d.loaded #ouverture .hero-rule,body.avec-3d.loaded #ouverture .hero-scroll{opacity:calc(1 - var(--o1,0) * 1.3)}
+
+/* la selection : la typographie du site par-dessus l'arc */
+.sel-couche{position:absolute;inset:0;z-index:1;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:calc(var(--nav-h,70px) + 3vh) 6vw 7vh}
+.sel-tete{display:flex;justify-content:space-between;align-items:baseline;gap:2rem}
+.sel-lbl{font-family:'Anton',sans-serif;font-size:clamp(1.6rem,3vw,2.6rem);text-transform:uppercase;color:var(--cream)}
+.sel-aide{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);text-align:right}
+.sel-bas{display:flex;justify-content:space-between;align-items:flex-end;gap:2rem}
+.sel-fam{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.26em;text-transform:uppercase;color:var(--red2);margin-bottom:.6rem}
+.sel-num{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.2em;color:var(--chrome)}
+.sel-t{font-family:'Anton',sans-serif;font-size:clamp(2.4rem,7vw,6.5rem);line-height:.9;text-transform:uppercase;color:var(--cream);margin:.3rem 0}
+.sel-c{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.sel-cpt{text-align:right}
+.sel-x{font-family:'Anton',sans-serif;font-size:3.2rem;line-height:1;color:var(--cream)}
+.sel-tot{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.2em;color:var(--muted)}
+.sel-barre{position:absolute;left:6vw;right:6vw;bottom:4vh;height:1px;background:var(--border)}
+.sel-barre i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--red2)}
+#selection .cv-3d{cursor:pointer}
+@media(max-width:700px){.sel-aide{display:none}.sel-x{font-size:2.4rem}}
 </style>
 </head>
 <body>
@@ -1751,6 +1794,8 @@ body.loaded .son{opacity:.45}
 
 <!-- HERO -->
 <div id="scene">
+<div id="ouverture" class="piste-3d"><div class="colle">
+<canvas class="cv-3d" aria-hidden="true"></canvas>
 <section class="hero">
   <div class="hero-grid-bg"></div>
   
@@ -1782,6 +1827,7 @@ body.loaded .son{opacity:.45}
   </div>
   <div class="hero-scroll"><span class="hs-lbl">Scroll</span><div class="hs-line"></div></div>
 </section>
+</div></div>
 
 <!-- AVANT-GOUT : trois visuels avant meme d'avoir scrolle -->
 <section class="tz rv" id="apercu" aria-label="Apercu des projets">
@@ -1832,6 +1878,19 @@ body.loaded .son{opacity:.45}
 
 
 <!-- PORTFOLIO -->
+<section id="selection" class="piste-3d" aria-label="S&eacute;lection de projets">
+  <div class="colle">
+    <canvas class="cv-3d" aria-hidden="true"></canvas>
+    <div class="sel-couche">
+      <div class="sel-tete"><span class="sel-lbl">S&eacute;lection</span><span class="sel-aide">Faites d&eacute;filer &middot; cliquez sur l'image au centre pour ouvrir le projet</span></div>
+      <div class="sel-bas">
+        <div class="sel-info"><div class="sel-fam"></div><div class="sel-num"></div><div class="sel-t"></div><div class="sel-c"></div></div>
+        <div class="sel-cpt"><div class="sel-x"></div><div class="sel-tot"></div></div>
+      </div>
+      <div class="sel-barre"><i></i></div>
+    </div>
+  </div>
+</section>
 <section class="sec" id="portfolio">
   <div class="pf-head rv">
     <div><div class="sec-num">02 / Productions</div><div class="sec-title">Mes <em>projets</em></div></div>
@@ -2861,6 +2920,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
     if(Math.abs(d)<0.08){ pos=cible; }
     else { pos += d * (1-Math.exp(-dt/TAU)); }
     scene.style.transform='translate3d(0,'+(-pos).toFixed(2)+'px,0)';
+    window.__yVisuel=pos;
     raf=requestAnimationFrame(boucle);
   }
   raf=requestAnimationFrame(boucle);
@@ -3078,5 +3138,6 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
   }).observe(pw,{childList:true,subtree:true});
 })();
 </script>
+<script type="module" src="js/experiences.js"></script>
 </body>
 </html>
