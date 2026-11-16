@@ -1615,18 +1615,49 @@ body.loaded .son{opacity:.45}
 .hero-scroll{opacity:.5}
 
 /* ════════════════════════════════════════════════════════════════════
-   L'OUVERTURE EN 3D : le metal chrome derriere le nom. Le hero defile
-   normalement (rien d'epingle). Sans WebGL ou en mouvement reduit,
-   le hero d'origine reste tel quel.
+   DEUX TEMPS FORTS EN 3D : l'ouverture et la selection.
+   Une piste dans la page, un cadre qui reste a l'ecran pendant qu'on la
+   parcourt. Sans WebGL ou en mouvement reduit, tout redevient une page.
    ════════════════════════════════════════════════════════════════════ */
-#ouverture .colle{position:relative}
-#ouverture .cv-3d{display:none}
-body.avec-3d #ouverture .cv-3d{display:block;position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
-body.avec-3d #ouverture .hero{position:relative;z-index:1;background:transparent}
-@media(max-width:700px){body.avec-3d #ouverture .cv-3d{opacity:.5}}
+.piste-3d{position:relative}
+.piste-3d .cv-3d{display:none}
+body.avec-3d #ouverture{height:200vh}
+body.avec-3d #selection{height:430vh}
+/* l'arc remplace l'apercu : les projets ne sont jamais montres deux fois avant la galerie */
+body.avec-3d #apercu{display:none}
+body.avec-3d .piste-3d .colle{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
+body.avec-3d .piste-3d .cv-3d{display:block;position:absolute;inset:0;width:100%;height:100%;z-index:0}
+#selection{display:none}
+body.avec-3d #selection{display:block}
+
+/* l'ouverture : le hero passe devant le metal */
+body.avec-3d #ouverture .hero{position:relative;z-index:1;height:100%;min-height:0;background:transparent}
 body.avec-3d #ouverture .hero-grid-bg,body.avec-3d #ouverture .hero-ghost{display:none}
-body.avec-3d #ouverture .hn1{transform:translate3d(calc(var(--o1,0) * -18vw),0,0)}
-body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 18vw),0,0)}
+body.avec-3d #ouverture .hn1{transform:translate3d(calc(var(--o1,0) * -24vw),calc(var(--o2,0) * -10vh),0)}
+body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 24vw),calc(var(--o2,0) * 10vh),0)}
+body.avec-3d #ouverture .hn{opacity:calc(1 - var(--o2,0))}
+body.avec-3d.loaded #ouverture .hero-topbar,body.avec-3d.loaded #ouverture .hero-col-l,
+body.avec-3d.loaded #ouverture .hero-col-r,body.avec-3d.loaded #ouverture .hero-bottom,
+body.avec-3d.loaded #ouverture .hero-rule,body.avec-3d.loaded #ouverture .hero-scroll{opacity:calc(1 - var(--o1,0) * 1.3)}
+
+/* la selection : la typographie du site par-dessus l'arc */
+.sel-couche{position:absolute;inset:0;z-index:1;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:calc(var(--nav-h,70px) + 3vh) 6vw 7vh}
+.sel-tete{display:flex;justify-content:space-between;align-items:baseline;gap:2rem}
+.sel-lbl{font-family:'Anton',sans-serif;font-size:clamp(1.6rem,3vw,2.6rem);text-transform:uppercase;color:var(--cream)}
+.sel-aide{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);text-align:right}
+.sel-bas{display:flex;justify-content:space-between;align-items:flex-end;gap:2rem}
+.sel-fam{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.26em;text-transform:uppercase;color:var(--red2);margin-bottom:.6rem}
+.sel-num{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.2em;color:var(--chrome)}
+.sel-t{font-family:'Anton',sans-serif;font-size:clamp(2.4rem,7vw,6.5rem);line-height:.9;text-transform:uppercase;color:var(--cream);margin:.3rem 0}
+.sel-c{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.sel-cpt{text-align:right}
+.sel-x{font-family:'Anton',sans-serif;font-size:3.2rem;line-height:1;color:var(--cream)}
+.sel-tot{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.2em;color:var(--muted)}
+.sel-barre{position:absolute;left:6vw;right:6vw;bottom:4vh;height:1px;background:var(--border)}
+.sel-barre i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--red2)}
+#selection .cv-3d{cursor:pointer}
+@media(max-width:700px){.sel-aide{display:none}.sel-x{font-size:2.4rem}}
+@media(max-width:700px){body.avec-3d #ouverture .cv-3d{opacity:.55}}
 
 /* ═══ Retour d'usage ═══ */
 /* le hero : trois actions claires */
@@ -1683,6 +1714,28 @@ footer{padding-right:max(1.5rem,7rem)}
   .gallery.maconnerie .fam:not([data-fam="video"]) .brand-count{top:.4rem;right:.4rem;padding:.2rem .4rem;font-size:.42rem}
   .gallery.maconnerie .fam:not([data-fam="video"]) .brand-count span{font-size:.7rem}
   .gallery.maconnerie .fam:not([data-fam="video"]) .has-card::after{font-size:.44rem;letter-spacing:.1em;padding:.6rem .3rem .45rem}
+}
+
+/* ═══════════ LES MOUVEMENTS : un effet par section, tous lies au defilement ═══════════
+   Seulement transform, opacity et clip-path : rien ne force un recalcul de page.
+   --p va de 0 (l'element entre par le bas) a 1 (il sort par le haut). */
+@media(prefers-reduced-motion:no-preference){
+  /* les grands titres glissent en sens contraire : la typo respire */
+  body.mvt .sec-title{transform:translate3d(calc((.5 - var(--p,.5)) * 10vw),0,0)}
+  /* le portrait se devoile comme un tirage qui sort du bac */
+  body.mvt .ai-photo{clip-path:inset(calc(max(0, .42 - var(--p,1)) * 160%) 0 0 0)}
+  body.mvt .ai-photo img{transform:scale(calc(1 + max(0, .5 - var(--p,1)) * .5)) translate3d(0,calc((var(--p,.5) - .5) * -6%),0)}
+  /* la galerie a de l'inertie : elle se penche avec la vitesse */
+  body.mvt #gallery .gal-grille{transform:skewY(calc(var(--v,0) * 1deg));transform-origin:50% 0;will-change:transform}
+  /* le parcours : la ligne rouge se trace a mesure qu'on descend */
+  body.mvt .timeline::before{transform:scaleY(calc(min(1, var(--p,1) * 1.9)));transform-origin:50% 0}
+  /* les experiences : un filet rouge se tire sous chaque ligne */
+  body.mvt .xr::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--red2);
+    transform:scaleX(calc(min(1, max(0, var(--p,0) * 2.4 - .35))));transform-origin:0 50%}
+  /* le contact : les lettres montent une a une */
+  body.mvt .c-big .l{display:inline-block;transform:translate3d(0,.9em,0) rotate(6deg);opacity:0;
+    transition:transform .8s cubic-bezier(.16,1,.3,1),opacity .5s;transition-delay:calc(var(--i) * 28ms)}
+  body.mvt .c-big.leve .l{transform:none;opacity:1}
 }
 </style>
 </head>
@@ -1865,6 +1918,20 @@ footer{padding-right:max(1.5rem,7rem)}
   <div class="hero-scroll"><span class="hs-lbl">Scroll</span><div class="hs-line"></div></div>
 </section>
 </div></div>
+
+<section id="selection" class="piste-3d" aria-label="S&eacute;lection de projets">
+  <div class="colle">
+    <canvas class="cv-3d" aria-hidden="true"></canvas>
+    <div class="sel-couche">
+      <div class="sel-tete"><span class="sel-lbl">S&eacute;lection</span><span class="sel-aide">Faites d&eacute;filer &middot; cliquez sur l'image au centre pour ouvrir le projet</span></div>
+      <div class="sel-bas">
+        <div class="sel-info"><div class="sel-fam"></div><div class="sel-num"></div><div class="sel-t"></div><div class="sel-c"></div></div>
+        <div class="sel-cpt"><div class="sel-x"></div><div class="sel-tot"></div></div>
+      </div>
+      <div class="sel-barre"><i></i></div>
+    </div>
+  </div>
+</section>
 
 <!-- AVANT-GOUT : trois visuels avant meme d'avoir scrolle -->
 <section class="tz rv" id="apercu" aria-label="Apercu des projets">
@@ -3178,6 +3245,97 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   if(pw) new MutationObserver(function(){
     pw.querySelectorAll('.pp-visual:not(.pp-slot)').forEach(brancher);
   }).observe(pw,{childList:true,subtree:true});
+})();
+</script>
+<script>
+// ═══ LE DEFILEMENT LISSE ═══
+// La molette donne des crans : on les adoucit en animant le vrai defilement
+// de la page (pas une couche decalee), donc les elements fixes restent
+// fixes et rien ne tremble. Clavier, barre et tactile restent natifs.
+(function(){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  if(!matchMedia('(hover:hover) and (pointer:fine)').matches) return;
+  document.documentElement.style.scrollBehavior='auto';
+  var cur=0, cible=0, actif=false, raf=0, tPrec=0;
+  function ailleurs(t){
+    return !!(t && t.closest && t.closest('.pp.on,.lb,.vmodal,.cmod.on,.nav-mob,textarea,select,[data-natif]'));
+  }
+  function maxY(){ return document.documentElement.scrollHeight-innerHeight; }
+  function pas(t){
+    var dt=Math.min(50,t-tPrec); tPrec=t;
+    cur+=(cible-cur)*(1-Math.exp(-dt/105));
+    if(Math.abs(cible-cur)<.4){ cur=cible; actif=false; }
+    window.scrollTo(0,cur);
+    if(actif) raf=requestAnimationFrame(pas);
+  }
+  addEventListener('wheel',function(e){
+    if(e.ctrlKey || e.defaultPrevented || ailleurs(e.target)) return;
+    if(document.body.style.overflow==='hidden') return;
+    if(Math.abs(e.deltaX)>Math.abs(e.deltaY)) return;
+    e.preventDefault();
+    var d=e.deltaY*(e.deltaMode===1?40:(e.deltaMode===2?innerHeight:1));
+    if(!actif){ cur=window.scrollY; cible=cur; }
+    cible=Math.max(0,Math.min(maxY(),cible+d));
+    if(!actif){ actif=true; tPrec=performance.now(); raf=requestAnimationFrame(pas); }
+  },{passive:false});
+  // un autre moyen a fait defiler (ancre, clavier, barre) : on lui laisse la main
+  addEventListener('scroll',function(){
+    if(actif && Math.abs(window.scrollY-cur)>4){ actif=false; cancelAnimationFrame(raf); }
+  },{passive:true});
+})();
+
+// ═══ LES MOUVEMENTS ═══
+// Une seule boucle : elle lit la position une fois par image et donne a
+// chaque element sa progression (--p) et a la galerie sa vitesse (--v).
+(function(){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  document.body.classList.add('mvt');
+  var sel='.sec-title,.ai-photo,.timeline,.xr';
+  var els=[].map.call(document.querySelectorAll(sel),function(el){return {el:el,top:0,h:1,p:-1};});
+  var gal=document.getElementById('gallery');
+  function haut(el){ var y=0; for(var e=el;e;e=e.offsetParent) y+=e.offsetTop; return y; }
+  function mesurer(){ els.forEach(function(o){ o.top=haut(o.el); o.h=o.el.offsetHeight||1; }); }
+  mesurer();
+  addEventListener('resize',mesurer,{passive:true}); addEventListener('load',mesurer);
+  if(window.ResizeObserver) new ResizeObserver(mesurer).observe(document.body);
+  var yPrec=window.scrollY, v=0, vAff=99;
+  function image(){
+    var y=window.scrollY, vh=innerHeight;
+    els.forEach(function(o){
+      if(o.top>y+vh+200 || o.top+o.h<y-200) return;
+      var p=(y+vh-o.top)/(vh+o.h); p=p<0?0:(p>1?1:p);
+      if(Math.abs(p-o.p)>.0015){ o.p=p; o.el.style.setProperty('--p',p.toFixed(4)); }
+    });
+    // vitesse lissee, bornee : l'inclinaison reste elegante
+    var d=y-yPrec; yPrec=y;
+    v+=(Math.max(-60,Math.min(60,d))-v)*.18;
+    var va=Math.abs(v)<.05?0:v*.025;
+    if(gal && Math.abs(va-vAff)>.002){ vAff=va; gal.style.setProperty('--v',va.toFixed(3)); }
+    requestAnimationFrame(image);
+  }
+  requestAnimationFrame(image);
+
+  // le contact : lettre par lettre (le texte reste lisible tel quel pour les lecteurs d'ecran)
+  var big=document.querySelector('.c-big');
+  if(big){
+    big.setAttribute('aria-label',big.textContent.replace(/\s+/g,' ').trim());
+    var i=0;
+    (function couper(n){
+      [].slice.call(n.childNodes).forEach(function(c){
+        if(c.nodeType===3){
+          var f=document.createDocumentFragment();
+          c.textContent.split('').forEach(function(ch){
+            if(ch===' '){ f.appendChild(document.createTextNode(' ')); return; }
+            var s=document.createElement('span'); s.className='l'; s.setAttribute('aria-hidden','true');
+            s.style.setProperty('--i',i++); s.textContent=ch; f.appendChild(s);
+          });
+          c.parentNode.replaceChild(f,c);
+        } else if(c.nodeType===1) couper(c);
+      });
+    })(big);
+    var io=new IntersectionObserver(function(es){ es.forEach(function(e){ if(e.isIntersecting){ big.classList.add('leve'); io.disconnect(); } }); },{threshold:.35});
+    io.observe(big);
+  }
 })();
 </script>
 <script type="module" src="js/experiences.js"></script>
