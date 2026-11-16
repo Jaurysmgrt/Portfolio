@@ -17,7 +17,7 @@ où il le trouve. Ce CV est construit pour ça :
 - **une seule colonne** : en deux colonnes, les ATS mélangent souvent les
   blocs (une date de gauche collée à une ligne de droite) ;
 - **intitulés standards** : Profil, Expérience professionnelle, Formation,
-  Projets, Compétences ;
+  Compétences ;
 - **tout est du vrai texte**, y compris le téléphone, l'e-mail et les liens,
   rien n'est dans une image ;
 - **polices intégrées en TrueType**. L'ancien PDF en contenait en Type 3,
