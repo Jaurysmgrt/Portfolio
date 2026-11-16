@@ -36,29 +36,6 @@ function webgl() {
   try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; }
 }
 
-// Une piste : un long bloc dans la page, et un cadre qui reste a l'ecran
-// pendant qu'on la parcourt. Sur ordinateur le contenu glisse dans une
-// couche transformee, ou sticky ne peut pas tenir : on epingle a la main.
-function piste(el) {
-  const colle = el.querySelector('.colle');
-  let top = 0, h = 1;
-  const mesurer = () => { top = haut(el); h = el.offsetHeight; };
-  mesurer();
-  addEventListener('resize', mesurer, { passive: true });
-  addEventListener('load', mesurer);
-  if (window.ResizeObserver) new ResizeObserver(mesurer).observe(document.getElementById('scene') || document.body);
-  return {
-    el,
-    progression() {
-      const y = yVisuel(), vh = innerHeight;
-      if (glisse()) colle.style.transform = 'translate3d(0,' + clamp(y - top, 0, Math.max(0, h - vh)).toFixed(1) + 'px,0)';
-      else if (colle.style.transform) colle.style.transform = '';
-      return clamp((y - top) / Math.max(1, h - vh));
-    },
-    visible() { const y = yVisuel(); return y + innerHeight > top - 200 && y < top + h + 200; }
-  };
-}
-
 function rendu(canvas) {
   const r = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
   r.setPixelRatio(dpr());
@@ -83,7 +60,12 @@ function ouverture() {
   const el = document.getElementById('ouverture');
   const canvas = el && el.querySelector('canvas');
   if (!canvas) return null;
-  const P = piste(el);
+  // le hero defile normalement : rien n'est epingle, donc rien ne peut
+  // trembler. La 3D suit simplement la sortie du hero (0 -> 1).
+  const P = {
+    progression: () => clamp(yVisuel() / Math.max(1, innerHeight * 0.9)),
+    visible: () => yVisuel() < innerHeight * 1.05
+  };
   const r = rendu(canvas);
   r.toneMappingExposure = 0.95;
   const scene = new THREE.Scene();
@@ -183,143 +165,11 @@ vec3 objectTangent=vec3(tangent.xyz);
   };
 }
 
-// ═══════════════════════════════════════ LA SELECTION ════════════════
-function selection() {
-  const el = document.getElementById('selection');
-  const canvas = el && el.querySelector('canvas');
-  if (!canvas) return null;
-  const P = piste(el);
-  const r = rendu(canvas);
-  r.toneMapping = THREE.NoToneMapping;
-  const scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x06070a);
-  scene.fog = new THREE.Fog(0x06070a, 8, 22);
-  const cam = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
-
-  // On garde les familles de la galerie : l'arc les presente l'une apres
-  // l'autre, jamais melangees. Quelques pieces par famille, les plus fortes
-  // d'abord (celles qui ont une page projet), sans les visuels secondaires.
-  const PAR_FAMILLE = { da: 6, auto: 3, nuit: 2 };
-  const projets = [];
-  document.querySelectorAll('#gallery .fam').forEach(fam => {
-    const cle = fam.dataset.fam, max = PAR_FAMILLE[cle];
-    if (!max) return;                                  // la video reste dans la galerie
-    const nom = (fam.querySelector('.fam-t') || {}).textContent || '';
-    const num = (fam.querySelector('.fam-n') || {}).textContent || '';
-    const tuiles = [...fam.querySelectorAll('.gal-item')].filter(t => !t.classList.contains('brand-secondary') && !t.classList.contains('gal-video'));
-    tuiles.sort((a, b) => (b.classList.contains('has-card') ? 1 : 0) - (a.classList.contains('has-card') ? 1 : 0));
-    tuiles.slice(0, max).forEach(t => {
-      const im = t.querySelector('img');
-      if (!im || !im.getAttribute('src') || /^https?:/.test(im.getAttribute('src'))) return;
-      projets.push({ tuile: t, fam: cle, famNom: nom.trim(), famNum: num.trim(), src: im.getAttribute('src'),
-        w: +im.getAttribute('width') || 1200, h: +im.getAttribute('height') || 800,
-        titre: t.dataset.brand || (t.dataset.title || '').split(',')[0], cat: (t.dataset.cat || '').replace(/&middot;/g, '·') });
-    });
-  });
-
-  const elFam = el.querySelector('.sel-fam'), elNum = el.querySelector('.sel-num'), elT = el.querySelector('.sel-t'), elC = el.querySelector('.sel-c'),
-        elX = el.querySelector('.sel-x'), elTot = el.querySelector('.sel-tot'), elB = el.querySelector('.sel-barre i');
-  if (elTot) elTot.textContent = '/ ' + String(projets.length).padStart(2, '0');
-
-  const VS = `uniform float uV,uT;varying vec2 vUv;
-void main(){vUv=uv;vec3 p=position;
-  p.z+=sin(uv.x*3.14159)*uV*0.9; p.y+=sin(uv.x*6.283+uT)*uV*0.08;
-  gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);}`;
-  const FS = `uniform sampler2D uMap;uniform float uV,uOk,uFocus;varying vec2 vUv;
-void main(){float s=uV*0.018+0.0015;
-  vec4 c=vec4(texture2D(uMap,vUv+vec2(s,0.)).r,texture2D(uMap,vUv).g,texture2D(uMap,vUv-vec2(s,0.)).b,1.);
-  c.rgb=mix(vec3(0.06,0.07,0.09),c.rgb,uOk);
-  c.rgb*=mix(0.38,1.0,uFocus);
-  float e=smoothstep(0.0,0.012,vUv.x)*smoothstep(1.0,0.988,vUv.x)*smoothstep(0.0,0.012,vUv.y)*smoothstep(1.0,0.988,vUv.y);
-  c.rgb=mix(vec3(1.0,0.23,0.14)*uFocus,c.rgb,e);
-  gl_FragColor=c;}`;
-
-  const R = 7.2, H = 3.1, ECART = 0.55;
-  const arc = new THREE.Group(); scene.add(arc);
-  const chargeur = new THREE.TextureLoader();
-  let charge = false;
-  const plans = projets.map(pr => {
-    const u = { uMap: { value: null }, uV: { value: 0 }, uT: { value: 0 }, uOk: { value: 0 }, uFocus: { value: 0 } };
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(1, H, 40, 1), new THREE.ShaderMaterial({ uniforms: u, vertexShader: VS, fragmentShader: FS }));
-    m.scale.x = H * pr.w / pr.h;              // jamais recadree : la plaque prend les proportions de l'image
-    m.userData.pr = pr;
-    const piv = new THREE.Group(); piv.add(m); m.position.z = -R; arc.add(piv);
-    return { piv, m, u, pr, ang: 0 };
-  });
-  function placer() {
-    let a = 0;
-    plans.forEach((p, i) => {
-      // entre deux familles, un vrai vide : les groupes se lisent comme des salles
-      if (i > 0 && p.pr.fam !== plans[i - 1].pr.fam) a -= 2.4 / R;
-      const da = (p.m.scale.x + ECART) / R; if (i > 0) a -= da / 2; p.piv.rotation.y = a; p.ang = a; a -= da / 2; });
-  }
-  placer();
-  function charger() {
-    if (charge) return; charge = true;
-    plans.forEach(pl => chargeur.load(pl.pr.src, tex => {
-      tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
-      pl.u.uMap.value = tex; pl.u.uOk.value = 1;
-    }));
-  }
-
-  const grille = new THREE.GridHelper(60, 60, 0x2a3442, 0x141a22); grille.position.y = -H / 2 - 0.9; scene.add(grille);
-  const ligne = new THREE.Mesh(new THREE.PlaneGeometry(60, 0.03), new THREE.MeshBasicMaterial({ color: 0xff3b24 }));
-  ligne.rotation.x = -Math.PI / 2; ligne.position.set(0, -H / 2 - 0.89, -R + 0.6); scene.add(ligne);
-
-  const { c, b } = composer(r, scene, cam, 0.22, 0.35, 0.96);
-  b.enabled = false;   // les images restent nettes : pas de halo sur les photos
-  let qv = 0, pPrec = 0, vit = 0, courant = -1, mx = 0, my = 0, angle = 0, w0 = 0, h0 = 0;
-  if (!TACTILE) addEventListener('pointermove', e => { mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1; }, { passive: true });
-
-  // un clic sur l'image au centre ouvre le projet, comme dans la galerie
-  canvas.addEventListener('click', () => { if (courant >= 0) projets[courant].tuile.click(); });
-
-  function taille() {
-    const [w, h] = tailleCadre(canvas); if (w === w0 && h === h0 && qv === Q.v) return; w0 = w; h0 = h; qv = Q.v; r.setPixelRatio(dpr()); c.setPixelRatio(dpr());
-    r.setSize(w, h, false); c.setSize(w, h); cam.aspect = w / h; cam.fov = w < h ? 62 : 42; cam.updateProjectionMatrix();
-  }
-
-  return function image(t) {
-    if (!P.visible()) { P.progression(); return; }
-    charger(); taille();
-    const p = SOBRE ? 0 : P.progression();
-    const dv = (p - pPrec) * 60; pPrec = p;
-    vit += (dv - vit) * 0.12;
-    const s = t / 1000;
-    const total = plans.length ? -plans[plans.length - 1].ang : 0;
-    angle += (p * total - angle) * 0.12;
-    arc.rotation.y = angle;
-    cam.position.set(mx * 0.35, -0.2 - my * 0.2 + Math.min(0.3, Math.abs(vit) * 0.4), 2.2 + Math.min(1.2, Math.abs(vit) * 1.6));
-    cam.lookAt(0, -0.38, -R);
-    let best = 0, bd = 9;
-    plans.forEach((pl, i) => {
-      const d = Math.abs(pl.ang + angle);
-      if (d < bd) { bd = d; best = i; }
-      pl.u.uV.value = clamp(vit * 2.2, -0.6, 0.6); pl.u.uT.value = s;
-      pl.u.uFocus.value += (doux(clamp(1 - d / 0.45)) - pl.u.uFocus.value) * 0.15;
-      pl.m.position.z = -R + pl.u.uFocus.value * 0.8;
-    });
-    if (best !== courant && projets[best]) {
-      courant = best; const pr = projets[best];
-      const n = String(best + 1).padStart(2, '0');
-      if (elNum) elNum.textContent = n; if (elX) elX.textContent = n;
-      if (elT) { elT.textContent = pr.titre; elT.animate([{ opacity: 0, transform: 'translateY(40%)' }, { opacity: 1, transform: 'none' }], { duration: 520, easing: 'cubic-bezier(.16,1,.3,1)' }); }
-      if (elC) elC.textContent = pr.cat;
-      if (elFam && elFam.dataset.f !== pr.fam) {
-        elFam.dataset.f = pr.fam; elFam.textContent = pr.famNum + ' · ' + pr.famNom;
-        elFam.animate([{ opacity: 0, letterSpacing: '.5em' }, { opacity: 1, letterSpacing: '.26em' }], { duration: 700, easing: 'cubic-bezier(.16,1,.3,1)' });
-      }
-    }
-    if (elB) elB.style.width = (p * 100).toFixed(2) + '%';
-    b.strength = 0.45 + Math.min(1, Math.abs(vit) * 2);
-    c.render(); return true;
-  };
-}
 
 function demarrer() {
   if (SOBRE || !webgl()) { document.body.classList.add('sans-3d'); return; }
   document.body.classList.add('avec-3d');
-  const scenes = [ouverture(), selection()].filter(Boolean);
+  const scenes = [ouverture()].filter(Boolean);
   let vivant = true;
   document.addEventListener('visibilitychange', () => { vivant = !document.hidden; if (vivant) requestAnimationFrame(boucle); });
   let tPrec = 0, cumul = 0, n = 0, calme = 0;
