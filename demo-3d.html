@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Démo 3D — Jaurys Maigret</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@300;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#030406;--ink:#f1f6fb;--muted:rgba(226,236,246,.56);--red:#d42a1b;--red2:#ff4433;--line:rgba(190,210,230,.17)}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--ink);overflow-x:clip}
+body{font-family:'IBM Plex Sans',sans-serif}
+.mono{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.26em;text-transform:uppercase}
+.anton{font-family:'Anton',sans-serif;line-height:.86;text-transform:uppercase;font-weight:400}
+
+.ouverture{min-height:78vh;display:flex;flex-direction:column;justify-content:center;gap:1.2rem;padding:0 7vw}
+.ouverture h1{font-size:clamp(3rem,9vw,8rem)}
+.ouverture p{max-width:50ch;color:var(--muted);line-height:1.7}
+
+.piste{position:relative}
+.colle{position:sticky;top:0;height:100vh;height:100svh;overflow:hidden}
+.colle canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.couche{position:absolute;inset:0;pointer-events:none;display:flex;flex-direction:column;justify-content:space-between;padding:6vh 6vw}
+.etiq{display:flex;gap:1rem;align-items:baseline}
+.etiq .l{font-family:'Anton';font-size:3rem;color:var(--red2);line-height:1}
+.etiq .n{font-family:'Anton';font-size:1.6rem;text-transform:uppercase}
+.etiq p{color:var(--muted);font-size:.82rem;max-width:42ch;line-height:1.55;margin-top:.3rem}
+
+/* A · le nom */
+.nom{position:absolute;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center}
+.nom .a,.nom .b{display:block;font-size:clamp(4.5rem,15vw,15rem);will-change:transform,opacity}
+.nom .b{color:transparent;-webkit-text-stroke:1.5px rgba(240,246,251,.55)}
+.nom .s{display:block;margin-top:1.6rem;color:var(--red2)}
+.fin-a{position:absolute;left:0;right:0;bottom:16vh;text-align:center;opacity:0}
+.fin-a .t{font-size:clamp(2.2rem,6vw,5.5rem)}
+
+/* B · le titre du projet au centre */
+.projet{position:absolute;left:6vw;bottom:9vh}
+.projet .num{color:var(--red2)}
+.projet .t{font-size:clamp(2.4rem,7vw,6.5rem);margin:.4rem 0}
+.projet .c{color:var(--muted)}
+.compteur{position:absolute;right:6vw;bottom:9vh;text-align:right}
+.compteur .x{font-family:'Anton';font-size:3.2rem;line-height:1}
+.barre{position:absolute;left:6vw;right:6vw;bottom:5vh;height:1px;background:var(--line)}
+.barre i{position:absolute;left:0;top:0;bottom:0;background:var(--red2);width:0}
+
+.choix{position:fixed;left:0;right:0;bottom:0;z-index:50;display:flex;gap:6px;justify-content:center;padding:10px;
+  background:rgba(3,4,6,.9);border-top:1px solid var(--line);backdrop-filter:blur(8px)}
+.choix a{color:var(--ink);text-decoration:none;border:1px solid var(--line);padding:.7rem 1.1rem}
+.choix a b{color:var(--red2);margin-right:.4rem}
+.repli{display:none;padding:20vh 7vw;color:var(--muted)}
+.no-gl .piste{display:none}.no-gl .repli{display:block}
+</style>
+</head>
+<body>
+
+<section class="ouverture">
+  <span class="mono" style="color:var(--red2)">Démo 3D · deux concepts</span>
+  <h1 class="anton">Vraie 3D,<br>ta DA</h1>
+  <p>Deux expériences WebGL complètes, pilotées par le scroll, en noir, rouge et chrome. Descends lentement : chacune est une séquence qui se joue au rythme de ta molette ou de ton doigt. Ensuite dis-moi A ou B, ou ce qu'il faut changer.</p>
+</section>
+
+<!-- A -->
+<section class="piste" id="A" style="height:430vh">
+  <div class="colle">
+    <canvas id="cvA"></canvas>
+    <div class="nom anton"><span class="a">Jaurys</span><span class="b">Maigret</span><span class="s mono">Direction artistique · Paris</span></div>
+    <div class="fin-a"><div class="t anton">Créer ce qu'on retient</div></div>
+    <div class="couche"><div class="etiq"><span class="l">A</span><div><div class="n">Le chrome</div><p>Une forme de métal liquide qui reflète la lumière. Ton scroll la fait tourner, se déformer, puis s'ouvrir en anneau rouge.</p></div></div></div>
+  </div>
+</section>
+
+<!-- B -->
+<section class="piste" id="B" style="height:620vh">
+  <div class="colle">
+    <canvas id="cvB"></canvas>
+    <div class="couche"><div class="etiq"><span class="l">B</span><div><div class="n">La galerie</div><p>Tes projets sur un arc en 3D. Le scroll fait tourner l'arc, et plus tu vas vite, plus les images se courbent et se dédoublent en rouge et bleu.</p></div></div></div>
+    <div class="projet"><div class="num mono" id="pNum">01</div><div class="t anton" id="pT">Hermès</div><div class="c mono" id="pC">Affiche · Parfum</div></div>
+    <div class="compteur"><div class="x" id="pX">01</div><div class="mono" id="pTot">/ 10</div></div>
+    <div class="barre"><i id="pBarre"></i></div>
+  </div>
+</section>
+
+<div class="repli">Ton navigateur n'affiche pas la 3D (WebGL). Ouvre cette page sur Chrome, Safari ou Firefox récent.</div>
+
+<section class="ouverture" style="min-height:60vh">
+  <h2 class="anton" style="font-size:clamp(2.5rem,7vw,6rem)">A ou B ?</h2>
+  <p>Ou les deux : A pour l'ouverture du site, B pour la galerie de projets. Dis-moi aussi ce qui ne va pas, même en trois mots.</p>
+</section>
+
+<nav class="choix mono"><a href="#A"><b>A</b>Le chrome</a><a href="#B"><b>B</b>La galerie</a></nav>
+
+<script type="module">
+import * as THREE from './vendor/three.module.min.js';
+import { EffectComposer } from './vendor/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from './vendor/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from './vendor/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from './vendor/addons/postprocessing/OutputPass.js';
+import { RoomEnvironment } from './vendor/addons/environments/RoomEnvironment.js';
+
+const TACTILE = !matchMedia('(hover:hover) and (pointer:fine)').matches;
+const SOBRE = matchMedia('(prefers-reduced-motion:reduce)').matches;
+const DPR = Math.min(devicePixelRatio || 1, TACTILE ? 1.5 : 1.75);
+const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v));
+const doux = t => t * t * (3 - 2 * t);
+const mix = (a, b, t) => a + (b - a) * t;
+
+function progression(piste) {
+  const r = piste.getBoundingClientRect();
+  return clamp(-r.top / Math.max(1, r.height - innerHeight));
+}
+function visible(piste) { const r = piste.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight; }
+
+let gl0; try { gl0 = document.createElement('canvas').getContext('webgl2') || document.createElement('canvas').getContext('webgl'); } catch (e) {}
+if (!gl0) document.body.classList.add('no-gl');
+
+function rendu(canvas) {
+  const r = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+  r.setPixelRatio(DPR);
+  r.toneMapping = THREE.ACESFilmicToneMapping;
+  r.outputColorSpace = THREE.SRGBColorSpace;
+  return r;
+}
+function composer(r, scene, cam, force, rayon, seuil) {
+  const c = new EffectComposer(r);
+  c.addPass(new RenderPass(scene, cam));
+  const b = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), force, rayon, seuil);
+  c.addPass(b); c.addPass(new OutputPass());
+  return { c, b };
+}
+
+// ═══════════════════════════════════════ A · LE CHROME ═══════════════
+function conceptA() {
+  const piste = document.getElementById('A');
+  const r = rendu(document.getElementById('cvA'));
+  r.toneMappingExposure = 0.95;
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x030406);
+  const pmrem = new THREE.PMREMGenerator(r);
+  // un studio sombre a refleter : du noir, deux bandes blanches, une rouge
+  const studio = new THREE.Scene();
+  studio.background = new THREE.Color(0x020203);
+  const bande = (w, h, col, x, y, z) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: col, side: THREE.DoubleSide }));
+    m.position.set(x, y, z); m.lookAt(0, 0, 0); studio.add(m); };
+  bande(14, 1.2, 0xffffff, 0, 9, 4);
+  bande(1.4, 12, 0xcfdcff, -10, 0, 2);
+  bande(1.0, 12, 0xff2a12, 10, -1, -3);
+  bande(10, 0.6, 0x8aa6ff, 0, -8, -6);
+  scene.environment = pmrem.fromScene(studio, 0.02).texture;
+  const cam = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
+
+  // un metal tres poli, deforme dans le vertex shader
+  const mat = new THREE.MeshPhysicalMaterial({ color: 0xc9d0da, metalness: 1, roughness: 0.14, clearcoat: 1, clearcoatRoughness: 0.1, envMapIntensity: 1.0 });
+  const U = { uT: { value: 0 }, uAmp: { value: 0.25 }, uFreq: { value: 1.2 }, uTore: { value: 0 } };
+  mat.onBeforeCompile = sh => {
+    Object.assign(sh.uniforms, U);
+    sh.vertexShader = sh.vertexShader.replace('#include <common>', `#include <common>
+uniform float uT,uAmp,uFreq,uTore;
+vec4 permute(vec4 x){return mod(((x*34.0)+1.0)*x,289.0);}
+vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-0.85373472095314*r;}
+float snoise(vec3 v){const vec2 C=vec2(1.0/6.0,1.0/3.0);const vec4 D=vec4(0.0,0.5,1.0,2.0);
+vec3 i=floor(v+dot(v,C.yyy));vec3 x0=v-i+dot(i,C.xxx);vec3 g=step(x0.yzx,x0.xyz);vec3 l=1.0-g;
+vec3 i1=min(g.xyz,l.zxy);vec3 i2=max(g.xyz,l.zxy);vec3 x1=x0-i1+C.xxx;vec3 x2=x0-i2+2.0*C.xxx;vec3 x3=x0-1.0+3.0*C.xxx;
+i=mod(i,289.0);vec4 p=permute(permute(permute(i.z+vec4(0.0,i1.z,i2.z,1.0))+i.y+vec4(0.0,i1.y,i2.y,1.0))+i.x+vec4(0.0,i1.x,i2.x,1.0));
+float n_=1.0/7.0;vec3 ns=n_*D.wyz-D.xzx;vec4 j=p-49.0*floor(p*ns.z*ns.z);vec4 x_=floor(j*ns.z);vec4 y_=floor(j-7.0*x_);
+vec4 x=x_*ns.x+ns.yyyy;vec4 y=y_*ns.x+ns.yyyy;vec4 h=1.0-abs(x)-abs(y);vec4 b0=vec4(x.xy,y.xy);vec4 b1=vec4(x.zw,y.zw);
+vec4 s0=floor(b0)*2.0+1.0;vec4 s1=floor(b1)*2.0+1.0;vec4 sh=-step(h,vec4(0.0));vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy;vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;
+vec3 p0=vec3(a0.xy,h.x);vec3 p1=vec3(a0.zw,h.y);vec3 p2=vec3(a1.xy,h.z);vec3 p3=vec3(a1.zw,h.w);
+vec4 norm=taylorInvSqrt(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3)));p0*=norm.x;p1*=norm.y;p2*=norm.z;p3*=norm.w;
+vec4 m=max(0.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0);m=m*m;
+return 42.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3)));}
+vec3 deforme(vec3 p){
+  vec3 n=normalize(p);
+  // la sphere devient un anneau : la longitude reste, la latitude fait le tour du tube
+  float phi=atan(n.z,n.x), th=asin(clamp(n.y,-1.0,1.0))*2.0;
+  vec3 tore=vec3((1.3+0.36*cos(th))*cos(phi), 0.36*sin(th), (1.3+0.36*cos(th))*sin(phi));
+  vec3 base=mix(p,tore,uTore);
+  float d=snoise(base*uFreq+vec3(0.0,uT*0.25,uT*0.12));
+  return base+n*d*uAmp;
+}`);
+    sh.vertexShader = sh.vertexShader.replace('#include <beginnormal_vertex>', `
+vec3 tg=normalize(cross(normal,abs(normal.y)>0.9?vec3(1.,0.,0.):vec3(0.,1.,0.)));
+vec3 bt=normalize(cross(normal,tg));
+vec3 q0=deforme(position),q1=deforme(position+tg*0.012),q2=deforme(position+bt*0.012);
+vec3 objectNormal=normalize(cross(q1-q0,q2-q0));
+if(dot(objectNormal,normal)<0.0)objectNormal=-objectNormal;
+#ifdef USE_TANGENT
+vec3 objectTangent=vec3(tangent.xyz);
+#endif`);
+    sh.vertexShader = sh.vertexShader.replace('#include <begin_vertex>', 'vec3 transformed=q0;');
+  };
+  const forme = new THREE.Mesh(new THREE.IcosahedronGeometry(1.25, TACTILE ? 48 : 96), mat);
+  scene.add(forme);
+
+  // la lumiere rouge qui balaie le metal
+  const rouge = new THREE.PointLight(0xff2a14, 60, 20, 2); scene.add(rouge);
+  const froid = new THREE.PointLight(0x9cc4ff, 25, 20, 2); froid.position.set(-4, 2, 3); scene.add(froid);
+  // l'anneau rouge final, qui deborde de lumiere
+  const anneau = new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.012, 16, 220), new THREE.MeshBasicMaterial({ color: 0xff3b24 }));
+  anneau.rotation.x = Math.PI / 2.2; scene.add(anneau);
+  // poussiere lumineuse
+  const NP = TACTILE ? 500 : 1200, pos = new Float32Array(NP * 3);
+  for (let i = 0; i < NP; i++) { const r0 = 3 + Math.random() * 9, a = Math.random() * 6.283, y = (Math.random() - .5) * 8; pos.set([Math.cos(a) * r0, y, Math.sin(a) * r0 - 2], i * 3); }
+  const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const poussiere = new THREE.Points(pg, new THREE.PointsMaterial({ color: 0xffb8a8, size: 0.03, transparent: true, opacity: .7, depthWrite: false }));
+  // (la poussiere encombrait le gros plan : retiree)
+
+  const { c, b } = composer(r, scene, cam, 0.45, 0.5, 0.86);
+  const nomA = piste.querySelector('.nom .a'), nomB = piste.querySelector('.nom .b'), nomS = piste.querySelector('.nom .s'), fin = piste.querySelector('.fin-a');
+  let pPrec = 0, vit = 0, mx = 0, my = 0;
+  addEventListener('pointermove', e => { mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1; }, { passive: true });
+
+  function taille() { const w = innerWidth, h = innerHeight; r.setSize(w, h, false); c.setSize(w, h); cam.aspect = w / h; cam.position.z = w < h ? 9.5 : 6.4; cam.updateProjectionMatrix(); }
+  taille(); addEventListener('resize', taille);
+
+  return function image(t) {
+    if (!visible(piste)) return;
+    const p = SOBRE ? 0.1 : progression(piste);
+    vit += (Math.abs(p - pPrec) * 60 - vit) * 0.08; pPrec = p;
+    const s = t / 1000;
+    // 1 · le nom se presente, 2 · on tourne autour, 3 · la forme s'ouvre en anneau
+    const p1 = doux(clamp(p / 0.35)), p2 = doux(clamp((p - 0.3) / 0.4)), p3 = doux(clamp((p - 0.62) / 0.33));
+    U.uT.value = s; U.uAmp.value = 0.18 + p2 * 0.22 + Math.min(0.35, vit * 0.9) + p3 * 0.05;
+    U.uFreq.value = 1.1 + p2 * 0.8; U.uTore.value = p3;
+    forme.rotation.y = s * 0.12 + p * 5.2; forme.rotation.x = p * 1.4 + my * 0.15;
+    forme.scale.setScalar(mix(0.85, 1.12, p1) * mix(1, 1.2, p3));
+    const ang = p * 2.4 + mx * 0.15;
+    const dz = innerWidth < innerHeight ? 9.5 : 6.4;
+    cam.position.set(Math.sin(ang) * mix(dz, dz * 0.82, p2) , mix(0.2, 1.4, p2) - p3 * 1.1, Math.cos(ang) * mix(dz, dz * 0.82, p2));
+    cam.lookAt(0, 0, 0);
+    rouge.position.set(Math.cos(s * 0.6 + p * 6) * 3.2, Math.sin(p * 4) * 1.5 + 1, Math.sin(s * 0.6 + p * 6) * 3.2);
+    rouge.intensity = 30 + p3 * 15;
+    anneau.scale.setScalar(mix(0.2, 1.25, p3)); anneau.material.opacity = 1; anneau.visible = p3 > 0.02;
+    anneau.rotation.z = s * 0.2;
+    b.strength = 0.35 + p3 * 0.2 + Math.min(0.3, vit);
+    // la typo accompagne
+    nomA.style.transform = `translate3d(${(-p1 * 22).toFixed(2)}vw,${(-p2 * 8).toFixed(2)}vh,0)`;
+    nomB.style.transform = `translate3d(${(p1 * 22).toFixed(2)}vw,${(p2 * 8).toFixed(2)}vh,0)`;
+    nomA.style.opacity = nomB.style.opacity = (1 - p2).toFixed(3); nomS.style.opacity = (1 - p1).toFixed(3);
+    fin.style.opacity = p3.toFixed(3); fin.style.transform = `translateY(${((1 - p3) * 40).toFixed(1)}px)`;
+    c.render();
+  };
+}
+
+// ═══════════════════════════════════════ B · LA GALERIE ══════════════
+function conceptB() {
+  const piste = document.getElementById('B');
+  const r = rendu(document.getElementById('cvB'));
+  r.toneMapping = THREE.NoToneMapping;
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x030406);
+  scene.fog = new THREE.Fog(0x030406, 8, 22);
+  const cam = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
+
+  const projets = [
+    ['images/hermes-cardamusc.jpg', 800, 1200, 'Hermès', 'Affiche · Parfum'],
+    ['images/voss-silhouette.jpg', 1600, 1067, 'VOSS', 'Campagne · Eau premium'],
+    ['images/atol-chloe.jpg', 770, 1200, 'Atol', 'Campagne · Recrutement'],
+    ['images/uber-rio-de-janeiro.jpg', 1200, 799, 'Uber', 'Campagne · Transport'],
+    ['images/porsche-911-showroom.jpg', 0, 0, 'Porsche 911', 'Photo · Talon Pointe'],
+    ['images/voss-magazine.jpg', 1600, 1130, 'VOSS, magazine', 'Édition · Double page'],
+    ['images/nuit-4.jpg', 1616, 1080, 'Voie lactée', 'Astrophotographie'],
+    ['images/bmw-m-cockpit.jpg', 0, 0, 'BMW M', 'Photo · Talon Pointe'],
+    ['images/halloween-talon-pointe.jpg', 675, 1200, 'Halloween', 'Shooting · Talon Pointe'],
+    ['images/voss-ciel.jpg', 1600, 1067, 'VOSS, contre-plongée', 'Campagne · Eau premium']
+  ];
+  document.getElementById('pTot').textContent = '/ ' + String(projets.length).padStart(2, '0');
+
+  const VS = `uniform float uV,uT;varying vec2 vUv;varying float vB;
+void main(){vUv=uv;vec3 p=position;
+  float bend=sin(uv.x*3.14159)*uV;            // la vitesse courbe l image
+  p.z+=bend*0.9; p.y+=sin(uv.x*6.283+uT)*uV*0.08;
+  vB=bend;gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);}`;
+  const FS = `uniform sampler2D uMap;uniform float uV,uOk,uFocus;varying vec2 vUv;varying float vB;
+void main(){float s=uV*0.018+0.0015;
+  vec4 c=vec4(texture2D(uMap,vUv+vec2(s,0.)).r,texture2D(uMap,vUv).g,texture2D(uMap,vUv-vec2(s,0.)).b,1.);
+  c.rgb=mix(vec3(0.06,0.07,0.09),c.rgb,uOk);
+  c.rgb*=mix(0.38,1.0,uFocus);                 // l image au centre s allume
+  float e=smoothstep(0.0,0.012,vUv.x)*smoothstep(1.0,0.988,vUv.x)*smoothstep(0.0,0.012,vUv.y)*smoothstep(1.0,0.988,vUv.y);
+  c.rgb=mix(vec3(1.0,0.23,0.14)*uFocus,c.rgb,e);   // un filet rouge sur l image au centre
+  gl_FragColor=c;}`;
+
+  const R = 7.2, H = 3.1, ECART = 0.55;
+  const arc = new THREE.Group(); scene.add(arc);
+  const chargeur = new THREE.TextureLoader();
+  let angle = 0;
+  const plans = projets.map((pr, i) => {
+    const img = new Image();
+    const u = { uMap: { value: null }, uV: { value: 0 }, uT: { value: 0 }, uOk: { value: 0 }, uFocus: { value: 0 } };
+    const geo = new THREE.PlaneGeometry(1, H, 40, 1);
+    const m = new THREE.Mesh(geo, new THREE.ShaderMaterial({ uniforms: u, vertexShader: VS, fragmentShader: FS, transparent: false }));
+    let w = pr[1] && pr[2] ? H * pr[1] / pr[2] : H * 1.5;
+    m.scale.x = w;
+    const piv = new THREE.Group(); piv.add(m); m.position.z = -R; arc.add(piv);
+    chargeur.load(pr[0], tex => {
+      tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+      u.uMap.value = tex; u.uOk.value = 1;
+      const a = tex.image.width / tex.image.height; m.scale.x = H * a; placer();   // jamais recadree : la plaque prend les proportions de l image
+    });
+    return { piv, m, u, pr };
+  });
+  function placer() {
+    let a = 0;
+    plans.forEach((p, i) => { const w = p.m.scale.x; const da = (w + ECART) / R; if (i > 0) a -= da / 2; p.piv.rotation.y = a; p.ang = a; a -= da / 2; });
+  }
+  placer();
+
+  // le sol reflechissant : une ligne rouge et une grille qui fuit
+  const grille = new THREE.GridHelper(60, 60, 0x2a3442, 0x141a22); grille.position.y = -H / 2 - 0.9; scene.add(grille);
+  const ligne = new THREE.Mesh(new THREE.PlaneGeometry(60, 0.03), new THREE.MeshBasicMaterial({ color: 0xff3b24 }));
+  ligne.rotation.x = -Math.PI / 2; ligne.position.set(0, -H / 2 - 0.89, -R + 0.6); scene.add(ligne);
+
+  const { c, b } = composer(r, scene, cam, 0.55, 0.4, 0.62);
+  const elNum = document.getElementById('pNum'), elT = document.getElementById('pT'), elC = document.getElementById('pC'), elX = document.getElementById('pX'), elB = document.getElementById('pBarre');
+  let pPrec = 0, vit = 0, courant = -1, mx = 0, my = 0;
+  addEventListener('pointermove', e => { mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1; }, { passive: true });
+  function taille() { const w = innerWidth, h = innerHeight; r.setSize(w, h, false); c.setSize(w, h); cam.aspect = w / h; cam.fov = w < h ? 62 : 42; cam.updateProjectionMatrix(); }
+  taille(); addEventListener('resize', taille);
+
+  return function image(t) {
+    if (!visible(piste)) return;
+    const p = SOBRE ? 0 : progression(piste);
+    const dv = (p - pPrec) * 60; pPrec = p;
+    vit += (dv - vit) * 0.12;
+    const s = t / 1000;
+    const total = -plans[plans.length - 1].ang;
+    const cible = p * total;
+    angle += (cible - angle) * 0.12;
+    arc.rotation.y = angle;
+    // la camera : un leger travelling, et elle plonge quand on accelere
+    cam.position.set(mx * 0.35, 0.15 - my * 0.2 + Math.abs(vit) * 0.4, 2.2 + Math.abs(vit) * 1.6);
+    cam.lookAt(0, 0, -R);
+    let best = 0, bd = 9;
+    plans.forEach((pl, i) => {
+      const d = Math.abs(pl.ang + angle);
+      if (d < bd) { bd = d; best = i; }
+      pl.u.uV.value = clamp(vit * 3.5, -1.2, 1.2); pl.u.uT.value = s;
+      const f = clamp(1 - d / 0.45);
+      pl.u.uFocus.value += (doux(f) - pl.u.uFocus.value) * 0.15;
+      pl.m.position.z = -R + pl.u.uFocus.value * 0.8;
+    });
+    if (best !== courant) {
+      courant = best; const pr = projets[best];
+      elNum.textContent = String(best + 1).padStart(2, '0'); elX.textContent = elNum.textContent;
+      elT.textContent = pr[3]; elC.textContent = pr[4];
+      elT.animate([{ opacity: 0, transform: 'translateY(40%)' }, { opacity: 1, transform: 'none' }], { duration: 520, easing: 'cubic-bezier(.16,1,.3,1)' });
+    }
+    elB.style.width = (p * 100).toFixed(2) + '%';
+    b.strength = 0.45 + Math.min(1, Math.abs(vit) * 2);
+    c.render();
+  };
+}
+
+if (gl0) {
+  const images = [conceptA(), conceptB()];
+  function boucle(t) { images.forEach(f => f(t)); requestAnimationFrame(boucle); }
+  requestAnimationFrame(boucle);
+}
+</script>
+</body>
+</html>
