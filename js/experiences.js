@@ -19,7 +19,7 @@ import { OutputPass } from '../vendor/addons/postprocessing/OutputPass.js';
 
 const TACTILE = !matchMedia('(hover:hover) and (pointer:fine)').matches;
 const SOBRE = matchMedia('(prefers-reduced-motion:reduce)').matches;
-const DPR = Math.min(devicePixelRatio || 1, TACTILE ? 1.5 : 1.6);
+const DPR = Math.min(devicePixelRatio || 1, TACTILE ? 2 : 2);
 // Gouverneur de fluidite : si les images depassent ~18 ms, on baisse la
 // definition du rendu (jamais le contenu) jusqu'a retrouver 60 i/s.
 const Q = { f: 1, v: 0 };
@@ -59,8 +59,8 @@ function piste(el) {
   };
 }
 
-function rendu(canvas) {
-  const r = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' });
+function rendu(canvas, aa) {
+  const r = new THREE.WebGLRenderer({ canvas, antialias: !!aa, powerPreference: 'high-performance' });
   r.setPixelRatio(dpr());
   r.toneMapping = THREE.ACESFilmicToneMapping;
   r.outputColorSpace = THREE.SRGBColorSpace;
@@ -84,7 +84,7 @@ function ouverture() {
   const canvas = el && el.querySelector('canvas');
   if (!canvas) return null;
   const P = piste(el);
-  const r = rendu(canvas);
+  const r = rendu(canvas, true);
   r.toneMappingExposure = 0.95;
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x06070a);
@@ -140,7 +140,7 @@ vec3 objectTangent=vec3(tangent.xyz);
 #endif`);
     sh.vertexShader = sh.vertexShader.replace('#include <begin_vertex>', 'vec3 transformed=q0;');
   };
-  const forme = new THREE.Mesh(new THREE.IcosahedronGeometry(1.25, TACTILE ? 36 : 64), mat);
+  const forme = new THREE.Mesh(new THREE.IcosahedronGeometry(1.25, TACTILE ? 48 : 80), mat);
   scene.add(forme);
   const rouge = new THREE.PointLight(0xff2a14, 30, 20, 2); scene.add(rouge);
   const froid = new THREE.PointLight(0x9cc4ff, 25, 20, 2); froid.position.set(-4, 2, 3); scene.add(froid);
@@ -155,8 +155,9 @@ vec3 objectTangent=vec3(tangent.xyz);
   let pL = 0;                        // progression lissee
   let pv = 0, pmx = 0, pmy = 0;      // vitesse du pointeur : le metal reagit
 
-  const { c, b } = composer(r, scene, cam, 0.3, 0.45, 0.94);
-  if (TACTILE) b.enabled = false;   // sur telephone : pas de halo, la fluidite d'abord
+  // rendu direct, anti-crenele : plus net et moins couteux qu'une chaine de post-traitement
+  const c = { setSize() {}, setPixelRatio() {}, render() { r.render(scene, cam); } }, b = { enabled: false, strength: 0 };
+  r.compile(scene, cam);   // les shaders sont prepares avant la premiere image : pas d'a-coup au demarrage
   const hero = el.querySelector('.hero');
   let qv = 0, pPrec = 0, vit = 0, mx = 0, my = 0, w0 = 0, h0 = 0;
   if (!TACTILE) addEventListener('pointermove', e => { mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1; }, { passive: true });

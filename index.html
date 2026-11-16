@@ -3933,6 +3933,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
   window.__jmSon=function(nom){ if(on&&S&&S.son[nom]) S.son[nom](); };
   btn.addEventListener('click',function(){
     if(!S){
+      window.__sonLance=true;
       import('./js/son.js').then(function(m){
         S=m; m.allumer(); etat(true); if(!charge) brancher(); m.son.tension();
       }).catch(function(){ btn.remove(); });
@@ -3944,16 +3945,25 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
 
   // on respecte le choix precedent, mais on attend un geste : les navigateurs
   // n'autorisent pas le son avant une interaction, et c'est tres bien ainsi.
-  var voulu=false;
-  try{ voulu = localStorage.getItem('jm-son')==='1'; }catch(e){}
+  // le son fait partie de l'experience : il s'allume au premier geste du
+  // visiteur (clic, touche, toucher), sauf s'il l'a deja coupe. Les
+  // navigateurs n'autorisent pas le son avant un geste, et c'est tres bien.
+  var voulu=true;
+  try{ voulu = localStorage.getItem('jm-son')!=='0'; }catch(e){}
+  // l'ambiance suit la vitesse de defilement
+  var yS=window.scrollY, vS=0;
+  setInterval(function(){ var y=window.scrollY; vS=Math.abs(y-yS)/120; yS=y; if(on&&S&&S.flux) S.flux(Math.min(1.2,vS*.6)); },100);
   if(voulu){
-    var reveiller=function(){
+    var reveiller=function(e){
+      if(e && e.target && e.target.closest && e.target.closest('#son')) return;   // le bouton gere lui-meme
       document.removeEventListener('pointerdown',reveiller);
       document.removeEventListener('keydown',reveiller);
-      import('./js/son.js').then(function(m){ S=m; m.allumer(); etat(true); if(!charge) brancher(); });
+      if(S || window.__sonLance) return; window.__sonLance=true;
+      import('./js/son.js').then(function(m){ if(S) return; S=m; m.allumer(); etat(true); if(!charge) brancher(); m.son.tension(); });
     };
     document.addEventListener('pointerdown',reveiller,{once:true});
     document.addEventListener('keydown',reveiller,{once:true});
+    document.addEventListener('touchstart',reveiller,{once:true,passive:true});
   }
 })();
 // ═══ LA LIGNE DIRECTRICE ═══
@@ -4624,6 +4634,6 @@ if(window.__jmSon) window.__jmSon('avion');
   if(son&&nl) nl.insertBefore(son,d||nl.firstChild);
 })();
 </script>
-<script type="module" src="js/experiences.js?v=26"></script>
+<script type="module" src="js/experiences.js?v=28"></script>
 </body>
 </html>
