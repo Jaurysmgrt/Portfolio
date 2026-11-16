@@ -2179,51 +2179,73 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 /* Contact : un avion en papier s'envole quand on clique sur l'email */
 .avion{position:fixed;z-index:4000;pointer-events:none;width:34px;height:34px;color:var(--red2);filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
 
-/* ═══ Projets : un decor discret, propre a chaque famille ═══ */
-.sel-deco{position:absolute;left:50%;top:50%;width:min(46vw,640px);height:min(52vh,470px);transform:translate(-50%,-56%);z-index:1;pointer-events:none}
-.sel-deco > *{position:absolute;opacity:0;transition:opacity .5s ease}
-/* direction artistique : traits de coupe et cibles d'impression */
-.dc-coupe{width:18px;height:18px;border:0 solid rgba(255,255,255,.45)}
-.dc-coupe.c1{left:-26px;top:-26px;border-right-width:1px;border-bottom-width:1px}
-.dc-coupe.c2{right:-26px;top:-26px;border-left-width:1px;border-bottom-width:1px}
-.dc-coupe.c3{left:-26px;bottom:-26px;border-right-width:1px;border-top-width:1px}
-.dc-coupe.c4{right:-26px;bottom:-26px;border-left-width:1px;border-top-width:1px}
-.dc-cible{width:16px;height:16px;border:1px solid rgba(255,255,255,.4);border-radius:50%;top:50%;margin-top:-8px}
-.dc-cible::before,.dc-cible::after{content:'';position:absolute;background:rgba(255,255,255,.4)}
-.dc-cible::before{left:-5px;right:-5px;top:50%;height:1px}.dc-cible::after{top:-5px;bottom:-5px;left:50%;width:1px}
-.dc-cible.t1{left:-44px}.dc-cible.t2{right:-44px}
-#selection[data-f="da"]:not(.sur-carte) .dc-coupe,#selection[data-f="da"]:not(.sur-carte) .dc-cible{opacity:1}
-/* photo automobile : viseur et mise au point */
-.dc-vf{width:22px;height:22px;border:0 solid rgba(255,255,255,.55)}
-.dc-vf.v1{left:-14px;top:-14px;border-top-width:1.5px;border-left-width:1.5px}
-.dc-vf.v2{right:-14px;top:-14px;border-top-width:1.5px;border-right-width:1.5px}
-.dc-vf.v3{left:-14px;bottom:-14px;border-bottom-width:1.5px;border-left-width:1.5px}
-.dc-vf.v4{right:-14px;bottom:-14px;border-bottom-width:1.5px;border-right-width:1.5px}
-.dc-af{left:50%;top:50%;width:26px;height:26px;margin:-13px;border:1.5px solid rgba(255,68,51,.75)}
-#selection[data-f="auto"]:not(.sur-carte) .dc-vf{opacity:1}
-#selection[data-f="auto"]:not(.sur-carte) .dc-af{opacity:1;animation:af 2.6s ease-in-out infinite}
-@keyframes af{0%,100%{transform:scale(1)}8%{transform:scale(1.25)}14%{transform:scale(.9)}20%{transform:scale(1)}}
-/* astrophotographie : quelques etoiles qui scintillent autour */
-.dc-et{width:3px;height:3px;border-radius:50%;background:#fff;box-shadow:0 0 6px 1px rgba(200,220,255,.8)}
-#selection[data-f="nuit"]:not(.sur-carte) .dc-et{opacity:1;animation:scint 2.2s ease-in-out infinite}
-@keyframes scint{0%,100%{opacity:.15;transform:scale(.6)}50%{opacity:.9;transform:scale(1.1)}}
-/* video : un timecode de montage */
-.dc-tc{right:0;bottom:-30px;font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.14em;color:rgba(255,255,255,.6)}
-#selection[data-f="video"]:not(.sur-carte) .dc-tc{opacity:1}
-@media(max-width:860px){.sel-deco{width:62vw;height:30vh;transform:translate(-50%,-62%)}.dc-cible{display:none}}
 /* entre deux familles : le libelle claque */
 .sel-fam.clap{animation:clap .45s cubic-bezier(.3,1.6,.5,1)}
 @keyframes clap{0%{transform:rotate(-8deg);transform-origin:0 100%}60%{transform:rotate(2deg)}100%{transform:none}}
 
-/* ═══ Page projet : le brief recoit un tampon ═══ */
-.pp-brief::after{content:'Brief';position:absolute;right:1.4rem;top:1.2rem;font-family:'Anton',sans-serif;font-size:.95rem;letter-spacing:.08em;text-transform:uppercase;
-  color:var(--red);border:2px solid var(--red);padding:.05rem .5rem;transform:rotate(8deg) scale(2);opacity:0;transition:transform .4s cubic-bezier(.3,1.6,.5,1) .9s,opacity .2s .9s}
-.pp.on .pp-brief::after{transform:rotate(8deg) scale(1);opacity:.85}
-
 /* ═══ Contact : la disponibilite a un pouls ═══ */
 .pouls{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red2);margin-right:.5em;vertical-align:.1em;box-shadow:0 0 0 0 rgba(255,68,51,.6);animation:pouls 1.8s ease-out infinite}
 @keyframes pouls{0%{box-shadow:0 0 0 0 rgba(255,68,51,.6)}100%{box-shadow:0 0 0 9px rgba(255,68,51,0)}}
-@media(prefers-reduced-motion:reduce){.dc-af,.dc-et,.pouls,.sel-fam.clap{animation:none!important}}
+@media(prefers-reduced-motion:reduce){.pouls,.sel-fam.clap{animation:none!important}}
+
+/* ═══ Projets : une petite sequence a l'entree de chaque famille ═══ */
+.sel-anim{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);z-index:2;pointer-events:none;width:min(420px,80vw);height:min(400px,52vh)}
+.an{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;opacity:0;visibility:hidden;background:#06070a;box-shadow:0 0 0 1px var(--border),0 40px 80px -30px rgba(0,0,0,.9)}
+.an b{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;color:#fff;background:var(--red);padding:.4rem .7rem}
+.an.joue{visibility:visible;animation:anVie 2.3s ease both}
+@keyframes anVie{0%{opacity:0;transform:scale(.96)}8%{opacity:1;transform:none}82%{opacity:1;transform:none}100%{opacity:0;transform:scale(1.03)}}
+/* direction artistique : quatre calques qui se calent */
+.an-da{--w:190px;--h:230px}
+.cm{position:absolute;left:50%;top:44%;width:var(--w);height:var(--h);margin:calc(var(--h)/-2) 0 0 calc(var(--w)/-2);border:3px solid;mix-blend-mode:screen}
+.cm.c{border-color:#00b4ff}.cm.m{border-color:#ff2e88}.cm.j{border-color:#ffd400}.cm.n{border-color:#ffffff}
+.an-da.joue .cm.c{animation:cmC 1.1s cubic-bezier(.16,1,.3,1) both}
+.an-da.joue .cm.m{animation:cmM 1.1s cubic-bezier(.16,1,.3,1) .05s both}
+.an-da.joue .cm.j{animation:cmJ 1.1s cubic-bezier(.16,1,.3,1) .1s both}
+.an-da.joue .cm.n{animation:cmN 1.1s cubic-bezier(.16,1,.3,1) .15s both}
+@keyframes cmC{from{transform:translate(-38px,-22px) rotate(-4deg)}to{transform:none}}
+@keyframes cmM{from{transform:translate(34px,-30px) rotate(3deg)}to{transform:none}}
+@keyframes cmJ{from{transform:translate(-26px,34px) rotate(5deg)}to{transform:none}}
+@keyframes cmN{from{transform:translate(30px,26px) rotate(-3deg)}to{transform:none}}
+.cm-cible{position:absolute;left:50%;top:44%;width:34px;height:34px;margin:-17px;border:2px solid #fff;border-radius:50%;opacity:0}
+.cm-cible::before,.cm-cible::after{content:'';position:absolute;background:#fff}
+.cm-cible::before{left:-10px;right:-10px;top:50%;height:2px;margin-top:-1px}.cm-cible::after{top:-10px;bottom:-10px;left:50%;width:2px;margin-left:-1px}
+.an-da.joue .cm-cible{animation:cible .5s cubic-bezier(.3,1.6,.5,1) 1s both}
+@keyframes cible{from{opacity:0;transform:scale(2.2)}to{opacity:1;transform:none}}
+.an-da b{position:absolute;bottom:6px}
+/* photo auto : l'obturateur claque, un flash */
+.ob{position:relative;width:280px;height:186px;overflow:hidden;border:2px solid rgba(255,255,255,.85)}
+.ob::before,.ob::after{content:'';position:absolute;width:22px;height:22px;border:0 solid #fff}
+.ob-h,.ob-b{position:absolute;left:0;right:0;height:50%;background:#06070a;border:0 solid #2a313a;z-index:2}
+.ob-h{top:0;transform:translateY(-101%);border-bottom-width:1px}.ob-b{bottom:0;transform:translateY(101%);border-top-width:1px}
+.ob-flash{position:absolute;inset:0;background:#fff;opacity:0;z-index:3}
+.an-auto.joue .ob-h{animation:obH .5s cubic-bezier(.7,0,.3,1) .35s both}
+.an-auto.joue .ob-b{animation:obB .5s cubic-bezier(.7,0,.3,1) .35s both}
+.an-auto.joue .ob-flash{animation:flashOb .45s ease-out .6s both}
+@keyframes obH{0%{transform:translateY(-101%)}45%,55%{transform:none}100%{transform:translateY(-101%)}}
+@keyframes obB{0%{transform:translateY(101%)}45%,55%{transform:none}100%{transform:translateY(101%)}}
+@keyframes flashOb{0%{opacity:0}20%{opacity:.9}100%{opacity:0}}
+/* astro : la pose longue trace des files d'etoiles */
+.an-nuit canvas{width:250px;height:250px;border-radius:50%}
+/* video : le clap */
+.an-video svg{width:230px;height:auto;overflow:visible}
+.cl-bras{transform-origin:10px 30px}
+.an-video.joue .cl-bras{animation:clap2 .9s cubic-bezier(.5,0,.4,1) .2s both}
+@keyframes clap2{0%{transform:rotate(-28deg)}35%{transform:rotate(0)}50%{transform:rotate(-14deg)}70%{transform:rotate(0)}100%{transform:rotate(0)}}
+@media(max-width:860px){.sel-anim{transform:translate(-50%,-50%) scale(.72);top:50%}}
+@media(prefers-reduced-motion:reduce){.sel-anim{display:none}}
+
+/* ═══ Page projet : un rideau-titre a l'ouverture ═══ */
+.pp-intro{position:fixed;inset:0;z-index:1700;background:#06070a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4rem;pointer-events:none;visibility:hidden}
+.pp-intro b{font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(3rem,10vw,9rem);line-height:.9;text-transform:uppercase;color:#fff;text-align:center;padding:0 6vw}
+.pp-intro i{display:block;height:2px;width:min(40vw,420px);background:var(--red2);transform:scaleX(0)}
+.pp-intro span{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.26em;text-transform:uppercase;color:var(--red2)}
+.pp-intro.joue{visibility:visible;animation:rideau 1.35s cubic-bezier(.7,0,.3,1) both}
+.pp-intro.joue b{animation:titreIn .6s cubic-bezier(.16,1,.3,1) both}
+.pp-intro.joue i{animation:trait .5s cubic-bezier(.16,1,.3,1) .2s both}
+@keyframes rideau{0%{clip-path:inset(0 0 0 0);opacity:0}12%{opacity:1}60%{clip-path:inset(0 0 0 0)}100%{clip-path:inset(0 0 100% 0)}}
+@keyframes titreIn{from{transform:translate3d(0,40%,0);opacity:0}to{transform:none;opacity:1}}
+@keyframes trait{to{transform:scaleX(1)}}
+@media(prefers-reduced-motion:reduce){.pp-intro{display:none}}
 </style>
 </head>
 <body>
@@ -2328,6 +2350,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 </div>
 
 <!-- PAGE PROJET PLEIN ÉCRAN (remplie par JS) -->
+<div class="pp-intro" id="ppIntro" aria-hidden="true"><span>Projet</span><b></b><i></i></div>
 <div class="pp" id="projectPage">
   <div class="pp-bg"></div>
   <div class="pp-bar"><i class="pp-lecture" aria-hidden="true"></i>
@@ -2543,12 +2566,11 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 <section id="selection" class="piste-3d" aria-label="Projets">
   <div class="colle">
     <canvas class="cv-3d" aria-hidden="true"></canvas>
-    <div class="sel-deco" aria-hidden="true">
-      <span class="dc-coupe c1"></span><span class="dc-coupe c2"></span><span class="dc-coupe c3"></span><span class="dc-coupe c4"></span>
-      <span class="dc-cible t1"></span><span class="dc-cible t2"></span>
-      <span class="dc-vf v1"></span><span class="dc-vf v2"></span><span class="dc-vf v3"></span><span class="dc-vf v4"></span><span class="dc-af"></span>
-      <i class="dc-et" style="left:18%;top:22%"></i><i class="dc-et" style="left:80%;top:30%;animation-delay:.7s"></i><i class="dc-et" style="left:26%;top:74%;animation-delay:1.3s"></i><i class="dc-et" style="left:73%;top:70%;animation-delay:.35s"></i><i class="dc-et" style="left:52%;top:12%;animation-delay:1.8s"></i>
-      <span class="dc-tc">00:00:00:00</span>
+    <div class="sel-anim" aria-hidden="true">
+      <div class="an an-da"><i class="cm c"></i><i class="cm m"></i><i class="cm j"></i><i class="cm n"></i><span class="cm-cible"></span><b>Calage CMJN</b></div>
+      <div class="an an-auto"><div class="ob"><i class="ob-h"></i><i class="ob-b"></i><span class="ob-flash"></span></div><b>1/250 s · f/2.8</b></div>
+      <div class="an an-nuit"><canvas width="360" height="360"></canvas><b>Pose longue</b></div>
+      <div class="an an-video"><svg viewBox="0 0 120 100"><g class="cl-bras"><rect x="10" y="14" width="100" height="16" fill="#f3f5f8"/><path d="M18 14l12 16M38 14l12 16M58 14l12 16M78 14l12 16M98 14l10 13" stroke="#06070a" stroke-width="7"/></g><rect x="10" y="32" width="100" height="58" fill="#0e1218" stroke="#f3f5f8" stroke-width="2"/><path d="M18 32l12 0" stroke="#f3f5f8"/><text x="18" y="54" fill="#ff4433" font-family="Anton,Impact,sans-serif" font-size="13">SC&Egrave;NE 04</text><text x="18" y="76" fill="#f3f5f8" font-family="IBM Plex Mono,monospace" font-size="8" letter-spacing="1.5">PRISE 1</text></svg></div>
     </div>
     <div class="sel-couche">
       <div class="sel-tete"><span class="sel-lbl">Projets</span><div class="sel-fams" role="group" aria-label="Familles de projets"></div><span class="sel-aide">Cliquez sur l'image au centre pour l'ouvrir</span></div>
@@ -3066,6 +3088,11 @@ function openProject(group){
   var c=CAMPAIGNS[group];
   if(!c)return;
   var dejaOuvert=pp.classList.contains('on');
+  var intro=document.getElementById('ppIntro');
+  if(intro && !matchMedia('(prefers-reduced-motion:reduce)').matches){
+    intro.querySelector('b').textContent=(c.name||'').split(',')[0];
+    intro.classList.remove('joue'); void intro.offsetWidth; intro.classList.add('joue');
+  }
   var imgs=groupItems(group).map(function(it){return {src:it.querySelector('img').src,title:it.dataset.title};});
   ppBarLogo.src=c.logo;
   ppBarLogo.alt=c.name;
@@ -4152,6 +4179,31 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   });
 })();
 </script>
-<script type="module" src="js/experiences.js?v=18"></script>
+<script>
+// Projets : la sequence propre a chaque famille, jouee quand on y entre
+(function(){
+  var sec=document.getElementById('selection'); if(!sec) return;
+  var anims={}; sec.querySelectorAll('.an').forEach(function(a){ anims[a.className.match(/an-(\w+)/)[1]]=a; });
+  var cvn=sec.querySelector('.an-nuit canvas'), g=cvn&&cvn.getContext('2d'), raf=0;
+  function filesEtoiles(){
+    if(!g) return; cancelAnimationFrame(raf);
+    var etoiles=[]; for(var i=0;i<70;i++) etoiles.push({r:8+Math.random()*165,a:Math.random()*6.283,w:.5+Math.random()*1.4,c:Math.random()<.15?'255,190,170':'215,228,255'});
+    var t0=performance.now();
+    (function pas(t){
+      var u=Math.min(1,(t-t0)/1500);
+      g.clearRect(0,0,360,360); g.fillStyle='#05070b'; g.beginPath(); g.arc(180,180,178,0,6.283); g.fill();
+      etoiles.forEach(function(e){ g.strokeStyle='rgba('+e.c+','+(.35+.5*(e.w/1.9))+')'; g.lineWidth=e.w; g.beginPath(); g.arc(180,180,e.r,e.a,e.a+u*1.3); g.stroke(); });
+      if(u<1) raf=requestAnimationFrame(pas);
+    })(t0);
+  }
+  sec.addEventListener('famille',function(e){
+    var a=anims[e.detail]; if(!a) return;
+    Object.keys(anims).forEach(function(k){ anims[k].classList.remove('joue'); });
+    void a.offsetWidth; a.classList.add('joue');
+    if(e.detail==='nuit') filesEtoiles();
+  });
+})();
+</script>
+<script type="module" src="js/experiences.js?v=19"></script>
 </body>
 </html>
