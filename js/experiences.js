@@ -197,27 +197,34 @@ function selection() {
   scene.fog = new THREE.Fog(0x06070a, 8, 22);
   const cam = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
 
-  // On garde les familles de la galerie : l'arc les presente l'une apres
-  // l'autre, jamais melangees. Quelques pieces par famille, les plus fortes
-  // d'abord (celles qui ont une page projet), sans les visuels secondaires.
-  const PAR_FAMILLE = { da: 6, auto: 3, nuit: 2 };
+  // Les projets n'existent qu'ici : l'arc presente TOUTE la galerie, famille
+  // apres famille (jamais melangees). La grille ne sert plus que de secours
+  // sans WebGL. Les visuels secondaires restent dans les pages projet.
   const projets = [];
+  const ytId = u => { const m = /(?:youtu\.be\/|v=|shorts\/|live\/)([\w-]{11})/.exec(u || ''); return m ? m[1] : ''; };
   document.querySelectorAll('#gallery .fam').forEach(fam => {
-    const cle = fam.dataset.fam, max = PAR_FAMILLE[cle];
-    if (!max) return;                                  // la video reste dans la galerie
+    const cle = fam.dataset.fam;
     const nom = (fam.querySelector('.fam-t') || {}).textContent || '';
     const num = (fam.querySelector('.fam-n') || {}).textContent || '';
-    const tuiles = [...fam.querySelectorAll('.gal-item')].filter(t => !t.classList.contains('brand-secondary') && !t.classList.contains('gal-video'));
-    tuiles.sort((a, b) => (b.classList.contains('has-card') ? 1 : 0) - (a.classList.contains('has-card') ? 1 : 0));
-    tuiles.slice(0, max).forEach(t => {
-      const im = t.querySelector('img');
-      if (!im || !im.getAttribute('src') || /^https?:/.test(im.getAttribute('src'))) return;
-      projets.push({ tuile: t, fam: cle, famNom: nom.trim(), famNum: num.trim(), src: im.getAttribute('src'),
-        w: +im.getAttribute('width') || 1200, h: +im.getAttribute('height') || 800,
+    [...fam.querySelectorAll('.gal-item')].filter(t => !t.classList.contains('brand-secondary')).forEach(t => {
+      let src = '', w = 0, h = 0;
+      const video = t.classList.contains('gal-video');
+      if (video) {
+        const id = ytId(t.dataset.vsrc);
+        src = t.dataset.poster || (id ? 'https://i.ytimg.com/vi/' + id + '/hqdefault.jpg' : '');
+        w = 16; h = 9;
+      } else {
+        const im = t.querySelector('img');
+        src = im && im.getAttribute('src') || '';
+        w = +(im && im.getAttribute('width')) || 1200; h = +(im && im.getAttribute('height')) || 800;
+      }
+      if (!src) return;
+      projets.push({ tuile: t, fam: cle, famNom: nom.trim(), famNum: num.trim(), src, w, h, video,
         titre: t.dataset.brand || (t.dataset.title || '').split(',')[0], cat: (t.dataset.cat || '').replace(/&middot;/g, '·') });
     });
   });
-
+  // la longueur de la piste suit le nombre de pieces
+  el.style.height = (100 + projets.length * 26) + 'vh';
   const elFam = el.querySelector('.sel-fam'), elNum = el.querySelector('.sel-num'), elT = el.querySelector('.sel-t'), elC = el.querySelector('.sel-c'),
         elX = el.querySelector('.sel-x'), elTot = el.querySelector('.sel-tot'), elB = el.querySelector('.sel-barre i');
   if (elTot) elTot.textContent = '/ ' + String(projets.length).padStart(2, '0');
@@ -255,6 +262,22 @@ void main(){float s=uV*0.018+0.0015;
       const da = (p.m.scale.x + ECART) / R; if (i > 0) a -= da / 2; p.piv.rotation.y = a; p.ang = a; a -= da / 2; });
   }
   placer();
+  // des pastilles pour sauter d'une famille a l'autre
+  const puces = el.querySelector('.sel-fams');
+  if (puces) {
+    const total0 = plans.length ? -plans[plans.length - 1].ang : 1;
+    const vues = {};
+    plans.forEach(pl => {
+      if (vues[pl.pr.fam]) return; vues[pl.pr.fam] = 1;
+      const bt = document.createElement('button'); bt.type = 'button'; bt.dataset.f = pl.pr.fam;
+      bt.textContent = pl.pr.famNom; bt.addEventListener('click', () => {
+        const top = el.getBoundingClientRect().top + pageYOffset;
+        const course = el.offsetHeight - innerHeight;
+        window.scrollTo({ top: top + course * clamp(-pl.ang / total0) + 2, behavior: 'smooth' });
+      });
+      puces.appendChild(bt);
+    });
+  }
   function charger() {
     if (charge) return; charge = true;
     plans.forEach(pl => chargeur.load(pl.pr.src, tex => {
@@ -308,6 +331,7 @@ void main(){float s=uV*0.018+0.0015;
       if (elC) elC.textContent = pr.cat;
       if (elFam && elFam.dataset.f !== pr.fam) {
         elFam.dataset.f = pr.fam; elFam.textContent = pr.famNum + ' · ' + pr.famNom;
+        if (puces) puces.querySelectorAll('button').forEach(x => x.classList.toggle('on', x.dataset.f === pr.fam));
         elFam.animate([{ opacity: 0, letterSpacing: '.5em' }, { opacity: 1, letterSpacing: '.26em' }], { duration: 700, easing: 'cubic-bezier(.16,1,.3,1)' });
       }
     }
