@@ -2298,6 +2298,57 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 .cal-page{background:linear-gradient(180deg,#f7f8fa,#eceff3)}
 .cal-num{text-shadow:0 1px 0 #fff}
 .cal-tampon{background:transparent!important;-webkit-mask:repeating-radial-gradient(circle at 30% 40%,#000 0 2px,rgba(0,0,0,.7) 2px 3px);mask:repeating-radial-gradient(circle at 30% 40%,#000 0 2px,rgba(0,0,0,.7) 2px 3px);color:#d42a1b;border-color:#d42a1b}
+
+/* ═══ BTS : des post-it punaises, un par un, qui se balancent ═══ */
+.tableau{position:relative;width:min(460px,36vw);aspect-ratio:1.1/1}
+.note{position:absolute;width:46%;aspect-ratio:1}
+.note-in{position:relative;width:100%;height:100%;padding:18% 12% 10%;display:flex;flex-direction:column;justify-content:flex-end;transform-origin:50% 6%;
+  box-shadow:0 2px 0 rgba(0,0,0,.08),0 26px 30px -18px rgba(0,0,0,.9);background:linear-gradient(170deg,#f6f1e4,#ebe3d0)}
+.note-in::after{content:'';position:absolute;left:0;right:0;bottom:0;height:22%;background:linear-gradient(0deg,rgba(0,0,0,.06),transparent)}
+.note b{font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(1.1rem,1.9vw,1.8rem);line-height:.95;text-transform:uppercase;color:#14181d;hyphens:manual}
+.note span{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.2em;color:#fff;background:var(--red);align-self:flex-start;padding:.15rem .4rem;margin-bottom:.35rem}
+.note em{font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.14em;color:#6d6457;margin-top:.35rem}
+.n0{left:0;top:2%;--r:-5deg}.n1{right:2%;top:0;--r:4deg}.n2{left:6%;bottom:0;--r:3deg}.n3{right:0;bottom:4%;--r:-4deg}
+.n1 .note-in,.n3 .note-in{background:linear-gradient(170deg,#e0412f,#c92d1d)}.n1 b,.n3 b{color:#fff}
+.punaise{position:absolute;left:50%;top:6%;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#9aa6b3 40%,#4b5561);box-shadow:0 4px 5px rgba(0,0,0,.5);z-index:2}
+.n1 .punaise,.n3 .punaise{background:radial-gradient(circle at 35% 35%,#fff,#d7dde4 40%,#8a96a4)}
+.note{transform:rotate(var(--r))}
+.recit.vivant .ch[data-i="1"] .ch-vis{clip-path:none}
+.recit.vivant .ch[data-i="1"] .note{opacity:0;transform:translate3d(var(--dx,40px),-60px,0) rotate(calc(var(--r) * -3)) scale(1.25)}
+.n0{--dx:-40px}.n1{--dx:50px}.n2{--dx:-60px}.n3{--dx:40px}
+.recit.vivant .ch[data-i="1"].on .note{animation:colle .55s cubic-bezier(.3,1.4,.5,1) both}
+.recit.vivant .ch[data-i="1"].on .n0{animation-delay:.15s}.recit.vivant .ch[data-i="1"].on .n1{animation-delay:.45s}
+.recit.vivant .ch[data-i="1"].on .n2{animation-delay:.75s}.recit.vivant .ch[data-i="1"].on .n3{animation-delay:1.05s}
+@keyframes colle{from{opacity:0;transform:translate3d(var(--dx),-60px,0) rotate(calc(var(--r) * -3)) scale(1.25)}to{opacity:1;transform:rotate(var(--r))}}
+.recit.vivant .ch[data-i="1"] .punaise{transform:translate3d(0,-30px,0) scale(1.6);opacity:0}
+.recit.vivant .ch[data-i="1"].on .punaise{animation:punaise .3s cubic-bezier(.3,1.6,.5,1) both}
+.recit.vivant .ch[data-i="1"].on .n0 .punaise{animation-delay:.6s}.recit.vivant .ch[data-i="1"].on .n1 .punaise{animation-delay:.9s}
+.recit.vivant .ch[data-i="1"].on .n2 .punaise{animation-delay:1.2s}.recit.vivant .ch[data-i="1"].on .n3 .punaise{animation-delay:1.5s}
+@keyframes punaise{to{opacity:1;transform:none}}
+/* une fois punaises, ils se balancent, chacun a son rythme */
+.recit.vivant .ch[data-i="1"].on .note-in{animation:balance 3.6s ease-in-out 1.8s infinite}
+.recit.vivant .ch[data-i="1"].on .n1 .note-in{animation-duration:4.2s;animation-delay:2s}
+.recit.vivant .ch[data-i="1"].on .n2 .note-in{animation-duration:3.9s;animation-delay:2.2s}
+.recit.vivant .ch[data-i="1"].on .n3 .note-in{animation-duration:4.6s;animation-delay:1.9s}
+@keyframes balance{0%,100%{transform:rotate(0)}30%{transform:rotate(1.6deg)}70%{transform:rotate(-1.3deg)}}
+.recit.vivant .ch[data-i="1"] .tableau{transform:translate3d(0,calc((.5 - var(--t,.5)) * 5vh),0)}
+.recit.vivant .ch[data-i="1"].sort .note{opacity:0;transform:translate3d(0,40px,0) rotate(calc(var(--r) * 2));transition:opacity .35s,transform .5s cubic-bezier(.5,0,.75,0)}
+@media(max-width:860px){.tableau{width:60vw;margin-bottom:.6rem}.note b{font-size:1.05rem}.note span,.note em{font-size:.48rem}}
+
+/* ═══ Plus de mouvement : les objets vivent une fois poses ═══ */
+/* le tirage flotte et suit le defilement */
+.recit.vivant .ch[data-i="0"].on .ti-img{animation:none}
+.recit.vivant .ch[data-i="0"].on .tirage{animation:flotte 5s ease-in-out 1.2s infinite}
+@keyframes flotte{0%,100%{rotate:0deg;translate:0 0}50%{rotate:1.6deg;translate:0 -8px}}
+/* le calendrier se balance sur sa spirale */
+.recit.vivant .ch[data-i="2"].on .cal{animation:pendule 4.4s ease-in-out 1.4s infinite}
+@keyframes pendule{0%,100%{rotate:0deg}35%{rotate:1.8deg}70%{rotate:-1.4deg}}
+/* l'affiche, une fois composee, respire et suit le defilement */
+.recit.vivant .ch[data-i="3"].on .affiche{animation:flotte 5.6s ease-in-out 2.2s infinite}
+.recit.vivant .ch[data-i="3"] .ch-vis{translate:0 calc((.5 - var(--t,.5)) * 6vh)}
+/* le contrat flotte aussi, a peine */
+.recit.vivant .ch[data-i="5"].on .contrat{animation:flotte 6s ease-in-out 2.4s infinite}
+@media(prefers-reduced-motion:reduce){.note,.note-in,.tirage,.cal,.affiche,.contrat{animation:none!important}}
 </style>
 </head>
 <body>
@@ -2502,16 +2553,12 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
       <p class="ch-p ln">Le socle : communication, strat&eacute;gie de contenu et production visuelle.</p>
       <ul class="ch-tags ln"><li>Communication</li><li>Strat&eacute;gie digitale</li><li>Production de contenu</li></ul>
     </div>
-    <div class="ch-vis" aria-hidden="true"><div class="guichet"><div class="fente"></div><div class="billet2">
-        <div class="b2-talon"><span>N&deg;</span><b>2023</b><span>&rarr;</span><b>2025</b><i class="b2-trou"></i></div>
-        <div class="b2-corps">
-          <div class="b2-bande"><span>Billet</span><span>Aller &middot; 2 ans</span></div>
-          <div class="b2-trajet"><div><span>D&eacute;part</span><b>Amiens</b><em>2023</em></div><svg viewBox="0 0 60 12"><path d="M0 6H54M48 1l6 5-6 5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><div class="dr"><span>Arriv&eacute;e</span><b>Paris</b><em>2025</em></div></div>
-          <div class="b2-infos"><div><span>Voiture</span><em>BTS Communication</em></div><div><span>Place</span><em>Direction artistique</em></div></div>
-          <div class="b2-code"></div>
-        </div>
-        <div class="b2-compo">Compost&eacute;</div>
-      </div></div></div>
+    <div class="ch-vis" aria-hidden="true"><div class="tableau">
+        <div class="note n0"><div class="note-in"><i class="punaise"></i><span>BTS</span><b>Amiens</b><em>2023 &rarr; 2025</em></div></div>
+        <div class="note n1"><div class="note-in"><i class="punaise"></i><b>Communi&shy;cation</b></div></div>
+        <div class="note n2"><div class="note-in"><i class="punaise"></i><b>Strat&eacute;gie digitale</b></div></div>
+        <div class="note n3"><div class="note-in"><i class="punaise"></i><b>Production de contenu</b></div></div>
+      </div></div>
   </article>
   <article class="ch" data-i="2" data-poids="2">
     <div class="cal" aria-hidden="true"><i class="cal-ann"></i><i class="cal-ann"></i><div class="cal-page"><div class="cal-tete"><span class="cal-ent">AGCO</span><span>2024</span></div><div class="cal-feuille"><span class="cal-num">01</span></div><div class="cal-pied">jour <b class="cal-j">1</b> / 30</div></div><span class="cal-tampon">1 mois</span></div>
