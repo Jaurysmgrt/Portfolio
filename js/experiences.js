@@ -224,7 +224,7 @@ function selection() {
     });
   });
   // la longueur de la piste suit le nombre de pieces
-  el.style.height = (100 + projets.length * 26) + 'vh';
+  el.style.height = (100 + projets.length * 15) + 'vh';
   const elFam = el.querySelector('.sel-fam'), elNum = el.querySelector('.sel-num'), elT = el.querySelector('.sel-t'), elC = el.querySelector('.sel-c'),
         elX = el.querySelector('.sel-x'), elTot = el.querySelector('.sel-tot'), elB = el.querySelector('.sel-barre i');
   if (elTot) elTot.textContent = '/ ' + String(projets.length).padStart(2, '0');
@@ -311,7 +311,7 @@ void main(){float s=uV*0.018+0.0015;
     vit += (dv - vit) * 0.12;
     const s = t / 1000;
     const total = plans.length ? -plans[plans.length - 1].ang : 0;
-    angle += (p * total - angle) * 0.12;
+    angle += (p * total - angle) * 0.2;
     arc.rotation.y = angle;
     cam.position.set(mx * 0.35, -0.2 - my * 0.2 + Math.min(0.3, Math.abs(vit) * 0.4), 2.2 + Math.min(1.2, Math.abs(vit) * 1.6));
     cam.lookAt(0, -0.38, -R);
