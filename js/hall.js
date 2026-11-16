@@ -1,14 +1,13 @@
 // ═══════════════════════════════════════════════════════════════════════
-// LE HALL — le fond du site est la soufflerie elle-meme.
+// LES SCENES — le fond du site est un nuage de lumiere qui se recompose.
 //
-// Ce n'est pas un decor pose derriere les pages : faire defiler le site,
-// c'est avancer dans la veine d'essai. Les luminaires passent au plafond,
-// chaque section commence par un portique qu'on franchit, et le contact
-// se trouve au fond du hall, sur la braise rouge — comme dans le monde 3D.
+// Chaque section a sa scene : on traverse un tunnel de lumiere sur le
+// hero, il se replie en sphere pour « A propos », s'etale en onde pour les
+// projets, tourne en galaxie pour le parcours, et se resserre en braise
+// rouge au contact. C'est le defilement qui fait passer d'une scene a
+// l'autre et qui deplace la camera : on ne regarde pas un decor, on avance.
 //
-// Un seul quad plein ecran et un shader : pas de bibliotheque, quelques Ko.
-// Le couloir est calcule analytiquement (quatre plans et un mur), donc ca
-// tient sur un telephone. Rien ne tourne quand rien ne bouge.
+// WebGL brut, des points en melange additif : pas de bibliotheque.
 // ═══════════════════════════════════════════════════════════════════════
 (function () {
   'use strict';
@@ -18,339 +17,268 @@
 
   var gl = null;
   try {
-    var opts = { alpha: false, antialias: false, depth: false, stencil: false,
-                 powerPreference: 'low-power', preserveDrawingBuffer: false };
-    gl = cv.getContext('webgl', opts) || cv.getContext('experimental-webgl', opts);
+    var o = { alpha: false, antialias: false, depth: false, stencil: false, powerPreference: 'high-performance' };
+    gl = cv.getContext('webgl', o) || cv.getContext('experimental-webgl', o);
   } catch (e) { gl = null; }
   if (!gl) { cv.parentNode.removeChild(cv); return; }
 
-  var VS = 'attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}';
+  var tactile = !matchMedia('(hover:hover) and (pointer:fine)').matches;
+  var sobre = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var N = tactile ? 5200 : 11000;
+  var NS = 5;                                   // nombre de scenes
 
-  var FS = [
-    '#ifdef GL_FRAGMENT_PRECISION_HIGH',
+  // ── les formations ─────────────────────────────────────────────────
+  function rnd(i, k) { var x = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return x - Math.floor(x); }
+  var P = [], i;
+  for (var s = 0; s < NS; s++) P.push(new Float32Array(N * 3));
+  var R = new Float32Array(N);
+
+  for (i = 0; i < N; i++) {
+    var r1 = rnd(i, 1), r2 = rnd(i, 2), r3 = rnd(i, 3), r4 = rnd(i, 4);
+    R[i] = r1;
+    var a, rr, b;
+
+    // 0 · le tunnel : des anneaux de lumiere qu'on traverse
+    var ring = Math.floor(r2 * 24);
+    a = r3 * Math.PI * 2;
+    rr = 2.4 + (r4 - 0.5) * 0.12;
+    P[0][i * 3] = Math.cos(a) * rr;
+    P[0][i * 3 + 1] = Math.sin(a) * rr;
+    P[0][i * 3 + 2] = 6 - ring * 2.6 - r1 * 0.06;
+
+    // 1 · la sphere : une coque, legerement vivante
+    var u = r2 * 2 - 1, th = r3 * Math.PI * 2, sq = Math.sqrt(1 - u * u);
+    rr = 3.0 + (r4 - 0.5) * 0.10 + (r1 < 0.12 ? (r1 - 0.06) * 6 : 0);
+    P[1][i * 3] = sq * Math.cos(th) * rr;
+    P[1][i * 3 + 1] = u * rr;
+    P[1][i * 3 + 2] = sq * Math.sin(th) * rr - 6.5;
+
+    // 2 · l'onde : un champ de points qui ondule sous la galerie
+    var gx = (r2 - 0.5) * 30, gz = -r3 * 34 + 4;
+    P[2][i * 3] = gx;
+    P[2][i * 3 + 1] = -1.7 + Math.sin(gx * 0.45) * 0.7 + Math.cos(gz * 0.38) * 0.7;
+    P[2][i * 3 + 2] = gz;
+
+    // 3 · la galaxie : quatre bras en spirale, inclines
+    var bras = Math.floor(r2 * 4), d = Math.pow(r3, 0.7) * 9;
+    a = bras * Math.PI / 2 + d * 0.62 + (r4 - 0.5) * 0.55;
+    var gy = (r1 - 0.5) * 0.5 * (1.2 - d / 9);
+    var px = Math.cos(a) * d, pz = Math.sin(a) * d;
+    P[3][i * 3] = px;
+    P[3][i * 3 + 1] = gy + pz * 0.38;
+    P[3][i * 3 + 2] = pz * 0.92 - 6;
+
+    // 4 · la braise : un noyau rouge et ses etincelles
+    u = r2 * 2 - 1; th = r3 * Math.PI * 2; sq = Math.sqrt(1 - u * u);
+    rr = r1 < 0.8 ? 1.25 * Math.cbrt(r4) : 1.6 + r4 * 4.5;
+    P[4][i * 3] = sq * Math.cos(th) * rr;
+    P[4][i * 3 + 1] = u * rr * 0.9;
+    P[4][i * 3 + 2] = sq * Math.sin(th) * rr - 1;
+  }
+
+  // ── shaders ────────────────────────────────────────────────────────
+  var VS = [
     'precision highp float;',
-    '#else',
-    'precision mediump float;',
-    '#endif',
-    'uniform vec2 uR;',      // resolution
-    'uniform vec2 uP;',      // pointeur lisse, -1..1
-    'uniform float uZm;',    // avance, modulo le pas des luminaires
-    'uniform float uV;',     // vitesse lissee 0..1
-    'uniform float uEnd;',   // distance au mur du fond
-    'uniform float uW;',     // demi-largeur du hall
-    'uniform float uGain;',
-    'uniform float uFlash;', // on franchit un portique
-    'uniform float uOn;',    // mise sous tension : 0 eteint, 1 tout le hall
-    'uniform vec3 uG[8];',   // portiques : x = distance devant, y = nature',
-
-    'const float H=3.7;',     // plafond
-    'const float EYE=1.6;',
-    'const float P=7.0;',     // pas des luminaires
-    'const float J=3.5;',     // pas des joints
-    'const vec3 FOG=vec3(0.020,0.027,0.040);',
-    'const vec3 ROUGE=vec3(0.95,0.20,0.12);',
-    'const vec3 CHROME=vec3(0.62,0.70,0.80);',
-    'const vec3 FROID=vec3(0.80,0.88,1.0);',
-
-    'float hash(vec2 p){return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453);}',
-    // un troncon s allume quand on s en approche
-    'float allume(float d){return smoothstep(37.0,29.0,d)*smoothstep(uOn*47.0,uOn*47.0-1.5,d);}',
-
+    'attribute vec3 p0,p1,p2,p3,p4;attribute float r;',
+    'uniform mat4 M;uniform float S;uniform float T;uniform float V;uniform float Fl;',
+    'uniform float Px;uniform float Dpr;',
+    'varying vec3 c;varying float al;',
+    'vec3 pick(float k){',
+    '  if(k<0.5)return p0;if(k<1.5)return p1;if(k<2.5)return p2;if(k<3.5)return p3;return p4;}',
+    'vec3 teinte(float k,float r){',
+    '  vec3 a,b;',
+    '  if(k<0.5){a=vec3(1.0,0.22,0.12);b=vec3(1.0,0.86,0.80);}',        // tunnel : rouge et blanc
+    '  else if(k<1.5){a=vec3(0.30,0.50,0.85);b=vec3(0.62,0.66,0.75);}',  // sphere : chrome froid
+    '  else if(k<2.5){a=vec3(0.20,0.85,1.0);b=vec3(0.75,0.50,1.0);}',  // onde : cyan, violet
+    '  else if(k<3.5){a=vec3(0.65,0.40,1.0);b=vec3(1.0,0.55,0.75);}',  // galaxie
+    '  else{a=vec3(1.0,0.20,0.08);b=vec3(1.0,0.62,0.25);}',            // braise
+    '  return mix(a,b,step(0.62,r));}',
     'void main(){',
-    '  vec2 uv=(gl_FragCoord.xy-0.5*uR)/uR.y;',
-    '  float F=1.04-0.09*uV;',                      // le champ s ouvre avec la vitesse
-    '  vec3 ro=vec3(uP.x*0.42,EYE+uP.y*0.10,0.0);', // le regard suit le pointeur
-    '  vec3 rd=normalize(vec3(uv.x+uP.x*0.035,uv.y+0.02+uP.y*0.02,F));',
-
-    '  float t=1.0e5;float id=0.0;float a;',
-    '  if(rd.y<-1.0e-4){a=-ro.y/rd.y;if(a<t){t=a;id=1.0;}}',
-    '  if(rd.y>1.0e-4){a=(H-ro.y)/rd.y;if(a<t){t=a;id=2.0;}}',
-    '  if(abs(rd.x)>1.0e-4){a=((rd.x>0.0?uW:-uW)-ro.x)/rd.x;if(a>0.0&&a<t){t=a;id=3.0;}}',
-    '  a=uEnd/rd.z;if(a>0.0&&a<t){t=a;id=4.0;}',
-
-    '  vec3 q=ro+rd*t;',                            // point touche, relatif a l oeil
-    '  float zl=uZm+q.z;',                          // z dans le repere du hall
-    '  float px=t/(F*uR.y);',                       // taille d un pixel la-bas
-    '  float gy=px/max(abs(rd.y),0.03);',           // ... etiree par la rasance
-    '  float gx=px/max(abs(rd.x),0.03);',
-
-    // ── la lumiere ──
-    '  float seg=floor(zl/P);',
-    '  float dseg=(seg+0.5)*P-uZm;',
-    '  float on=allume(dseg);',
-    '  float dr=length(vec2(q.x,H-q.y));',
-    '  float L=on*1.5/(1.0+0.50*dr*dr);',           // la rampe centrale
-    '  for(int k=-1;k<=1;k++){',
-    '    float zc=(seg+float(k)+0.5)*P-uZm;',
-    '    float o=allume(zc);',
-    '    vec3 d1=vec3(0.56*uW,H,zc)-q;vec3 d2=vec3(-0.56*uW,H,zc)-q;',
-    '    L+=o*0.85*(1.0/(1.0+0.28*dot(d1,d1))+1.0/(1.0+0.28*dot(d2,d2)));',
-    '  }',
-    '  vec3 lum=FROID*L+vec3(0.030,0.036,0.050)*(0.22+0.78*uOn);',
-    // la braise du fond rougit ce qui l entoure
-    '  float df=max(uEnd-q.z,0.0);',
-    '  lum+=ROUGE*0.75*exp(-df*0.30)/(1.0+0.55*q.y*q.y);',
-
-    '  vec3 alb=vec3(0.0);vec3 em=vec3(0.0);',
-    '  float dj=abs(fract(zl/J+0.5)-0.5)*J;',       // distance au joint le plus proche
-
-    '  if(id<1.5){',                                // ── le sol
-    '    alb=vec3(0.150,0.180,0.230);',
-    '    alb*=0.72+0.50*smoothstep(1.55,1.25,abs(q.x));',     // la piste
-    '    float j=(1.0-smoothstep(0.014,0.014+gy,dj))*0.014/(0.014+gy*0.6);',
-    '    alb*=1.0-0.34*j;',
-    '    float bord=(1.0-smoothstep(0.012,0.012+gx,abs(abs(q.x)-1.4)))*0.012/(0.012+gx*0.5);',
-    '    em+=CHROME*bord*0.050*on;',
-    // le sol est lisse : la rampe s y reflete en trainee
-    '    em+=FROID*on*exp(-q.x*q.x*2.6)*0.30*(1.0-abs(rd.y))*(1.0-abs(rd.y));',
-    '  }else if(id<2.5){',                          // ── le plafond
-    '    alb=vec3(0.045,0.055,0.075);',
-    '    float r=1.0-smoothstep(0.105,0.105+gx,abs(q.x));',
-    '    em+=FROID*r*on*1.35;',
-    '    float zc2=(seg+0.5)*P-uZm;',
-    '    float rect=(1.0-smoothstep(0.66,0.66+gx,abs(abs(q.x)-0.56*uW)))',
-    '              *(1.0-smoothstep(0.15,0.15+gy,abs(q.z-zc2)));',
-    '    em+=FROID*rect*allume(zc2)*0.95;',
-    '  }else if(id<3.5){',                          // ── les parois
-    '    alb=vec3(0.098,0.126,0.176);',
-    '    alb*=mix(0.55,1.0,smoothstep(0.42,0.50,q.y));',      // la plinthe
-    '    float j=(1.0-smoothstep(0.013,0.013+gx,dj))*0.013/(0.013+gx*0.6);',
-    '    alb*=1.0-0.26*j;',
-    '    float lisse=(1.0-smoothstep(0.010,0.010+px,abs(q.y-2.55)))*0.010/(0.010+px*0.5);',
-    '    em+=CHROME*lisse*0.060*on;',
-    '  }else{',                                     // ── le mur du fond
-    '    alb=vec3(0.095,0.120,0.165);',
-    '    float br=1.0-smoothstep(0.045,0.085,abs(q.y-0.075));',
-    '    em+=ROUGE*br*2.4;',
-    '  }',
-
-    // ── les portiques : un cadre lumineux a chaque changement de section ──
-    '  float fl=0.0;',
-    '  for(int i=0;i<8;i++){',
-    '    float kind=uG[i].y;',
-    '    if(kind>0.0){',
-    '      float dz=abs(q.z-uG[i].x);',
-    '      float e=(id<2.5)?gy:gx;',
-    '      float ligne=(1.0-smoothstep(0.034,0.034+e,dz))*0.034/(0.034+e*0.35);',
-    '      float halo=exp(-dz*1.5);',
-    '      float pres=smoothstep(48.0,34.0,uG[i].x)*step(-0.5,uG[i].x)*smoothstep(0.55,1.0,uOn);',
-    '      vec3 cg=mix(CHROME,ROUGE,step(0.75,kind));',
-    '      if(id<3.5)em+=cg*(ligne*1.25+halo*0.10)*pres*kind;',
-    '    }',
-    '  }',
-
-    '  vec3 col=alb*lum+em;',
-    '  float fog=1.0-exp(-t*0.036);',
-    '  col=mix(col,FOG,fog);',
-
-    // la lumiere au bout : un halo au point de fuite
-    '  vec2 pf=vec2(-uP.x*0.035,-0.02-uP.y*0.02);',
-    '  col+=vec3(0.30,0.40,0.56)*0.085*uOn*exp(-length((uv-pf)*vec2(1.3,2.1))*3.2);',
-
-    // on franchit un portique : les bords de l image s embrasent un instant
-    '  float bordure=smoothstep(0.34,0.86,length(uv*vec2(0.82,1.0)));',
-    '  col+=ROUGE*uFlash*bordure*0.42;',
-
-    '  col*=uGain;',
-    '  col*=1.0-0.42*smoothstep(0.42,1.05,length(uv*vec2(0.78,1.0)));',  // vignette
-    '  col=col/(1.0+col*0.55);',
-    '  col=pow(col,vec3(0.4545));',
-    '  col+=(hash(gl_FragCoord.xy)-0.5)/255.0*1.6;',                    // contre les aplats en escalier
-    '  gl_FragColor=vec4(col,1.0);',
+    '  float a=floor(S),b=min(a+1.0,4.0);',
+    '  float f=clamp((fract(S)-r*0.28)/0.72,0.0,1.0);',                  // chaque point part a son heure
+    '  f=f*f*(3.0-2.0*f);',
+    '  vec3 A=pick(a),B=pick(b);',
+    // le tunnel defile vers nous : plus on scrolle vite, plus ca file
+    '  if(a<0.5){A.z=mod(A.z+T*1.6+V*8.0+56.4,62.4)-56.4;}',
+    // la sphere respire, la galaxie et l onde tournent / ondulent
+    '  float w=sin(T*0.6+r*40.0)*0.04;',
+    '  A+=normalize(A+vec3(0.001))*w;B+=normalize(B+vec3(0.001))*w;',
+    '  if(a>2.5&&a<3.5){float ca=cos(T*0.05),sa=sin(T*0.05);A.xz=mat2(ca,-sa,sa,ca)*(A.xz+vec2(0.,6.))-vec2(0.,6.);}',
+    '  if(a>1.5&&a<2.5){A.y+=sin(A.x*0.5+T*0.9)*0.25;}',
+    // pendant la transition les points s ecartent : une explosion maitrisee
+    '  vec3 p=mix(A,B,f)+vec3(sin(r*91.0),cos(r*57.0),sin(r*23.0))*sin(f*3.14159)*1.6;',
+    '  vec4 q=M*vec4(p,1.0);',
+    '  gl_Position=q;',
+    '  float z=max(q.w,0.05);',
+    '  gl_PointSize=clamp((3.0+r*4.5)*Px*Dpr/z,1.5,56.0*Dpr);',
+    '  c=mix(teinte(a,r),teinte(b,r),f);',
+    '  al=(0.70+0.30*sin(T*2.0+r*60.0))*smoothstep(55.0,4.0,z)*smoothstep(0.3,1.6,z)*(1.0+Fl*1.4);',
     '}'
   ].join('\n');
 
-  function compiler(type, src) {
-    var s = gl.createShader(type);
-    gl.shaderSource(s, src); gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
-      if (window.console) console.warn('hall:', gl.getShaderInfoLog(s));
-      return null;
-    }
-    return s;
+  var FS = [
+    'precision mediump float;',
+    'varying vec3 c;varying float al;uniform float G;',
+    'void main(){',
+    '  vec2 d=gl_PointCoord-0.5;float k=dot(d,d);',
+    '  if(k>0.25)discard;',
+    '  float g=exp(-k*18.0);',
+    '  gl_FragColor=vec4(c*g*al*G,1.0);',
+    '}'
+  ].join('\n');
+
+  function sh(t, src) {
+    var x = gl.createShader(t); gl.shaderSource(x, src); gl.compileShader(x);
+    if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) { console.warn('hall', gl.getShaderInfoLog(x)); return null; }
+    return x;
   }
-  var vs = compiler(gl.VERTEX_SHADER, VS), fs = compiler(gl.FRAGMENT_SHADER, FS);
+  var vs = sh(gl.VERTEX_SHADER, VS), fs = sh(gl.FRAGMENT_SHADER, FS);
   var prog = gl.createProgram();
   if (vs && fs) { gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog); }
-  if (!vs || !fs || !gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-    cv.parentNode.removeChild(cv); return;       // le site garde son fond uni
-  }
+  if (!vs || !fs || !gl.getProgramParameter(prog, gl.LINK_STATUS)) { cv.parentNode.removeChild(cv); return; }
   gl.useProgram(prog);
 
-  var buf = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buf);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-  var la = gl.getAttribLocation(prog, 'a');
-  gl.enableVertexAttribArray(la);
-  gl.vertexAttribPointer(la, 2, gl.FLOAT, false, 0, 0);
+  function attr(nom, data, n) {
+    var b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b);
+    gl.bufferData(gl.ARRAY_BUFFER, data, gl.STATIC_DRAW);
+    var l = gl.getAttribLocation(prog, nom); if (l < 0) return;
+    gl.enableVertexAttribArray(l); gl.vertexAttribPointer(l, n, gl.FLOAT, false, 0, 0);
+  }
+  for (s = 0; s < NS; s++) attr('p' + s, P[s], 3);
+  attr('r', R, 1);
 
   var U = {};
-  ['uR', 'uP', 'uZm', 'uV', 'uEnd', 'uW', 'uGain', 'uFlash', 'uOn', 'uG'].forEach(function (n) {
-    U[n] = gl.getUniformLocation(prog, n);
-  });
+  ['M', 'S', 'T', 'V', 'Fl', 'Px', 'Dpr', 'G'].forEach(function (n) { U[n] = gl.getUniformLocation(prog, n); });
 
-  // ── l echelle : combien de metres de hall par pixel de page ──
-  var K = 0.011;
-  var PAS = 7.0;
-  var sobre = matchMedia('(prefers-reduced-motion:reduce)').matches;
-  var fin = matchMedia('(hover:hover) and (pointer:fine)').matches;
-  var TAU = fin ? 95 : 55;       // meme constante que le glissement du contenu
+  gl.disable(gl.DEPTH_TEST);
+  gl.enable(gl.BLEND);
+  gl.blendFunc(gl.ONE, gl.ONE);                    // la lumiere s additionne
+  gl.clearColor(0.016, 0.020, 0.032, 1);
 
-  var portes = [];               // {z, kind}
-  var zFond = 100;
-  var gTab = new Float32Array(24);
+  // ── matrices ───────────────────────────────────────────────────────
+  function persp(fov, asp, n, f) {
+    var t = 1 / Math.tan(fov / 2), nf = 1 / (n - f);
+    return [t / asp, 0, 0, 0, 0, t, 0, 0, 0, 0, (f + n) * nf, -1, 0, 0, 2 * f * n * nf, 0];
+  }
+  function regard(e, c) {
+    var zx = e[0] - c[0], zy = e[1] - c[1], zz = e[2] - c[2], l = Math.hypot(zx, zy, zz);
+    zx /= l; zy /= l; zz /= l;
+    var xx = zz, xy = 0, xz = -zx; l = Math.hypot(xx, xz) || 1; xx /= l; xz /= l;   // haut = y
+    var yx = zy * xz - zz * xy, yy = zz * xx - zx * xz, yz = zx * xy - zy * xx;
+    return [xx, yx, zx, 0, xy, yy, zy, 0, xz, yz, zz, 0,
+      -(xx * e[0] + xy * e[1] + xz * e[2]), -(yx * e[0] + yy * e[1] + yz * e[2]), -(zx * e[0] + zy * e[1] + zz * e[2]), 1];
+  }
+  function mul(a, b) {
+    var o = new Array(16);
+    for (var c = 0; c < 4; c++) for (var r = 0; r < 4; r++) {
+      o[c * 4 + r] = a[r] * b[c * 4] + a[4 + r] * b[c * 4 + 1] + a[8 + r] * b[c * 4 + 2] + a[12 + r] * b[c * 4 + 3];
+    }
+    return o;
+  }
 
+  // ── ou commence chaque scene dans la page ──────────────────────────
+  var ancres = [0, 1, 2, 3, 4];
   function haut(el) { var y = 0; for (var e = el; e; e = e.offsetParent) y += e.offsetTop; return y; }
-
   function mesurer() {
-    var vh = window.innerHeight;
-    var scene = document.getElementById('scene');
-    var total = Math.max(1, (scene ? scene.offsetHeight : document.documentElement.scrollHeight) - vh);
-    zFond = K * total + 17;
-    portes = [];
-    // un portique rouge par grande section : on le franchit quand son titre arrive
-    ['#about-intro', '#portfolio', '#xp', '#form'].forEach(function (s) {
-      var el = document.querySelector(s);
-      if (el) portes.push({ z: K * Math.max(0, haut(el) - vh * 0.80), kind: 1.0 });
+    var vh = innerHeight, sc = document.getElementById('scene');
+    var total = Math.max(1, (sc ? sc.offsetHeight : document.documentElement.scrollHeight) - vh);
+    var cibles = ['#about-intro', '#portfolio', '#xp', '#contact'];
+    ancres = [0];
+    cibles.forEach(function (q) {
+      var el = document.querySelector(q);
+      var y = el ? Math.min(total, Math.max(0, haut(el) - vh * 0.55)) : total;
+      ancres.push(Math.max(y, ancres[ancres.length - 1] + 1));
     });
-    // un portique chrome, plus discret, par famille de la galerie
-    var fams = document.querySelectorAll('#gallery .fam');
-    for (var i = 1; i < fams.length && portes.length < 8; i++) {
-      if (fams[i].hidden) continue;
-      portes.push({ z: K * Math.max(0, haut(fams[i]) - vh * 0.80), kind: 0.5 });
+  }
+  function scenePour(y) {
+    for (var k = 0; k < ancres.length - 1; k++) {
+      if (y < ancres[k + 1]) return k + (y - ancres[k]) / (ancres[k + 1] - ancres[k]);
     }
+    return ancres.length - 1;
   }
 
+  var dpr = 1, asp = 1;
   function tailler() {
-    var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
-    var w = Math.max(2, Math.round(cv.clientWidth * dpr));
-    var h = Math.max(2, Math.round(cv.clientHeight * dpr));
+    dpr = Math.min(devicePixelRatio || 1, tactile ? 1.5 : 1.75);
+    var w = Math.round(cv.clientWidth * dpr), h = Math.round(cv.clientHeight * dpr);
     if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
-    gl.viewport(0, 0, w, h);
-    gl.uniform2f(U.uR, w, h);
-    var asp = w / h;
-    // en portrait le champ est etroit : on resserre le hall pour garder ses parois
-    var k = Math.min(1, Math.max(0, (asp - 0.55) / 1.0));
-    gl.uniform1f(U.uW, 1.75 + 1.75 * k * k * (3 - 2 * k));
-    gl.uniform1f(U.uGain, asp < 0.8 ? 0.095 : 0.085);
+    gl.viewport(0, 0, w, h); asp = w / h;
+    gl.uniform1f(U.Dpr, dpr);
+    gl.uniform1f(U.Px, h / 900 * 9);
+    gl.uniform1f(U.G, asp < 0.8 ? 0.80 : 1.0);
   }
 
-  // ── etat ──
-  var z = 0, zCible = 0, vit = 0;
-  var px = 0, py = 0, pxC = 0, pyC = 0;
-  var flash = 0;
-  var tPrec = 0, raf = null, vivant = true;
+  // ── etat ───────────────────────────────────────────────────────────
+  var sc = 0, scC = 0, vit = 0, t0 = performance.now(), tp = t0;
+  var mx = 0, my = 0, mxC = 0, myC = 0, flash = 0, derniere = 0, vivant = true, raf = null;
   var fantome = document.querySelector('.hero-ghost');
-  // La mise sous tension : le hall est eteint derriere l'intro, et s'allume
-  // troncon apres troncon quand les volets s'ecartent.
-  var tension = sobre ? 1 : 0, tDepart = 0;
 
-  function cible() { zCible = K * (window.pageYOffset || document.documentElement.scrollTop || 0); }
+  function cible() { scC = scenePour(pageYOffset || 0); }
 
-  function dessiner() {
-    var zm = z % PAS; if (zm < 0) zm += PAS;
-    gl.uniform1f(U.uZm, zm);
-    gl.uniform1f(U.uV, Math.min(1, vit));
-    gl.uniform2f(U.uP, px, py);
-    gl.uniform1f(U.uEnd, Math.max(0.5, zFond - z));
-    gl.uniform1f(U.uFlash, flash);
-    gl.uniform1f(U.uOn, tension);
-    for (var i = 0; i < 8; i++) {
-      var p = portes[i];
-      gTab[i * 3] = p ? p.z - z : 0;
-      gTab[i * 3 + 1] = p ? p.kind : 0;
-      gTab[i * 3 + 2] = 0;
+  function image(t) {
+    raf = null; if (!vivant) return;
+    var dt = Math.min(64, t - tp); tp = t;
+    var av = sc;
+    sc += (scC - sc) * (1 - Math.exp(-dt / 140));
+    if (Math.abs(scC - sc) < 1e-4) sc = scC;
+    var v = Math.abs(sc - av) / (dt / 1000);
+    vit += (v - vit) * (1 - Math.exp(-dt / 160));
+    var k = 1 - Math.exp(-dt / 300); mx += (mxC - mx) * k; my += (myC - my) * k;
+
+    // on change de scene : le flash et le son
+    var idx = Math.round(sc);
+    if (idx !== derniere) {
+      flash = 1; derniere = idx;
+      try { document.dispatchEvent(new CustomEvent('hall:porte', { detail: { nature: 1 } })); } catch (e) {}
     }
-    gl.uniform3fv(U.uG, gTab);
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
-  }
+    flash *= Math.exp(-dt / 260);
 
-  function boucle(t) {
-    raf = null;
-    if (!vivant) return;
-    var dt = Math.min(64, t - tPrec || 16); tPrec = t;
-    var zAvant = z;
+    // la camera : elle avance dans le tunnel, puis tourne autour de chaque scene
+    var fr = sc - Math.floor(sc), ang = sc * 0.9 + mx * 0.25;
+    var dist = 9 - Math.sin(fr * Math.PI) * 2.2;
+    var eye = [Math.sin(ang) * dist * 0.35 + mx * 0.8, 0.6 + my * 0.6 + Math.sin(sc * 1.3) * 1.2, Math.cos(ang * 0.35) * dist];
+    if (sc < 1) { eye = [mx * 0.5, my * 0.4, 7.5 - sc * 3]; }
+    var M = mul(persp(asp < 0.8 ? 1.15 : 0.95, asp, 0.1, 80), regard(eye, [0, 0, -2]));
 
-    if (tDepart && tension < 1) tension = Math.max(0, Math.min(1, (t - tDepart) / 1500));
+    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.uniformMatrix4fv(U.M, false, new Float32Array(M));
+    gl.uniform1f(U.S, Math.min(sc, NS - 1 - 1e-4));
+    gl.uniform1f(U.T, (t - t0) / 1000);
+    gl.uniform1f(U.V, Math.min(3, vit));
+    gl.uniform1f(U.Fl, flash);
+    gl.drawArrays(gl.POINTS, 0, N);
 
-    var d = zCible - z;
-    if (Math.abs(d) < 0.0006) z = zCible; else z += d * (1 - Math.exp(-dt / TAU));
-    var k2 = 1 - Math.exp(-dt / 260);
-    px += (pxC - px) * k2; py += (pyC - py) * k2;
-
-    // la vitesse, en metres par seconde ramenee a 0..1
-    var v = Math.abs(z - zAvant) / (dt / 1000) / 26;
-    vit += (v - vit) * (1 - Math.exp(-dt / 170));
-
-    // a-t-on franchi un portique pendant cette image ?
-    var fmax = 0;
-    for (var i = 0; i < portes.length; i++) {
-      var g = portes[i];
-      if ((zAvant < g.z) !== (z < g.z) && zAvant !== z) {
-        try {
-          document.dispatchEvent(new CustomEvent('hall:porte', { detail: { nature: g.kind, sens: z > zAvant ? 1 : -1 } }));
-        } catch (e) {}
-      }
-      var f = g.kind * Math.exp(-Math.abs(z - g.z) * 1.15);
-      if (f > fmax) fmax = f;
-    }
-    flash = fmax;
-
-    dessiner();
-
-    // le fantome "DA" est entre le hall et le contenu : il glisse a part
     if (fantome) {
-      var sy = z / K;
-      if (sy < window.innerHeight * 1.3)
-        fantome.style.transform = 'translate(-50%,calc(-50% + ' + (sy * 0.34).toFixed(1) + 'px))';
+      var y = pageYOffset || 0;
+      if (y < innerHeight * 1.3) fantome.style.transform = 'translate(-50%,calc(-50% + ' + (y * 0.34).toFixed(1) + 'px))';
     }
-    // le souffle suit l'avance, comme dans la soufflerie
-    if (window.__hallFlux) window.__hallFlux(Math.min(1.2, vit * 1.5));
+    if (window.__hallFlux) window.__hallFlux(Math.min(1.2, vit * 0.9));
 
-    var enMouvement = (tDepart && tension < 1) || Math.abs(zCible - z) > 0.0006 || vit > 0.004 ||
-                      Math.abs(pxC - px) > 0.002 || Math.abs(pyC - py) > 0.002;
-    if (enMouvement) raf = requestAnimationFrame(boucle);
-    else if (window.__hallFlux) window.__hallFlux(0);
+    raf = requestAnimationFrame(image);           // la scene respire en permanence
   }
-  function reveiller() { if (!raf && vivant) { tPrec = performance.now(); raf = requestAnimationFrame(boucle); } }
+  function lancer() { if (!raf && vivant) { tp = performance.now(); raf = requestAnimationFrame(image); } }
 
-  // ── branchements ──
-  mesurer(); tailler(); cible(); z = zCible;
+  mesurer(); tailler(); cible(); sc = scC; derniere = Math.round(sc);
 
   if (sobre) {
-    // mouvement reduit : le hall reste une image, on ne le parcourt pas
-    z = 0; dessiner();
-    window.addEventListener('resize', function () { tailler(); dessiner(); }, { passive: true });
+    gl.uniform1f(U.T, 0); image(performance.now()); cancelAnimationFrame(raf); raf = null; vivant = false;
   } else {
-    window.addEventListener('scroll', function () { cible(); reveiller(); }, { passive: true });
-    if (fin) {
-      window.addEventListener('pointermove', function (e) {
-        pxC = (e.clientX / window.innerWidth) * 2 - 1;
-        pyC = -((e.clientY / window.innerHeight) * 2 - 1);
-        reveiller();
-      }, { passive: true });
-    }
-    var deb = null;
-    function refaire() { mesurer(); tailler(); cible(); reveiller(); }
-    window.addEventListener('resize', function () { clearTimeout(deb); deb = setTimeout(refaire, 120); }, { passive: true });
-    window.addEventListener('load', refaire);
-    var sc = document.getElementById('scene');
-    if (window.ResizeObserver && sc) new ResizeObserver(function () { mesurer(); reveiller(); }).observe(sc);
+    addEventListener('scroll', cible, { passive: true });
+    if (!tactile) addEventListener('pointermove', function (e) {
+      mxC = e.clientX / innerWidth * 2 - 1; myC = -(e.clientY / innerHeight * 2 - 1);
+    }, { passive: true });
+    var deb;
+    addEventListener('resize', function () { clearTimeout(deb); deb = setTimeout(function () { mesurer(); tailler(); cible(); }, 120); }, { passive: true });
+    addEventListener('load', function () { mesurer(); cible(); });
+    var scn = document.getElementById('scene');
+    if (window.ResizeObserver && scn) new ResizeObserver(function () { mesurer(); cible(); }).observe(scn);
     document.addEventListener('visibilitychange', function () {
-      vivant = !document.hidden; if (vivant) reveiller();
+      vivant = !document.hidden; if (vivant) lancer(); else if (raf) { cancelAnimationFrame(raf); raf = null; }
     });
-    reveiller();
-    (function attendre() {
-      if (document.body.classList.contains('loaded')) {
-        // on ne rejoue pas l'allumage si la page s'ouvre deja en cours de route
-        if ((window.pageYOffset || 0) > window.innerHeight * 0.5) tension = 1;
-        tDepart = performance.now() + 180; reveiller();
-      } else setTimeout(attendre, 60);
-    })();
+    lancer();
   }
-
   cv.addEventListener('webglcontextlost', function (e) { e.preventDefault(); vivant = false; cv.style.display = 'none'; });
 
   document.body.classList.add('hall-on');
-  window.__hall = { mesurer: function () { mesurer(); reveiller(); } };
+  window.__hall = { mesurer: function () { mesurer(); cible(); } };
 })();

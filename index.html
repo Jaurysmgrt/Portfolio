@@ -1626,18 +1626,17 @@ body.loaded .son{opacity:.45}
    vocabulaires differents (fondu-montee, fondu-glisse, carte qui bascule,
    rebond, bord qui descend) ; il n'en reste qu'un.
    ════════════════════════════════════════════════════════════════════ */
-:root{--volet:cubic-bezier(.72,0,.16,1)}
+:root{--volet:cubic-bezier(.77,0,.18,1)}
 @keyframes volet{
-  0%  {clip-path:inset(calc(50% - 1px) 50%)}
-  34% {clip-path:inset(calc(50% - 1px) 0%)}
-  100%{clip-path:inset(0% 0%)}
+  0%  {clip-path:inset(100% 0 0 0)}
+  100%{clip-path:inset(0 0 0 0)}
 }
 /* ferme : rien ne depasse. */
 .rv,.rvl,.rvr,.rvm,.gal-item,.tzi,.tz-end,.pp-visual,.pp-next,
 .fam-tete .fam-n,.fam-tete .fam-t,.fam-tete .fam-c,.fam-tete .fam-p,
 .hero-topbar,.hero-col-l,.hero-col-r,.hero-bottom,.hero-scroll{
   opacity:1!important;transform:none!important;
-  clip-path:inset(50% 50%)}
+  clip-path:inset(100% 0 0 0)}
 /* ouvert */
 .rv.in,.rvl.in,.rvr.in,.rvm.in,.pp-visual.in,.pp-next.in{
   animation:volet .72s var(--volet) both;animation-delay:var(--rd,0ms)}
@@ -1652,6 +1651,19 @@ body.loaded .hero-col-l {animation:volet .70s var(--volet) both .34s}
 body.loaded .hero-col-r {animation:volet .70s var(--volet) both .42s}
 body.loaded .hero-bottom{animation:volet .70s var(--volet) both .52s}
 body.loaded .hero-scroll{animation:volet .60s var(--volet) both .66s}
+/* LES LETTRES : les titres ne s'ouvrent pas, ils tombent lettre par lettre */
+.mot{display:inline-block;white-space:nowrap;perspective:600px}
+.ch{display:inline-block;opacity:0;transform:translate3d(0,.85em,0) rotateX(-95deg);
+  transform-origin:50% 100%;backface-visibility:hidden}
+@keyframes lettre{
+  0%  {opacity:0;transform:translate3d(0,.85em,0) rotateX(-95deg)}
+  45% {opacity:1}
+  100%{opacity:1;transform:none}
+}
+.rv.in .ch,.fam.vu .ch{animation:lettre .78s cubic-bezier(.16,1,.3,1) both;
+  animation-delay:calc(var(--i,0) * 26ms + 90ms)}
+.fam-tete .fam-t{clip-path:none!important;animation:none!important}
+@media(prefers-reduced-motion:reduce){.ch{opacity:1;transform:none;animation:none!important}}
 /* une fois ouvert, le volet n'existe plus : les ombres et le survol respirent */
 .pose{animation:none!important;clip-path:none!important}
 /* la bande d'apercu : ce sont ses pieces qui s'ouvrent, pas son cadre */
@@ -2217,6 +2229,33 @@ document.querySelectorAll('.nm').forEach(function(a){a.addEventListener('click',
 document.addEventListener('animationend',function(e){
   if(e.animationName==='volet' && e.target.classList) e.target.classList.add('pose');
 });
+// LES LETTRES : chaque titre est coupe en mots puis en lettres
+(function(){
+  if(matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  document.querySelectorAll('.sec-title,.fam-t').forEach(function(t){
+    var i=0, lu=t.textContent;
+    (function couper(nd){
+      [].slice.call(nd.childNodes).forEach(function(c){
+        if(c.nodeType===3){
+          var frag=document.createDocumentFragment();
+          c.textContent.split(/(\s+)/).forEach(function(m){
+            if(!m) return;
+            if(/^\s+$/.test(m)){ frag.appendChild(document.createTextNode(' ')); return; }
+            var w=document.createElement('span'); w.className='mot'; w.setAttribute('aria-hidden','true');
+            Array.from(m).forEach(function(l){
+              var ch=document.createElement('span'); ch.className='ch'; ch.textContent=l;
+              ch.style.setProperty('--i',i++); w.appendChild(ch);
+            });
+            frag.appendChild(w);
+          });
+          c.parentNode.replaceChild(frag,c);
+        } else if(c.nodeType===1) couper(c);
+      });
+    })(t);
+    t.setAttribute('aria-label',lu.trim());
+  });
+})();
+
 // L'OUVREUR
 // Un element ferme par clip-path n'a plus aucune surface : un
 // IntersectionObserver ne le voit donc jamais entrer dans le champ, et il
