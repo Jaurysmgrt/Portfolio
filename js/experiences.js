@@ -204,6 +204,10 @@ vec3 objectTangent=vec3(tangent.xyz);
     // la transition « le trait » : un filet rouge traverse l'ecran, puis le monde se referme dessus
     const tl = 0, tc = doux(clamp((pBrut - 0.72) / 0.28)), tf = 0;
     el.style.setProperty('--tl', tl.toFixed(3)); el.style.setProperty('--tc', tc.toFixed(3)); el.style.setProperty('--tf', tf.toFixed(3));
+    // une fois effacee, la scene ne se dessine plus (et ne bloque plus l'affichage)
+    const colle = el.querySelector('.colle');
+    if (tc > 0.995) { if (colle.style.visibility !== 'hidden') colle.style.visibility = 'hidden'; return false; }
+    else if (colle.style.visibility) colle.style.visibility = '';
     c.render(); return true;
   };
 }
@@ -264,7 +268,7 @@ void main(){vUv=uv;vec3 p=position;
   p.z+=sin(uv.x*3.14159)*uV*0.9; p.y+=sin(uv.x*6.283+uT)*uV*0.08;
   gl_Position=projectionMatrix*modelViewMatrix*vec4(p,1.0);}`;
   const FS = `uniform sampler2D uMap;uniform float uV,uOk,uFocus;varying vec2 vUv;
-void main(){float s=uV*0.018+0.0015;
+void main(){float s=uV*0.0035;
   vec4 c=vec4(texture2D(uMap,vUv+vec2(s,0.)).r,texture2D(uMap,vUv).g,texture2D(uMap,vUv-vec2(s,0.)).b,1.);
   c.rgb=mix(vec3(0.06,0.07,0.09),c.rgb,uOk);
   c.rgb*=mix(0.38,1.0,uFocus);
@@ -401,7 +405,7 @@ void main(){float s=uV*0.018+0.0015;
     plans.forEach((pl, i) => {
       const d = Math.abs(pl.ang + angle);
       if (d < bd) { bd = d; best = i; }
-      pl.u.uV.value = clamp(vit * 2.2, -0.6, 0.6); pl.u.uT.value = s;
+      pl.u.uV.value = clamp(vit * 1.2, -0.35, 0.35); pl.u.uT.value = s;
       pl.u.uFocus.value += (doux(clamp(1 - d / 0.45)) - pl.u.uFocus.value) * 0.15;
       pl.m.position.z = -R + pl.u.uFocus.value * 0.8;
     });
@@ -417,6 +421,7 @@ void main(){float s=uV*0.018+0.0015;
       if (elFam && elFam.dataset.f !== pr.fam) {
         elFam.dataset.f = pr.fam; elFam.textContent = pr.famNum + ' · ' + pr.famNom;
         if (puces) puces.querySelectorAll('button').forEach(x => x.classList.toggle('on', x.dataset.f === pr.fam));
+        if (puces) { const on = puces.querySelector('button.on'); if (on) puces.scrollTo({ left: on.offsetLeft - 12, behavior: 'smooth' }); }
         elFam.animate([{ opacity: 0, letterSpacing: '.5em' }, { opacity: 1, letterSpacing: '.26em' }], { duration: 700, easing: 'cubic-bezier(.16,1,.3,1)' });
       }
     }

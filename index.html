@@ -2511,6 +2511,25 @@ body.avec-3d #ouverture .cv-3d{transform:scale(calc(1 + var(--tc,0) * .35));tran
 body.avec-3d .trait-ouv{display:none;position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;z-index:5;pointer-events:none;
   background:var(--red2);box-shadow:0 0 18px 2px rgba(255,68,51,.6);transform:scaleX(calc(var(--tl,0) + var(--tf,0) * .6));opacity:calc(var(--tl,0) * 4 - var(--tf,0) * 5)}
 body.avec-3d #histoire{margin-top:-100vh;margin-top:-100svh;z-index:1}
+
+/* ═══ Retour d'usage, deuxieme passe ═══ */
+.rc-passer{margin-left:1.2rem;color:var(--cream);text-decoration:none;border-bottom:1px solid var(--red2);padding-bottom:1px;opacity:.75;transition:opacity .2s}
+.rc-passer:hover{opacity:1}
+/* le son ne recouvre plus rien sur ordinateur : il entre dans la barre */
+@media(min-width:861px){.nav-links .son{position:static!important;opacity:.8;margin:0;padding:.42rem .55rem;min-height:0}.nav-links .son .son-t{max-width:3rem}}
+/* micro-libelles plus lisibles */
+.rc-rail button{font-size:.66rem;color:#a3afbc}
+.sel-aide{font-size:.64rem;color:#a3afbc}
+.ch-tag{font-size:.68rem}
+/* le badge tient a son tour de cou */
+.lanyard{display:none!important}
+.badge::after{content:'';position:absolute;left:50%;bottom:calc(100% - 8px);width:22px;height:60vh;margin-left:-11px;z-index:-1;background:repeating-linear-gradient(180deg,var(--red) 0 30px,#b8261a 30px 32px)}
+/* les projecteurs : un halo chaud, pas un cone gris */
+.pn-cone{background:radial-gradient(ellipse 50% 100% at 50% 0,rgba(255,226,180,.2),rgba(255,226,180,0) 70%)!important}
+/* le pouls ne touche plus le libelle */
+.pouls{margin-right:.8em;vertical-align:middle}
+/* sur telephone, le tirage ne monte plus sur le titre */
+@media(max-width:860px){.recit.vivant .ch[data-i="0"] .ch-vis{margin-top:2.2rem}.rc-passer{display:none}}
 </style>
 </head>
 <body>
@@ -2582,7 +2601,7 @@ body.avec-3d #histoire{margin-top:-100vh;margin-top:-100svh;z-index:1}
         <div class="cmod-icon">📍</div>
         <div class="cmod-info">
           <span class="cmod-label">Disponibilité</span>
-          <span class="cmod-val" style="color:var(--red2)">Dès maintenant · Paris &amp; Île-de-France</span>
+          <span class="cmod-val" style="color:var(--red2)">Alternance dès sept. 2026 · Paris &amp; Île-de-France</span>
         </div>
       </div>
     </div>
@@ -2698,13 +2717,12 @@ body.avec-3d #histoire{margin-top:-100vh;margin-top:-100svh;z-index:1}
 <section id="histoire" class="recit" aria-label="Mon histoire">
  <div class="colle">
   <div class="rc-fond" aria-hidden="true"><span class="rc-num">00</span></div>
-  <div class="rc-tete"><span class="rc-lbl">Mon histoire</span><ol class="rc-rail"><li><button type="button" data-i="0">Prologue</button></li><li><button type="button" data-i="1">Amiens</button></li><li><button type="button" data-i="2">Stages</button></li><li><button type="button" data-i="3">ESP Paris</button></li><li><button type="button" data-i="4">Talon Pointe</button></li><li><button type="button" data-i="5">Master</button></li></ol></div>
+  <div class="rc-tete"><span class="rc-lbl">Mon histoire <a href="#selection" class="rc-passer">Passer aux projets &darr;</a></span><ol class="rc-rail"><li><button type="button" data-i="0">Prologue</button></li><li><button type="button" data-i="1">Amiens</button></li><li><button type="button" data-i="2">Stages</button></li><li><button type="button" data-i="3">ESP Paris</button></li><li><button type="button" data-i="4">Talon Pointe</button></li><li><button type="button" data-i="5">Master</button></li></ol></div>
   <article class="ch" data-i="0" data-poids="1.05">
     <div class="ch-txt">
       <span class="ch-tag ln">Prologue</span>
-      <h3 class="ch-an ln"><span>Jaurys</span></h3>
-      <p class="ch-t ln">22 ans &middot; Paris &middot; Direction artistique</p>
-      <p class="ch-p ln">Cr&eacute;atif, curieux, impliqu&eacute;. Je cr&eacute;e des visuels qui racontent quelque chose.</p>
+      <h3 class="ch-an ln"><span>D'abord</span></h3>
+      <p class="ch-t ln">Le gars derri&egrave;re les visuels</p>
       <p class="ch-p ln">Cr&eacute;er, imaginer, donner vie : c'est ce qui fait battre mon quotidien. J'aborde la publicit&eacute; comme un terrain de jeu o&ugrave; le concept prime autant que l'esth&eacute;tique.</p>
     </div>
     <div class="ch-vis" aria-hidden="true"><figure class="tirage"><div class="ti-img"><i class="ti-vf"></i><i class="ti-af"></i><img src="images/profil.jpg" alt="" width="900" height="1353" loading="lazy" decoding="async"></div><figcaption><span class="cap-avant">Souriez&hellip;</span><span class="cap-apres">Jaurys &middot; Paris</span></figcaption></figure><i class="ecran-flash"></i></div>
@@ -2761,7 +2779,7 @@ body.avec-3d #histoire{margin-top:-100vh;margin-top:-100svh;z-index:1}
   <article class="ch" data-i="4">
     <canvas class="fumee-cv" aria-hidden="true"></canvas>
     <div class="ch-txt">
-      <span class="ch-tag ln">Chapitre 04 &middot; Talon Pointe</span>
+      <span class="ch-tag ln">Chapitre 04 &middot; Talon Pointe &middot; en parall&egrave;le du Bachelor</span>
       <h3 class="ch-an ln"><span>2025</span></h3>
       <p class="ch-t ln">Alternance, v&eacute;hicules de luxe</p>
       <p class="ch-p ln">Charg&eacute; de communication dans une concession de v&eacute;hicules de luxe : cr&eacute;ation de contenu photo et vid&eacute;o, montage et post-production aux standards haut de gamme.</p>
@@ -2783,7 +2801,7 @@ body.avec-3d #histoire{margin-top:-100vh;margin-top:-100svh;z-index:1}
   <linearGradient id="vPhare" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#f4f8ff"/><stop offset=".6" stop-color="#b9c6d6"/><stop offset="1" stop-color="#5d6a7a"/></linearGradient>
 </defs>
 <ellipse class="v-ombre" cx="320" cy="210" rx="312" ry="9" fill="url(#vOmbre)"/>
-<path class="v-faisceau" d="M28 118 L-200 92 L-200 160 Z" fill="url(#vFaisceau)"/>
+<path class="v-faisceau" d="M28 118 L-110 102 L-110 146 Z" fill="url(#vFaisceau)"/>
 <g class="caisse"><title>Cliquez : appel de phares</title>
   <path d="M34 188 L104 183 A50 50 0 1 1 197.5 183 L429.5 183 A51 51 0 1 1 525 183 L590 180 C606 180 614 176 617 168 L621 140 C622 122 620 108 612 98 C606 94 600 92 592 90 C560 80 520 60 474 48 C434 38 396 33 364 34 C348 35 338 39 328 45 L252 86 C210 90 150 96 108 101 C80 104 52 112 36 122 C24 130 17 142 16 156 C15 170 20 184 34 188 Z" fill="url(#vCaisse)" stroke="#93a2b3" stroke-width="1.1"/>
   <path d="M34 188 L104 183 A50 50 0 1 1 197.5 183 L429.5 183 A51 51 0 1 1 525 183 L590 180 C606 180 614 176 617 168 L619 160 L18 160 C18 172 22 184 34 188 Z" fill="url(#vBas)"/>
@@ -3006,8 +3024,8 @@ body.avec-3d #histoire{margin-top:-100vh;margin-top:-100svh;z-index:1}
     <div class="c-paper torn">
       <div class="tape l"></div><div class="tape r"></div>
       <div class="sec-num" style="background:var(--ink);color:var(--paper);margin-bottom:1.5rem">05 / Contact</div>
-      <div class="c-big">PARLONS DE<span>VOTRE PROJET.</span></div>
-      <p class="c-sub">Disponible immédiatement, à Paris et en Île-de-France.<span class="c-sub-note">En recherche d'alternance · Master Direction Artistique, ESP Paris.</span></p>
+      <div class="c-big">PRENEZ-MOI<span>EN ALTERNANCE.</span></div>
+      <p class="c-sub">Alternance à partir de septembre 2026, à Paris et en Île-de-France.<span class="c-sub-note">En recherche d'alternance · Master Direction Artistique, ESP Paris.</span></p>
       <a href="mailto:maigretjaurys8@gmail.com" class="c-mail">maigretjaurys8@gmail.com</a>
     </div>
   </div>
@@ -3015,7 +3033,7 @@ body.avec-3d #histoire{margin-top:-100vh;margin-top:-100svh;z-index:1}
     <div class="ci"><label>Téléphone</label><a href="tel:+33609977401">06 09 97 74 01</a></div>
     <div class="ci"><label>Localisation</label><p>Paris 75 000</p></div>
     <div class="ci"><label>LinkedIn</label><a href="https://www.linkedin.com/in/jaurys-maigret" target="_blank" rel="noopener">Jaurys Maigret →</a></div>
-    <div class="ci"><label><i class="pouls" aria-hidden="true"></i>Disponibilité</label><p>Dès maintenant · Paris &amp; Île-de-France</p></div>
+    <div class="ci"><label><i class="pouls" aria-hidden="true"></i>Disponibilité</label><p>Rentrée sept. 2026 · Paris &amp; Île-de-France</p></div>
     <div class="ci"><label>Mobilité</label><p>Permis B · Véhiculé</p></div>
     <div class="ci"><label>CV</label><a href="CV-Jaurys-Maigret.pdf" download>Télécharger le CV (PDF) ↓</a></div>
   </div>
@@ -3970,6 +3988,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
     var h=a.getAttribute('href');
     if(h==='#'||a.classList.contains('skip')) return;
     a.addEventListener('click',function(e){
+      if(e.defaultPrevented || a.getAttribute('onclick')) return;   // ce lien ouvre une fenetre, on ne bouge pas la page
       var el=document.querySelector(h);
       if(!el) return;
       e.preventDefault();
@@ -4222,7 +4241,7 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
         if(ancien>=0){
           // l'ancien chapitre sort d'abord ; le nouveau entre juste apres
           chs.forEach(function(c,k){ c.classList.remove('on'); c.classList.toggle('sort',k===ancien); });
-          minuterie=setTimeout(function(){ chs.forEach(function(c,k){ c.classList.toggle('on',k===cur); }); },380);
+          minuterie=setTimeout(function(){ chs.forEach(function(c,k){ c.classList.toggle('on',k===cur); }); },230);
           menage=setTimeout(function(){ chs.forEach(function(c,k){ if(k!==cur) c.classList.remove('sort'); }); },2400);
         } else {
           chs.forEach(function(c,k){ c.classList.toggle('on',k===cur); c.classList.remove('sort'); });
@@ -4561,9 +4580,10 @@ if(window.__jmSon) window.__jmSon('avion');
   // Echap sans rien a fermer
   addEventListener('keydown',function(e){
     if(e.key!=='Escape') return;
+    // (ecoute en capture : on voit la fenetre encore ouverte)
     var ouvert=document.querySelector('.pp.on,.cmod.on,.lb.on,.vmodal[style*="flex"],.nav-mob.open');
     if(!ouvert) dire('Échap ? Il n’y a rien à fermer… restez un peu.',2600);
-  });
+  },true);
   // tout en bas de la page, la premiere fois
   var fin=false; addEventListener('scroll',function(){
     if(!fin && innerHeight+scrollY>=document.documentElement.scrollHeight-4){ fin=true; dire('Vous êtes allé jusqu’au bout. Ça, c’est un vrai recruteur.',3600); }
@@ -4577,6 +4597,13 @@ if(window.__jmSon) window.__jmSon('avion');
   setTimeout(function(){ var l=document.querySelectorAll('.c-big .l'); if(l.length && l[l.length-1].textContent==='.') l[l.length-1].classList.add('point'); },300);
 })();
 </script>
-<script type="module" src="js/experiences.js?v=24"></script>
+<script>
+(function(){
+  if(!matchMedia('(min-width:861px)').matches) return;
+  var son=document.getElementById('son'), nl=document.querySelector('.nav-links'), d=nl&&nl.querySelector('.nav-dispo');
+  if(son&&nl) nl.insertBefore(son,d||nl.firstChild);
+})();
+</script>
+<script type="module" src="js/experiences.js?v=26"></script>
 </body>
 </html>
