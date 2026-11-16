@@ -2344,7 +2344,6 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 .recit.vivant .ch[data-i="2"].on .cal{animation:pendule 4.4s ease-in-out 1.4s infinite}
 @keyframes pendule{0%,100%{rotate:0deg}35%{rotate:1.8deg}70%{rotate:-1.4deg}}
 /* l'affiche, une fois composee, respire et suit le defilement */
-.recit.vivant .ch[data-i="3"] .ch-vis{translate:0 calc((.5 - var(--t,.5)) * 6vh)}
 /* le contrat flotte aussi, a peine */
 .recit.vivant .ch[data-i="5"].on .contrat{animation:flotte 6s ease-in-out 2.4s infinite}
 @media(prefers-reduced-motion:reduce){.note,.note-in,.tirage,.cal,.affiche,.contrat{animation:none!important}}
@@ -2355,7 +2354,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 .pn-lampe{position:relative;width:26px;height:10px;background:#2a313b;border-radius:2px;margin-top:14px;box-shadow:0 -12px 0 -10px #2a313b}
 .pn-lampe::before{content:'';position:absolute;left:50%;top:-14px;width:2px;height:14px;background:#2a313b}
 .pn-cone{position:absolute;left:50%;top:8px;width:260%;height:180px;transform:translateX(-50%);pointer-events:none;opacity:0;
-  background:radial-gradient(ellipse 50% 100% at 50% 0,rgba(255,236,200,.38),rgba(255,236,200,0) 70%);clip-path:polygon(42% 0,58% 0,100% 100%,0 100%);mix-blend-mode:screen}
+  background:radial-gradient(ellipse 50% 100% at 50% 0,rgba(255,236,200,.38),rgba(255,236,200,0) 70%);clip-path:polygon(42% 0,58% 0,100% 100%,0 100%)}
 .pn-cadre{position:relative;width:100%;aspect-ratio:4/3;background:#1b2028;padding:10px;box-shadow:0 40px 70px -30px rgba(0,0,0,.95),inset 0 0 0 1px #2f3743}
 .pn-face{position:relative;width:100%;height:100%;display:grid;grid-template-columns:44% 56%;overflow:hidden;background:#f3f1ec}
 .pn-g{display:flex;flex-direction:column;justify-content:space-between;padding:8% 8%;color:#0b0e13}
@@ -2380,9 +2379,8 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 .recit.vivant .ch[data-i="3"].on .pn-lampe:last-child .pn-cone{animation-delay:1.95s,3.3s}
 @keyframes allume{0%{opacity:0}10%{opacity:1}18%{opacity:.1}30%{opacity:1}40%{opacity:.3}55%,100%{opacity:1}}
 @keyframes lueur{0%,100%{opacity:1}50%{opacity:.82}}
-.recit.vivant .ch[data-i="3"].on .pn-face{animation:eclaire .4s ease 2.6s both}
-@keyframes eclaire{from{filter:brightness(.82)}to{filter:brightness(1.04)}}
-.recit.vivant .ch[data-i="3"] .ch-vis{translate:0 calc((.5 - var(--t,.5)) * 6vh)}
+.pn-face::after{content:'';position:absolute;inset:0;background:#000;opacity:.18;pointer-events:none;transition:opacity .4s ease 2.6s}
+.recit.vivant .ch[data-i="3"].on .pn-face::after{opacity:0}
 .recit.vivant .ch[data-i="3"].sort .panneau{opacity:0;transform:translate3d(0,-30px,0) scale(.94);transition:opacity .4s,transform .5s cubic-bezier(.5,0,.75,0)}
 .recit:not(.vivant) .le{display:none}
 @media(max-width:860px){.panneau{width:76vw}.pn-g b{font-size:16vw}.pn-d strong{font-size:5vw}.pn-pied{height:40px}}
@@ -2438,7 +2436,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 @media(max-width:860px){.cal-deja{top:auto;bottom:-1.8rem;left:0;margin:0}}
 /* le panneau : un projecteur grille, puis revient */
 .recit.vivant .ch[data-i="3"].on .pn-lampe:first-child .pn-cone{animation:allume 1.2s steps(1) 1.8s both,lueur 3.2s ease-in-out 3s infinite,grille 8s steps(1) 5s infinite}
-@keyframes grille{0%,90%,94%,100%{filter:none}91%,93%{filter:brightness(0)}}
+@keyframes grille{0%,90%,94%,100%{opacity:1}91%,93%{opacity:0}}
 
 /* ═══ Stages : on voit OU. AGCO = un groupe mondial (un globe), Tredelec = un badge d'entreprise ═══ */
 .stv{display:none}
@@ -2507,8 +2505,10 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 /* ═══ Transition « le trait » : la 3D se referme sur un filet rouge, l'histoire est deja dessous ═══ */
 .trait-ouv{display:none}
 body.avec-3d #ouverture{z-index:3}
-body.avec-3d #ouverture .colle{clip-path:inset(calc(var(--tc,0) * 50%) 0 calc(var(--tc,0) * 50%) 0)}
-body.avec-3d .trait-ouv{display:block;position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;z-index:5;pointer-events:none;
+body.avec-3d #ouverture .colle{opacity:calc(1 - var(--tc,0));pointer-events:none}
+body.avec-3d #ouverture .hero{pointer-events:auto}
+body.avec-3d #ouverture .cv-3d{transform:scale(calc(1 + var(--tc,0) * .35));transform-origin:50% 50%}
+body.avec-3d .trait-ouv{display:none;position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;z-index:5;pointer-events:none;
   background:var(--red2);box-shadow:0 0 18px 2px rgba(255,68,51,.6);transform:scaleX(calc(var(--tl,0) + var(--tf,0) * .6));opacity:calc(var(--tl,0) * 4 - var(--tf,0) * 5)}
 body.avec-3d #histoire{margin-top:-100vh;margin-top:-100svh;z-index:1}
 </style>
@@ -4577,6 +4577,6 @@ if(window.__jmSon) window.__jmSon('avion');
   setTimeout(function(){ var l=document.querySelectorAll('.c-big .l'); if(l.length && l[l.length-1].textContent==='.') l[l.length-1].classList.add('point'); },300);
 })();
 </script>
-<script type="module" src="js/experiences.js?v=23"></script>
+<script type="module" src="js/experiences.js?v=24"></script>
 </body>
 </html>
