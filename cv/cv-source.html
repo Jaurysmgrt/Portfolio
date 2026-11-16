@@ -6,153 +6,180 @@
 <meta name="author" content="Jaurys Maigret">
 <meta name="description" content="CV de Jaurys Maigret, étudiant en Master Direction Artistique à l'ESP Paris, en recherche d'alternance.">
 <style>
-/* Les polices sont livrees avec le CV : le PDF les embarque en vrai texte,
-   lisible par un ATS (jamais en Type 3, que certains logiciels lisent mal). */
+/* Polices livrees avec le CV : le PDF les embarque en vrai texte (jamais en Type 3). */
 @font-face{font-family:'Anton';src:url(fonts/anton-latin-400-normal.woff) format('woff');font-weight:400}
 @font-face{font-family:'Plex Mono';src:url(fonts/ibm-plex-mono-latin-500-normal.woff) format('woff');font-weight:500}
 @font-face{font-family:'Plex Sans';src:url(fonts/ibm-plex-sans-latin-400-normal.woff) format('woff');font-weight:400}
 @font-face{font-family:'Plex Sans';src:url(fonts/ibm-plex-sans-latin-500-normal.woff) format('woff');font-weight:500}
 @font-face{font-family:'Plex Sans';src:url(fonts/ibm-plex-sans-latin-600-normal.woff) format('woff');font-weight:600}
 
-:root{
-  --nuit:#07090d;      /* le noir du portfolio */
-  --nuit2:#11161d;
-  --encre:#12171d;
-  --gris:#4a5561;
-  --chrome:#6f7f90;
-  --rouge:#d42a1b;
-  --filet:#d9dfe5;
-}
+/* La DA du portfolio : nuit, blanc, chrome, un seul rouge. */
+:root{--nuit:#06070a;--nuit2:#0f1319;--blanc:#ffffff;--texte:#d7dee6;--chrome:#a9b7c6;--gris:#6d7b8a;--filet:#232c37;--rouge:#d42a1b;--rouge2:#ff4433}
 *{margin:0;padding:0;box-sizing:border-box}
 @page{size:A4;margin:0}
-html,body{width:210mm;height:297mm}
-body{font-family:'Plex Sans',Arial,sans-serif;font-size:9.6pt;line-height:1.45;color:var(--encre);background:#fff;
+html,body{width:210mm;height:297mm;background:var(--nuit)}
+body{font-family:'Plex Sans',Arial,sans-serif;font-size:9.2pt;line-height:1.38;color:var(--texte);
   -webkit-print-color-adjust:exact;print-color-adjust:exact}
-.page{width:210mm;height:297mm;overflow:hidden;display:flex;flex-direction:column}
+.page{width:210mm;height:297mm;overflow:hidden;display:flex;flex-direction:column;position:relative;background:var(--nuit)}
+.mono{font-family:'Plex Mono',monospace;font-weight:500;text-transform:uppercase;letter-spacing:.2em}
 
-/* ── le bandeau : la DA du site, en tete de page seulement ── */
-header{background:var(--nuit);color:#fff;padding:9mm 14mm 7.5mm;position:relative;display:flex;gap:9mm;align-items:stretch}
-header::after{content:'';position:absolute;left:0;right:0;bottom:0;height:1.2mm;background:var(--rouge)}
-.id{flex:1;display:flex;flex-direction:column}
-.etiq{font-family:'Plex Mono',monospace;font-weight:500;font-size:7.6pt;letter-spacing:.22em;text-transform:uppercase;color:#ff4a36}
-h1{font-family:'Anton',Impact,sans-serif;font-weight:400;font-size:34pt;line-height:.95;letter-spacing:.01em;text-transform:uppercase;margin:2.2mm 0 2.6mm}
-.metier{font-family:'Anton',Impact,sans-serif;font-weight:400;font-size:19pt;line-height:1;text-transform:uppercase;letter-spacing:.02em;color:#ff4a36;margin-bottom:1.6mm}
-.titre{font-size:10.5pt;font-weight:500;color:#e9eef3}
-.portfolio{display:inline-flex;align-items:center;gap:2mm;margin-top:2.6mm;align-self:flex-start;border:.35mm solid #ff4a36;color:#fff;text-decoration:none;font-weight:600;font-size:9.2pt;padding:1.3mm 3mm}
-.portfolio i{font-style:normal;font-family:'Plex Mono',monospace;font-weight:500;font-size:7.4pt;letter-spacing:.18em;text-transform:uppercase;color:#ff4a36}
-.dispo{display:inline-block;margin-top:2.4mm;align-self:flex-start;background:var(--rouge);color:#fff;font-weight:600;font-size:8.6pt;padding:1.2mm 2.8mm}
-.contact{margin-top:auto;padding-top:3mm;display:flex;flex-wrap:wrap;gap:1mm 5mm;font-size:8.8pt;color:#cfd8e1}
-.contact a{color:#fff;text-decoration:none}
-.photo{width:30mm;flex:0 0 30mm;position:relative;background:var(--nuit2);overflow:hidden}
-.photo img{width:100%;height:100%;object-fit:cover;object-position:50% 22%;display:block}
+/* ── l'affiche ── */
+.barre{display:flex;justify-content:space-between;padding:7mm 13mm 0;font-size:6.6pt;color:var(--gris)}
+.barre .pt{display:inline-block;width:1.4mm;height:1.4mm;border-radius:50%;background:var(--rouge2);margin-right:2mm;vertical-align:.2mm}
+header{position:relative;padding:5mm 13mm 0;display:flex;gap:7mm}
+.nom{flex:1;min-width:0}
+h1{font-family:'Anton',Impact,sans-serif;font-weight:400;text-transform:uppercase;line-height:.86;letter-spacing:.005em}
+h1 .l1{display:block;font-size:58pt;color:var(--blanc)}
+h1 .l2{display:block;font-size:58pt;color:var(--chrome)}
+.regle{display:flex;align-items:center;gap:3mm;margin:2.4mm 0 2.6mm}
+.regle i{flex:1;height:.9mm;background:var(--rouge)}
+.regle span{font-size:7pt;color:var(--blanc)}
+.metier{font-family:'Anton',Impact,sans-serif;font-weight:400;font-size:21pt;line-height:1;text-transform:uppercase;color:var(--rouge2);letter-spacing:.01em}
+.titre{margin-top:2mm;font-size:10pt;font-weight:500;color:var(--blanc)}
+.photo{width:47mm;flex:0 0 47mm;align-self:stretch;position:relative;margin-top:1mm}
+.photo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 20%;display:block}
+.photo::after{content:'';position:absolute;inset:0;box-shadow:inset 0 0 0 .35mm rgba(255,255,255,.18)}
+.dispo{position:absolute;left:-3mm;bottom:5mm;background:var(--rouge);color:#fff;font-size:6.4pt;padding:1.4mm 2.4mm;z-index:1}
 
-/* ── le corps : une seule colonne, l'ordre de lecture d'un ATS ── */
-main{flex:1;padding:8mm 14mm 0}
-section{margin-bottom:5mm}
-h2{display:flex;align-items:baseline;gap:3mm;font-family:'Anton',Impact,sans-serif;font-weight:400;font-size:14pt;
-  text-transform:uppercase;letter-spacing:.02em;line-height:1;margin-bottom:2.4mm;padding-bottom:1.3mm;border-bottom:.3mm solid var(--filet)}
-h2 .n{font-family:'Plex Mono',monospace;font-weight:500;font-size:8pt;letter-spacing:.14em;color:var(--rouge)}
-.profil{font-size:9.6pt;color:#2a333c;max-width:172mm}
-.poste{margin-bottom:3.2mm}
+.chiffres{display:flex;margin:5mm 13mm 0;border-top:.3mm solid var(--filet);border-bottom:.3mm solid var(--filet)}
+.chiffres div{flex:1;padding:1.8mm 0 1.6mm;display:flex;align-items:baseline;gap:2.4mm}
+.chiffres div+div{border-left:.3mm solid var(--filet);padding-left:4mm}
+.chiffres b{font-family:'Anton',Impact,sans-serif;font-weight:400;font-size:17pt;line-height:1;color:var(--blanc)}
+.chiffres span{font-size:6.4pt;color:var(--chrome)}
+.contact{display:flex;flex-wrap:wrap;gap:1mm 6mm;margin:3mm 13mm 0;font-size:8.6pt;color:var(--texte)}
+.contact a{color:var(--blanc);text-decoration:none}
+
+/* ── le corps : une colonne, les numeros du site en marge ── */
+main{flex:1;padding:4.5mm 13mm 0}
+section{display:grid;grid-template-columns:19mm 1fr;margin-bottom:3.4mm}
+.n{font-family:'Anton',Impact,sans-serif;font-weight:400;font-size:22pt;line-height:.9;color:var(--rouge)}
+h2{font-family:'Anton',Impact,sans-serif;font-weight:400;font-size:15pt;line-height:1;text-transform:uppercase;letter-spacing:.02em;color:var(--blanc);
+  padding-bottom:1.4mm;margin-bottom:2.2mm;border-bottom:.3mm solid var(--filet)}
+.profil{font-size:9.8pt;color:var(--texte)}
+.profil strong{color:var(--blanc);font-weight:600}
+.poste{margin-bottom:2.2mm}
 .poste:last-child{margin-bottom:0}
-.ligne1{display:flex;justify-content:space-between;align-items:baseline;gap:4mm}
-h3{font-size:10.6pt;font-weight:600}
-h3 span{font-weight:400;color:var(--gris)}
-.date{font-family:'Plex Mono',monospace;font-weight:500;font-size:8pt;letter-spacing:.06em;color:var(--chrome);white-space:nowrap}
-ul{margin:1.2mm 0 0 4.2mm}
-li{margin-bottom:.2mm;padding-left:.6mm}
-li::marker{color:var(--rouge)}
-.comp p{margin-bottom:1.2mm}
-.comp b{font-weight:600}
+.l1p{display:flex;justify-content:space-between;align-items:baseline;gap:4mm}
+h3{font-size:10.4pt;font-weight:600;color:var(--blanc)}
+h3 span{font-weight:400;color:var(--chrome)}
+.date{font-size:7pt;letter-spacing:.12em;color:var(--rouge2);white-space:nowrap}
+ul{margin:1.1mm 0 0 4mm}
+li{margin-bottom:.2mm;padding-left:.8mm}
+li::marker{color:var(--rouge2);content:'— '}
+.puces{display:flex;flex-wrap:wrap;gap:1.6mm}
+.puces span{border:.3mm solid var(--filet);padding:.6mm 2mm;font-size:8.4pt;color:var(--blanc)}
+.ligne-c{margin-bottom:1.8mm}
+.ligne-c:last-child{margin-bottom:0}
+.ligne-c{display:grid;grid-template-columns:24mm 1fr;align-items:baseline}
+.ligne-c b{font-size:6.6pt;color:var(--gris);font-weight:500}
+.ligne-c p{color:var(--blanc)}
 
-/* ── pied : le portfolio, a scanner ou a taper ── */
-footer{margin:0 14mm 7mm;padding-top:2.6mm;border-top:.3mm solid var(--filet);display:flex;align-items:center;gap:5mm}
-.qr{width:21mm;height:21mm;flex:0 0 21mm;display:block}
+/* ── le pied : le portfolio, en grand ── */
+footer{background:var(--rouge);color:#fff;display:flex;align-items:center;gap:6mm;padding:4mm 13mm}
+.qr{width:22mm;height:22mm;flex:0 0 22mm;background:#fff;padding:1.4mm;display:block}
 .qr svg{display:block;width:100%;height:100%}
-footer p{font-size:9pt;color:var(--gris)}
-footer p b{display:block;font-family:'Plex Mono',monospace;font-weight:500;font-size:7.6pt;letter-spacing:.18em;text-transform:uppercase;color:var(--rouge);margin-bottom:.8mm}
-footer a{color:var(--encre);font-weight:600;text-decoration:none}
+.cta{flex:1}
+.cta b{display:block;font-size:6.8pt;margin-bottom:1.4mm;font-weight:500}
+.cta a{font-family:'Anton',Impact,sans-serif;font-weight:400;font-size:22pt;line-height:1;color:#fff;text-decoration:none;text-transform:uppercase}
+.cta p{margin-top:1.4mm;font-size:8.4pt;color:#ffe2dd}
 </style>
 </head>
 <body>
 <div class="page">
 
+<div class="barre mono"><span>Portfolio 2026 · Paris</span><span><b class="pt"></b>CV · Direction artistique</span></div>
+
 <header>
-  <div class="id">
-    <span class="etiq">Portfolio 2026 · Paris</span>
-    <h1>Jaurys Maigret</h1>
+  <div class="nom">
+    <h1><span class="l1">Jaurys</span><span class="l2">Maigret</span></h1>
+    <div class="regle"><i></i><span class="mono">Publicité · Graphisme · Image</span></div>
     <div class="metier">Direction artistique</div>
-    <div class="titre">Master Direction Artistique à l'ESP Paris · Publicité, graphisme, création visuelle</div>
-    <div class="dispo">Recherche alternance · Disponible dès maintenant</div>
-    <a class="portfolio" href="https://jaurysmgrt.github.io/Portfolio/"><i>Portfolio</i>jaurysmgrt.github.io/Portfolio</a>
-    <div class="contact">
-      <span>06 09 97 74 01</span>
-      <a href="mailto:maigretjaurys8@gmail.com">maigretjaurys8@gmail.com</a>
-      <span>Paris &amp; Île-de-France</span>
-      <span>Permis B, véhiculé</span>
-      <a href="https://www.linkedin.com/in/jaurys-maigret">linkedin.com/in/jaurys-maigret</a>
-    </div>
+    <div class="titre">Étudiant en Master Direction Artistique à l'ESP Paris, en recherche d'alternance</div>
   </div>
-  <div class="photo"><img src="../images/profil.jpg" alt="Portrait de Jaurys Maigret"></div>
+  <div class="photo"><img src="../images/profil.jpg" alt="Portrait de Jaurys Maigret"><span class="dispo mono">Recherche alternance · Disponible</span></div>
 </header>
+
+<div class="chiffres mono">
+  <div><b>22</b><span>ans</span></div>
+  <div><b>3</b><span>expériences</span></div>
+  <div><b>10+</b><span>projets au portfolio</span></div>
+</div>
+
+<div class="contact">
+  <span>06 09 97 74 01</span>
+  <a href="mailto:maigretjaurys8@gmail.com">maigretjaurys8@gmail.com</a>
+  <span>Paris &amp; Île-de-France</span>
+  <span>Permis B, véhiculé</span>
+  <a href="https://www.linkedin.com/in/jaurys-maigret">linkedin.com/in/jaurys-maigret</a>
+</div>
 
 <main>
   <section>
-    <h2><span class="n">01</span>Profil</h2>
-    <p class="profil">Créatif, curieux, impliqué. Je crée des visuels qui racontent quelque chose. Passionné par la direction artistique et la communication visuelle, j'aborde la publicité comme un terrain où le concept compte autant que l'esthétique.</p>
-  </section>
-
-  <section>
-    <h2><span class="n">02</span>Expérience professionnelle</h2>
-    <div class="poste">
-      <div class="ligne1"><h3>Chargé de communication <span>· Talon Pointe · Alternance</span></h3><span class="date">2025 – 2026</span></div>
-      <ul>
-        <li>Création de contenu photo et vidéo pour une concession de véhicules de luxe</li>
-        <li>Montage et post-production aux standards haut de gamme</li>
-        <li>Gestion des réseaux sociaux et du calendrier éditorial</li>
-        <li>Storytelling visuel, image de marque et campagnes</li>
-      </ul>
-    </div>
-    <div class="poste">
-      <div class="ligne1"><h3>Chargé de communication <span>· AGCO · Stage</span></h3><span class="date">2024 · 1 mois</span></div>
-      <ul>
-        <li>Création de contenu social media pour un groupe à dimension mondiale</li>
-        <li>Newsletters BtoC, retouche visuelle, analyse de performance</li>
-      </ul>
-    </div>
-    <div class="poste">
-      <div class="ligne1"><h3>Chargé de communication <span>· Tredelec · Stage</span></h3><span class="date">2024 · 1 mois</span></div>
-      <ul>
-        <li>Contenu publicitaire pour les réseaux sociaux, animation des comptes</li>
-        <li>Développement d'idées créatives, benchmarks concurrentiels</li>
-      </ul>
+    <div class="n">01</div>
+    <div>
+      <h2>Profil</h2>
+      <p class="profil"><strong>Créatif, curieux, impliqué.</strong> Je crée des visuels qui racontent quelque chose. Passionné par la direction artistique et la communication visuelle, j'aborde la publicité comme un terrain où le concept compte autant que l'esthétique.</p>
     </div>
   </section>
 
   <section>
-    <h2><span class="n">03</span>Formation</h2>
-    <div class="poste">
-      <div class="ligne1"><h3>Master Direction Artistique (M1) <span>· ESP Paris · en alternance</span></h3><span class="date">2026</span></div>
-    </div>
-    <div class="poste">
-      <div class="ligne1"><h3>Bachelor Création Publicitaire (B3) <span>· ESP Paris</span></h3><span class="date">2025</span></div>
-    </div>
-    <div class="poste">
-      <div class="ligne1"><h3>BTS Communication <span>· Amiens</span></h3><span class="date">2023</span></div>
+    <div class="n">02</div>
+    <div>
+      <h2>Expérience professionnelle</h2>
+      <div class="poste">
+        <div class="l1p"><h3>Chargé de communication <span>· Talon Pointe · Alternance</span></h3><span class="date mono">2025 – 2026</span></div>
+        <ul>
+          <li>Création de contenu photo et vidéo pour une concession de véhicules de luxe</li>
+          <li>Montage et post-production aux standards haut de gamme</li>
+          <li>Gestion des réseaux sociaux et du calendrier éditorial</li>
+          <li>Storytelling visuel, image de marque et campagnes</li>
+        </ul>
+      </div>
+      <div class="poste">
+        <div class="l1p"><h3>Chargé de communication <span>· AGCO · Stage</span></h3><span class="date mono">2024 · 1 mois</span></div>
+        <ul>
+          <li>Création de contenu social media pour un groupe à dimension mondiale</li>
+          <li>Newsletters BtoC, retouche visuelle, analyse de performance</li>
+        </ul>
+      </div>
+      <div class="poste">
+        <div class="l1p"><h3>Chargé de communication <span>· Tredelec · Stage</span></h3><span class="date mono">2024 · 1 mois</span></div>
+        <ul>
+          <li>Contenu publicitaire pour les réseaux sociaux, animation des comptes</li>
+          <li>Développement d'idées créatives, benchmarks concurrentiels</li>
+        </ul>
+      </div>
     </div>
   </section>
 
-  <section class="comp">
-    <h2><span class="n">04</span>Compétences</h2>
-    <p><b>Logiciels :</b> Photoshop, Illustrator, InDesign, Premiere Pro, After Effects, Lightroom</p>
-    <p><b>Savoir-faire :</b> direction artistique, publicité, graphisme, photographie, montage vidéo, brand design, typographie, social media</p>
-    <p><b>Langues :</b> français (langue maternelle), anglais (B2)</p>
+  <section>
+    <div class="n">03</div>
+    <div>
+      <h2>Formation</h2>
+      <div class="poste"><div class="l1p"><h3>Master Direction Artistique (M1) <span>· ESP Paris · en alternance</span></h3><span class="date mono">2026</span></div></div>
+      <div class="poste"><div class="l1p"><h3>Bachelor Création Publicitaire (B3) <span>· ESP Paris</span></h3><span class="date mono">2025</span></div></div>
+      <div class="poste"><div class="l1p"><h3>BTS Communication <span>· Amiens</span></h3><span class="date mono">2023</span></div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="n">04</div>
+    <div>
+      <h2>Compétences</h2>
+      <div class="ligne-c"><b class="mono">Logiciels</b><div class="puces"><span>Photoshop</span> <span>Illustrator</span> <span>InDesign</span> <span>Premiere Pro</span> <span>After Effects</span> <span>Lightroom</span></div></div>
+      <div class="ligne-c"><b class="mono">Savoir-faire</b><p>Direction artistique, publicité, graphisme, photographie, montage vidéo, brand design, typographie, social media</p></div>
+      <div class="ligne-c"><b class="mono">Langues</b><p>Français (langue maternelle), anglais (B2)</p></div>
+    </div>
   </section>
 </main>
 
 <footer>
   <span class="qr"><!--QR--></span>
-  <p><b>Portfolio</b>Scannez le code ou rendez-vous sur <a href="https://jaurysmgrt.github.io/Portfolio/">jaurysmgrt.github.io/Portfolio</a> pour voir les projets, les films et la galerie complète.</p>
+  <div class="cta">
+    <b class="mono">Voir le portfolio</b>
+    <a href="https://jaurysmgrt.github.io/Portfolio/">jaurysmgrt.github.io/Portfolio</a>
+    <p>Campagnes, affiches, photo automobile, films : scannez le code ou tapez l'adresse.</p>
+  </div>
 </footer>
 
 </div>
