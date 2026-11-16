@@ -2049,6 +2049,34 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
 @keyframes tamponC{from{opacity:0;transform:rotate(-10deg) scale(3)}to{opacity:1;transform:rotate(-10deg) scale(1)}}
 .recit:not(.vivant) .ct-tampon{opacity:1}
 @media(max-width:860px){.recit.vivant .ch[data-i="5"] .ch-vis{display:none}}
+
+/* ═══ Clins d'oeil ═══ */
+::selection{background:var(--red2);color:#fff}
+html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
+::-webkit-scrollbar{width:9px}::-webkit-scrollbar-track{background:#06070a}::-webkit-scrollbar-thumb{background:var(--red);border-radius:0}
+.ft-haut{background:none;border:0;color:inherit;font:inherit;letter-spacing:inherit;text-transform:inherit;cursor:pointer;padding:0;transition:color .2s}
+.ft-haut:hover{color:var(--red2)}
+/* le contrat : la case vide se laisse cliquer */
+.ct-ici{position:relative;display:inline-flex;align-items:center;min-width:100%;min-height:1.3em;background:none;border:0;padding:0;cursor:pointer}
+.ct-bulle{position:absolute;left:1.4em;top:50%;transform:translate3d(-6px,-50%,0);opacity:0;font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--red2);white-space:nowrap;transition:opacity .25s,transform .35s cubic-bezier(.16,1,.3,1)}
+.ct-ici:hover .ct-bulle,.ct-ici:focus-visible .ct-bulle,.recit.vivant .ch[data-i="5"].on .ct-bulle{opacity:1;transform:translate3d(0,-50%,0)}
+.recit.vivant .ch[data-i="5"].on .ct-bulle{transition-delay:2.6s}
+/* la 991 : on peut lui faire un appel de phares */
+.ch-voiture .caisse{cursor:pointer}
+.recit.vivant .ch[data-i="4"] .ch-vis,.recit.vivant .ch[data-i="4"] .ch-route{pointer-events:auto}
+.ch-voiture.phares .v-faisceau{animation:phares .7s steps(1) both}
+@keyframes phares{0%{opacity:1}15%{opacity:0}30%{opacity:1;filter:brightness(2.2)}45%{opacity:0}60%{opacity:1;filter:brightness(2.2)}100%{opacity:1}}
+/* l'arc : quand on defile trop vite, il le fait remarquer */
+.sel-doucement{position:absolute;left:50%;top:44%;transform:translate3d(-50%,10px,0);z-index:3;pointer-events:none;opacity:0;
+  font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;color:#fff;background:var(--red);padding:.55rem .9rem;transition:opacity .3s,transform .4s cubic-bezier(.16,1,.3,1)}
+.sel-doucement.vu{opacity:1;transform:translate3d(-50%,0,0)}
+/* le hero : une invitation si on reste immobile */
+.hint-scroll{position:fixed;left:50%;bottom:6vh;z-index:300;transform:translate3d(-50%,20px,0);opacity:0;pointer-events:none;
+  font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;color:var(--cream);transition:opacity .5s,transform .6s cubic-bezier(.16,1,.3,1)}
+.hint-scroll b{display:block;text-align:center;color:var(--red2);font-size:1rem;animation:rebond 1.4s ease-in-out infinite}
+.hint-scroll.vu{opacity:1;transform:translate3d(-50%,0,0)}
+@keyframes rebond{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+@media(prefers-reduced-motion:reduce){.hint-scroll b,.ch-voiture.phares .v-faisceau{animation:none}}
 </style>
 </head>
 <body>
@@ -2303,7 +2331,7 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
 </defs>
 <ellipse class="v-ombre" cx="320" cy="210" rx="312" ry="9" fill="url(#vOmbre)"/>
 <path class="v-faisceau" d="M28 118 L-200 92 L-200 160 Z" fill="url(#vFaisceau)"/>
-<g class="caisse">
+<g class="caisse"><title>Cliquez : appel de phares</title>
   <path d="M34 188 L104 183 A50 50 0 1 1 197.5 183 L429.5 183 A51 51 0 1 1 525 183 L590 180 C606 180 614 176 617 168 L621 140 C622 122 620 108 612 98 C606 94 600 92 592 90 C560 80 520 60 474 48 C434 38 396 33 364 34 C348 35 338 39 328 45 L252 86 C210 90 150 96 108 101 C80 104 52 112 36 122 C24 130 17 142 16 156 C15 170 20 184 34 188 Z" fill="url(#vCaisse)" stroke="#93a2b3" stroke-width="1.1"/>
   <path d="M34 188 L104 183 A50 50 0 1 1 197.5 183 L429.5 183 A51 51 0 1 1 525 183 L590 180 C606 180 614 176 617 168 L619 160 L18 160 C18 172 22 184 34 188 Z" fill="url(#vBas)"/>
   <path d="M38 121 C60 108 90 103 108 101 C150 96 210 90 252 86 M328 45 C338 39 348 35 364 34 C396 33 434 38 474 48 C520 60 560 80 592 90" fill="none" stroke="url(#vEpaule)" stroke-width="2.2" stroke-linecap="round"/>
@@ -2352,7 +2380,7 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
         <div class="ct-l"><span>Alternant</span><em>Jaurys Maigret</em></div>
         <div class="ct-l"><span>Formation</span><em>Master Direction Artistique &middot; ESP Paris</em></div>
         <div class="ct-l"><span>Domaine</span><em>Publicit&eacute;, graphisme, cr&eacute;ation visuelle</em></div>
-        <div class="ct-l ct-vide"><span>Entreprise</span><em><i class="ct-curseur"></i></em></div>
+        <div class="ct-l ct-vide"><span>Entreprise</span><em><button type="button" class="ct-ici" onclick="openContact(event)" aria-label="Me contacter"><i class="ct-curseur"></i><span class="ct-bulle">Votre nom ici ?</span></button></em></div>
         <div class="ct-l ct-sign"><span>Signature</span><em></em></div>
         <div class="ct-tampon">&Agrave; compl&eacute;ter</div>
       </div></div>
@@ -2543,7 +2571,7 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
 <footer>
   <span class="ft-logo">J.M.</span>
   <span class="ft-copy">© 2026 · Jaurys Maigret</span>
-  <span class="ft-r">Portfolio · Direction Artistique · ESP Paris</span>
+  <span class="ft-r">Fait main à Paris · zéro template · <button type="button" class="ft-haut">Remonter ↑</button></span>
 </footer>
 </div><!-- /scene -->
 
@@ -2869,7 +2897,7 @@ function closeContact(){
 function copyText(txt,btn){
   navigator.clipboard.writeText(txt).then(function(){
     var orig=btn.textContent;
-    btn.textContent='✓ Copié';
+    btn.textContent=Math.random()<.5?'✓ Copié, à vous':'✓ Dans la poche';
     btn.classList.add('copied');
     setTimeout(function(){btn.textContent=orig;btn.classList.remove('copied')},2000);
   });
@@ -3902,6 +3930,41 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
     var s=on?(b2?'tredelec':'agco'):'';
     if(s!==etat){ etat=s; if(s==='agco') setTimeout(function(){ if(etat==='agco') compter('AGCO'); },350); else if(s==='tredelec') compter('Tredelec'); }
   }).observe(ch,{attributes:true,attributeFilter:['class']});
+})();
+</script>
+<script>
+// ═══ Clins d'oeil ═══
+(function(){
+  // pour ceux qui ouvrent la console
+  try{ console.log('%cJ.M%c  Vous lisez le code ? On devrait travailler ensemble : https://jaurysmgrt.github.io/Portfolio/#contact',
+    'font:28px Anton,Impact,sans-serif;color:#fff;background:#d42a1b;padding:4px 10px','font:12px monospace;color:#d42a1b'); }catch(e){}
+  // l'onglet appelle quand on part
+  var titre=document.title;
+  document.addEventListener('visibilitychange',function(){ document.title=document.hidden?'Revenez, la suite s’écrit… — J.M':titre; });
+  // remonter tout en haut
+  var h=document.querySelector('.ft-haut'); if(h) h.addEventListener('click',function(){ window.scrollTo({top:0,behavior:'smooth'}); });
+  // l'appel de phares de la 991
+  var v=document.querySelector('.ch-voiture');
+  if(v) v.addEventListener('click',function(){ v.classList.remove('phares'); void v.offsetWidth; v.classList.add('phares'); });
+  // l'arc : trop vite !
+  var sel=document.getElementById('selection');
+  if(sel){
+    var msg=document.createElement('div'); msg.className='sel-doucement'; msg.textContent='Doucement, c’est de l’art'; msg.setAttribute('aria-hidden','true');
+    var colle=sel.querySelector('.colle'); if(colle) colle.appendChild(msg);
+    var yP=window.scrollY, tP=performance.now(), cache=0;
+    window.addEventListener('scroll',function(){
+      var r=sel.getBoundingClientRect(), t=performance.now(), y=window.scrollY;
+      var v=Math.abs(y-yP)/Math.max(1,t-tP); yP=y; tP=t;
+      if(r.top<0 && r.bottom>innerHeight && v>4.5){ msg.classList.add('vu'); clearTimeout(cache); cache=setTimeout(function(){ msg.classList.remove('vu'); },1100); }
+    },{passive:true});
+  }
+  // le hero : si on ne bouge pas, une petite invitation
+  if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
+    var hint=document.createElement('div'); hint.className='hint-scroll'; hint.setAttribute('aria-hidden','true');
+    hint.innerHTML='Faites défiler, ça bouge<b>↓</b>'; document.body.appendChild(hint);
+    var minu=setTimeout(function(){ if(window.scrollY<40) hint.classList.add('vu'); },7000);
+    window.addEventListener('scroll',function f(){ if(window.scrollY>40){ clearTimeout(minu); hint.classList.remove('vu'); window.removeEventListener('scroll',f); } },{passive:true});
+  }
 })();
 </script>
 <script type="module" src="js/experiences.js?v=16"></script>
