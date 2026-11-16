@@ -1621,7 +1621,7 @@ body.loaded .son{opacity:.45}
    ════════════════════════════════════════════════════════════════════ */
 .piste-3d{position:relative}
 .piste-3d .cv-3d{display:none}
-body.avec-3d #ouverture{height:150vh}
+body.avec-3d #ouverture{height:260vh}
 body.avec-3d #selection{height:430vh}
 /* l'arc remplace l'apercu : les projets ne sont jamais montres deux fois avant la galerie */
 body.avec-3d #apercu{display:none}
@@ -1852,7 +1852,7 @@ body.avec-3d #portfolio{display:none}
 /* ═══ L'ouverture, version spectacle ═══ */
 /* les lettres s'ecrasent une a une a l'ouverture du rideau */
 .hn .lt{display:inline-block;opacity:0;transform:translate3d(0,-60%,0) scale(2.6) rotate(-8deg);filter:blur(6px);
-  transition:transform .9s cubic-bezier(.16,1.3,.3,1),opacity .35s,filter .5s;transition-delay:calc(.35s + var(--i,0) * 70ms)}
+  transition:transform 1.3s cubic-bezier(.16,1.2,.3,1),opacity .6s,filter .8s;transition-delay:calc(.6s + var(--i,0) * 120ms)}
 body.loaded .hn .lt{opacity:1;transform:none;filter:none}
 /* au defilement, elles eclatent chacune dans sa direction */
 body.avec-3d #ouverture .hn{overflow:visible}
@@ -1907,6 +1907,32 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
 /* le nom du hero : plus de masque, les lettres arrivent entieres */
 .hn{overflow:visible}
 .hero .hn > span{transform:none!important}
+
+/* ═══ Talon Pointe : une voiture traverse l'ecran, se gare, puis repart ═══ */
+.ch[data-i="4"] .ch-vis{flex-direction:column;gap:3vh}
+.ch-voiture{width:min(720px,46vw)}
+.ch-voiture svg{display:block;width:100%;height:auto;overflow:visible}
+.ch-voiture .roue{transform-box:fill-box;transform-origin:center}
+.recit.vivant .ch[data-i="4"] .ch-vis,.recit.vivant .ch[data-i="4"].on .ch-vis{transform:none;clip-path:none;opacity:1}
+.recit.vivant .ch[data-i="4"] .ch-logo-tp{opacity:0;transform:translate3d(0,14px,0);transition:opacity .5s ease .75s,transform .7s cubic-bezier(.16,1,.3,1) .75s}
+.recit.vivant .ch[data-i="4"].on .ch-logo-tp{opacity:1;transform:none}
+.recit.vivant .ch[data-i="4"] .ch-voiture{transform:translate3d(120vw,0,0)}
+.recit.vivant .ch[data-i="4"].on .ch-voiture{animation:arrive 1.25s cubic-bezier(.16,1,.3,1) both}
+.recit.vivant .ch[data-i="4"].on .ch-voiture svg{transform:translate3d(calc(var(--t,0) * -3vw),0,0)}
+.recit.vivant .ch[data-i="4"].on .roue{animation:roule 1.25s cubic-bezier(.16,1,.3,1) both}
+.recit.vivant .ch[data-i="4"].sort .ch-voiture{animation:repart .6s cubic-bezier(.55,0,.85,.3) both}
+.recit.vivant .ch[data-i="4"].sort .roue{animation:roule2 .6s cubic-bezier(.55,0,.85,.3) both}
+.recit.vivant .ch[data-i="4"].sort .ch-logo-tp{opacity:0;transition:opacity .25s}
+@keyframes arrive{0%{transform:translate3d(120vw,0,0) skewX(-14deg)}70%{transform:translate3d(-2.5vw,0,0) skewX(5deg)}85%{transform:translate3d(.8vw,0,0) skewX(-1deg)}100%{transform:none}}
+@keyframes roule{from{transform:rotate(0)}to{transform:rotate(-1260deg)}}
+@keyframes repart{from{transform:none}to{transform:translate3d(-130vw,0,0) skewX(14deg)}}
+@keyframes roule2{from{transform:rotate(0)}to{transform:rotate(-900deg)}}
+/* les lignes de vitesse suivent la voiture */
+.recit.vivant .ch[data-i="4"] .ch-vis::before{top:auto;bottom:4%;height:34%;opacity:0;transition:opacity .4s}
+.recit.vivant .ch[data-i="4"].on .ch-vis::before{opacity:1;animation:vitesse 1.25s cubic-bezier(.16,1,.3,1) both}
+@keyframes vitesse{from{transform:translate3d(60vw,0,0);opacity:1}to{transform:translate3d(0,0,0);opacity:.35}}
+@media(prefers-reduced-motion:reduce){.ch-voiture,.ch-voiture .roue{animation:none!important;transform:none!important}}
+@media(max-width:860px){.ch-voiture{width:78vw}.ch[data-i="4"] .ch-vis{gap:1.4vh}}
 </style>
 </head>
 <body>
@@ -2140,7 +2166,18 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
       <p class="ch-p ln">Charg&eacute; de communication dans une concession de v&eacute;hicules de luxe : cr&eacute;ation de contenu photo et vid&eacute;o, montage et post-production aux standards haut de gamme.</p>
       <p class="ch-p ln">R&eacute;seaux sociaux, calendrier &eacute;ditorial, storytelling visuel et image de marque.</p>
     </div>
-    <div class="ch-vis" aria-hidden="true"><div class="ch-logo ch-logo-tp"><img src="images/logo-talon-pointe.svg" alt="" loading="lazy" decoding="async"></div></div>
+    <div class="ch-vis" aria-hidden="true"><div class="ch-logo ch-logo-tp"><img src="images/logo-talon-pointe.svg" alt="" loading="lazy" decoding="async"></div>
+      <div class="ch-voiture"><svg viewBox="0 0 600 190" aria-hidden="true">
+        <defs><linearGradient id="carro" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a323d"/><stop offset=".55" stop-color="#11161d"/><stop offset="1" stop-color="#07090d"/></linearGradient></defs>
+        <ellipse cx="305" cy="168" rx="270" ry="10" fill="rgba(0,0,0,.6)"/>
+        <path d="M18 140 L24 120 Q40 106 96 100 L184 92 Q222 68 270 60 Q322 52 376 58 Q420 66 456 88 L528 96 Q570 104 580 122 L584 140 Z" fill="url(#carro)" stroke="#a9b7c6" stroke-width="1.6"/>
+        <path d="M204 92 Q232 72 268 65 Q294 61 304 61 L304 92 Z M314 61 Q362 60 394 70 Q418 78 438 90 L314 92 Z" fill="#0d1218" stroke="rgba(169,183,198,.55)" stroke-width="1.2"/>
+        <path d="M60 116 L560 112" stroke="rgba(255,255,255,.18)" stroke-width="1"/>
+        <rect x="560" y="106" width="20" height="7" rx="2" fill="#ff4433"/>
+        <rect x="24" y="110" width="16" height="6" rx="2" fill="#e8eef5"/>
+        <g class="roue"><circle cx="150" cy="140" r="33" fill="#05070a" stroke="#a9b7c6" stroke-width="2"/><circle cx="150" cy="140" r="20" fill="none" stroke="#ff4433" stroke-width="2"/><path d="M150 120 V160 M130 140 H170 M136 126 L164 154 M164 126 L136 154" stroke="#a9b7c6" stroke-width="2"/></g>
+        <g class="roue"><circle cx="470" cy="140" r="33" fill="#05070a" stroke="#a9b7c6" stroke-width="2"/><circle cx="470" cy="140" r="20" fill="none" stroke="#ff4433" stroke-width="2"/><path d="M470 120 V160 M450 140 H490 M456 126 L484 154 M484 126 L456 154" stroke="#a9b7c6" stroke-width="2"/></g>
+      </svg></div></div>
   </article>
   <article class="ch" data-i="5">
     <div class="ch-txt">
@@ -3560,6 +3597,6 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   maj(); setTimeout(maj,500); setTimeout(maj,2000);
 })();
 </script>
-<script type="module" src="js/experiences.js?v=13"></script>
+<script type="module" src="js/experiences.js?v=14"></script>
 </body>
 </html>

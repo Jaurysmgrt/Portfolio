@@ -172,7 +172,7 @@ vec3 objectTangent=vec3(tangent.xyz);
     vit += (Math.abs(p - pPrec) * 60 - vit) * 0.08; pPrec = p;
     const s = t / 1000;
     if (t0 < 0 && document.body.classList.contains('loaded')) t0 = s + 0.15;
-    const e = t0 < 0 ? 0 : clamp((s - t0) / 1.9);          // l'arrivee, de 0 a 1
+    const e = t0 < 0 ? 0 : clamp((s - t0) / 3.2);          // l'arrivee, de 0 a 1
     const ressort = e <= 0 ? 0.001 : (e >= 1 ? 1 : Math.pow(2, -9 * e) * Math.sin((e * 10 - .75) * (2 * Math.PI / 3)) + 1);
     const eclat = Math.pow(1 - e, 3);
     const dpx = mx - pmx, dpy = my - pmy; pmx = mx; pmy = my;
