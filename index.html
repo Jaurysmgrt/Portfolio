@@ -2095,10 +2095,6 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 .recit.vivant .ch[data-i="4"] .ch-vis,.recit.vivant .ch[data-i="4"] .ch-route{pointer-events:auto}
 .ch-voiture.phares .v-faisceau{animation:phares .7s steps(1) both}
 @keyframes phares{0%{opacity:1}15%{opacity:0}30%{opacity:1;filter:brightness(2.2)}45%{opacity:0}60%{opacity:1;filter:brightness(2.2)}100%{opacity:1}}
-/* l'arc : quand on defile trop vite, il le fait remarquer */
-.sel-doucement{position:absolute;left:50%;top:44%;transform:translate3d(-50%,10px,0);z-index:3;pointer-events:none;opacity:0;
-  font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;color:#fff;background:var(--red);padding:.55rem .9rem;transition:opacity .3s,transform .4s cubic-bezier(.16,1,.3,1)}
-.sel-doucement.vu{opacity:1;transform:translate3d(-50%,0,0)}
 /* le hero : une invitation si on reste immobile */
 .hint-scroll{position:fixed;left:50%;bottom:6vh;z-index:300;transform:translate3d(-50%,20px,0);opacity:0;pointer-events:none;
   font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.24em;text-transform:uppercase;color:var(--cream);transition:opacity .5s,transform .6s cubic-bezier(.16,1,.3,1)}
@@ -2188,52 +2184,6 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 @keyframes pouls{0%{box-shadow:0 0 0 0 rgba(255,68,51,.6)}100%{box-shadow:0 0 0 9px rgba(255,68,51,0)}}
 @media(prefers-reduced-motion:reduce){.pouls,.sel-fam.clap{animation:none!important}}
 
-/* ═══ Projets : une petite sequence a l'entree de chaque famille ═══ */
-.sel-anim{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);z-index:2;pointer-events:none;width:min(420px,80vw);height:min(400px,52vh)}
-.an{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.2rem;opacity:0;visibility:hidden;background:#06070a;box-shadow:0 0 0 1px var(--border),0 40px 80px -30px rgba(0,0,0,.9)}
-.an b{font-family:'IBM Plex Mono',monospace;font-weight:500;font-size:.62rem;letter-spacing:.24em;text-transform:uppercase;color:#fff;background:var(--red);padding:.4rem .7rem}
-.an.joue{visibility:visible;animation:anVie 2.3s ease both}
-@keyframes anVie{0%{opacity:0;transform:scale(.96)}8%{opacity:1;transform:none}82%{opacity:1;transform:none}100%{opacity:0;transform:scale(1.03)}}
-/* direction artistique : quatre calques qui se calent */
-.an-da{--w:190px;--h:230px}
-.cm{position:absolute;left:50%;top:44%;width:var(--w);height:var(--h);margin:calc(var(--h)/-2) 0 0 calc(var(--w)/-2);border:3px solid;mix-blend-mode:screen}
-.cm.c{border-color:#00b4ff}.cm.m{border-color:#ff2e88}.cm.j{border-color:#ffd400}.cm.n{border-color:#ffffff}
-.an-da.joue .cm.c{animation:cmC 1.1s cubic-bezier(.16,1,.3,1) both}
-.an-da.joue .cm.m{animation:cmM 1.1s cubic-bezier(.16,1,.3,1) .05s both}
-.an-da.joue .cm.j{animation:cmJ 1.1s cubic-bezier(.16,1,.3,1) .1s both}
-.an-da.joue .cm.n{animation:cmN 1.1s cubic-bezier(.16,1,.3,1) .15s both}
-@keyframes cmC{from{transform:translate(-38px,-22px) rotate(-4deg)}to{transform:none}}
-@keyframes cmM{from{transform:translate(34px,-30px) rotate(3deg)}to{transform:none}}
-@keyframes cmJ{from{transform:translate(-26px,34px) rotate(5deg)}to{transform:none}}
-@keyframes cmN{from{transform:translate(30px,26px) rotate(-3deg)}to{transform:none}}
-.cm-cible{position:absolute;left:50%;top:44%;width:34px;height:34px;margin:-17px;border:2px solid #fff;border-radius:50%;opacity:0}
-.cm-cible::before,.cm-cible::after{content:'';position:absolute;background:#fff}
-.cm-cible::before{left:-10px;right:-10px;top:50%;height:2px;margin-top:-1px}.cm-cible::after{top:-10px;bottom:-10px;left:50%;width:2px;margin-left:-1px}
-.an-da.joue .cm-cible{animation:cible .5s cubic-bezier(.3,1.6,.5,1) 1s both}
-@keyframes cible{from{opacity:0;transform:scale(2.2)}to{opacity:1;transform:none}}
-.an-da b{position:absolute;bottom:6px}
-/* photo auto : l'obturateur claque, un flash */
-.ob{position:relative;width:280px;height:186px;overflow:hidden;border:2px solid rgba(255,255,255,.85)}
-.ob::before,.ob::after{content:'';position:absolute;width:22px;height:22px;border:0 solid #fff}
-.ob-h,.ob-b{position:absolute;left:0;right:0;height:50%;background:#06070a;border:0 solid #2a313a;z-index:2}
-.ob-h{top:0;transform:translateY(-101%);border-bottom-width:1px}.ob-b{bottom:0;transform:translateY(101%);border-top-width:1px}
-.ob-flash{position:absolute;inset:0;background:#fff;opacity:0;z-index:3}
-.an-auto.joue .ob-h{animation:obH .5s cubic-bezier(.7,0,.3,1) .35s both}
-.an-auto.joue .ob-b{animation:obB .5s cubic-bezier(.7,0,.3,1) .35s both}
-.an-auto.joue .ob-flash{animation:flashOb .45s ease-out .6s both}
-@keyframes obH{0%{transform:translateY(-101%)}45%,55%{transform:none}100%{transform:translateY(-101%)}}
-@keyframes obB{0%{transform:translateY(101%)}45%,55%{transform:none}100%{transform:translateY(101%)}}
-@keyframes flashOb{0%{opacity:0}20%{opacity:.9}100%{opacity:0}}
-/* astro : la pose longue trace des files d'etoiles */
-.an-nuit canvas{width:250px;height:250px;border-radius:50%}
-/* video : le clap */
-.an-video svg{width:230px;height:auto;overflow:visible}
-.cl-bras{transform-origin:10px 30px}
-.an-video.joue .cl-bras{animation:clap2 .9s cubic-bezier(.5,0,.4,1) .2s both}
-@keyframes clap2{0%{transform:rotate(-28deg)}35%{transform:rotate(0)}50%{transform:rotate(-14deg)}70%{transform:rotate(0)}100%{transform:rotate(0)}}
-@media(max-width:860px){.sel-anim{transform:translate(-50%,-50%) scale(.72);top:50%}}
-@media(prefers-reduced-motion:reduce){.sel-anim{display:none}}
-
 /* ═══ Page projet : un rideau-titre a l'ouverture ═══ */
 .pp-intro{position:fixed;inset:0;z-index:1700;background:#06070a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4rem;pointer-events:none;visibility:hidden}
 .pp-intro b{font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(3rem,10vw,9rem);line-height:.9;text-transform:uppercase;color:#fff;text-align:center;padding:0 6vw}
@@ -2246,6 +2196,108 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 @keyframes titreIn{from{transform:translate3d(0,40%,0);opacity:0}to{transform:none;opacity:1}}
 @keyframes trait{to{transform:scaleX(1)}}
 @media(prefers-reduced-motion:reduce){.pp-intro{display:none}}
+
+/* ═══════ Chapitres, nouvelle passe : un objet soigne par chapitre ═══════ */
+/* Prologue : un tirage instantane qui se revele */
+.tirage{margin:0;background:#f4f1ea;padding:12px 12px 46px;width:min(300px,24vw);box-shadow:0 2px 0 rgba(0,0,0,.15),0 50px 80px -30px rgba(0,0,0,.95);transform:rotate(-4deg);position:relative}
+.tirage::after{content:'';position:absolute;inset:0;background:linear-gradient(115deg,rgba(255,255,255,.35),transparent 38%);pointer-events:none}
+.ti-img{aspect-ratio:900/1353;overflow:hidden;background:#20262c}
+.ti-img img{width:100%;height:100%;object-fit:cover;display:block}
+.tirage figcaption{position:absolute;left:0;right:0;bottom:14px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.2em;text-transform:uppercase;color:#3a4048}
+.recit.vivant .ch[data-i="0"] .ch-vis{clip-path:none}
+.recit.vivant .ch[data-i="0"] .tirage{transform:translate3d(0,40vh,0) rotate(6deg);transition:transform 1.1s cubic-bezier(.16,1,.3,1)}
+.recit.vivant .ch[data-i="0"].on .tirage{transform:translate3d(0,calc((.5 - var(--t,.5)) * 3vh),0) rotate(-4deg)}
+.recit.vivant .ch[data-i="0"].on .ti-img img{animation:revele 3s cubic-bezier(.4,0,.2,1) .6s both}
+@keyframes revele{0%{filter:brightness(.12) saturate(0) sepia(.7) hue-rotate(160deg) contrast(.6)}45%{filter:brightness(.6) saturate(.3) sepia(.5) hue-rotate(150deg) contrast(.8)}100%{filter:none}}
+.recit.vivant .ch[data-i="0"] figcaption{opacity:0;transition:opacity .6s 2.2s}
+.recit.vivant .ch[data-i="0"].on figcaption{opacity:1}
+.recit.vivant .ch[data-i="0"].sort .tirage{transform:translate3d(-12vw,-8vh,0) rotate(-14deg);opacity:0;transition:transform .6s cubic-bezier(.5,0,.75,0),opacity .5s}
+
+/* BTS : un billet qui sort du guichet, puis composte */
+.guichet{position:relative;width:min(540px,40vw);padding-top:10px}
+.fente{position:absolute;left:-4%;right:-4%;top:0;height:10px;background:#11161d;border-radius:5px;box-shadow:inset 0 3px 4px rgba(0,0,0,.9),0 1px 0 rgba(255,255,255,.06);z-index:3}
+.billet2{position:relative;display:grid;grid-template-columns:22% 1fr;background:#f2ede3;color:#14181d;font-family:'IBM Plex Mono',monospace;
+  box-shadow:0 30px 50px -24px rgba(0,0,0,.95);clip-path:inset(0 0 0 0)}
+.b2-talon{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.15rem;border-right:2px dashed #bfb6a8;background:#e9e2d5;position:relative;padding:.8rem 0}
+.b2-talon span{font-size:.5rem;letter-spacing:.16em;color:#7a7266}
+.b2-talon b{font-family:'Anton',sans-serif;font-weight:400;font-size:1.2rem;line-height:1}
+.b2-talon span:first-child{margin-bottom:.2rem}
+.b2-trou{position:absolute;left:50%;bottom:12%;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:#06070a;transform:scale(0)}
+.b2-corps{padding:.75rem 1rem .8rem}
+.b2-bande{display:flex;justify-content:space-between;background:var(--red);color:#fff;font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;padding:.3rem .5rem;margin-bottom:.7rem}
+.b2-trajet{display:grid;grid-template-columns:1fr 54px 1fr;align-items:end;gap:.5rem;color:var(--red)}
+.b2-trajet span{display:block;font-size:.48rem;letter-spacing:.18em;text-transform:uppercase;color:#7a7266}
+.b2-trajet b{display:block;font-family:'Anton',sans-serif;font-weight:400;font-size:2rem;line-height:1;color:#14181d;text-transform:uppercase}
+.b2-trajet em{font-style:normal;font-size:.62rem;color:#14181d}
+.b2-trajet .dr{text-align:right}
+.b2-trajet svg{width:54px;margin-bottom:1.2rem}
+.b2-infos{display:grid;grid-template-columns:1fr 1fr;gap:.6rem;border-top:1px dashed #bfb6a8;margin-top:.7rem;padding-top:.55rem}
+.b2-infos span{display:block;font-size:.46rem;letter-spacing:.18em;text-transform:uppercase;color:#7a7266}
+.b2-infos em{font-style:normal;font-size:.66rem;font-weight:500}
+.b2-code{height:22px;margin-top:.6rem;background:repeating-linear-gradient(90deg,#14181d 0 2px,transparent 2px 4px,#14181d 4px 5px,transparent 5px 8px,#14181d 8px 11px,transparent 11px 12px)}
+.b2-compo{position:absolute;right:6%;bottom:22%;font-family:'Anton',sans-serif;font-size:1.35rem;letter-spacing:.1em;text-transform:uppercase;color:#5b3fb3;border:3px solid #5b3fb3;
+  padding:.1rem .6rem;transform:rotate(-12deg) scale(2.4);opacity:0;mix-blend-mode:multiply;
+  -webkit-mask:repeating-radial-gradient(circle at 30% 40%,#000 0 2px,rgba(0,0,0,.75) 2px 3px);mask:repeating-radial-gradient(circle at 30% 40%,#000 0 2px,rgba(0,0,0,.75) 2px 3px)}
+.recit.vivant .ch[data-i="1"] .ch-vis{clip-path:none}
+.recit.vivant .ch[data-i="1"] .billet2{clip-path:inset(0 0 100% 0);transform:translate3d(0,-30px,0)}
+.recit.vivant .ch[data-i="1"].on .billet2{animation:sortBillet 1.4s steps(12,end) .5s both}
+.recit.vivant .ch[data-i="1"].on .b2-compo{animation:compo .4s cubic-bezier(.3,1.6,.5,1) 2.1s both}
+.recit.vivant .ch[data-i="1"].on .b2-trou{animation:poincon .25s cubic-bezier(.3,1.8,.5,1) 2.5s both}
+.recit.vivant .ch[data-i="1"].on .guichet{animation:secousse .25s ease 2.1s}
+@keyframes sortBillet{from{clip-path:inset(0 0 100% 0);transform:translate3d(0,-30px,0)}to{clip-path:inset(0 0 0 0);transform:none}}
+@keyframes compo{from{opacity:0;transform:rotate(-12deg) scale(2.4)}to{opacity:.85;transform:rotate(-12deg) scale(1)}}
+.recit.vivant .ch[data-i="1"].sort .guichet{opacity:0;transform:translate3d(0,-40px,0);transition:opacity .4s,transform .5s cubic-bezier(.5,0,.75,0)}
+.recit:not(.vivant) .b2-compo{opacity:.85;transform:rotate(-12deg)}.recit:not(.vivant) .b2-trou{transform:none}
+
+/* ESP : une affiche se compose sous nos yeux */
+.affiche{position:relative;width:min(300px,23vw);aspect-ratio:1/1.414;background:#f3f1ec;color:#0b0e13;overflow:visible;box-shadow:0 50px 80px -30px rgba(0,0,0,.95)}
+.af-grille{position:absolute;inset:6%;background:repeating-linear-gradient(90deg,rgba(255,0,140,.35) 0 1px,transparent 1px 25%);border:1px solid rgba(255,0,140,.35)}
+.af-bloc{position:absolute;left:0;right:0;bottom:0;height:44%;background:var(--red)}
+.af-titre{position:absolute;left:6%;top:4%;font-family:'Anton',sans-serif;font-weight:400;font-size:min(9.5rem,8vw);line-height:.86;letter-spacing:-.02em}
+.af-l1,.af-l2{position:absolute;left:6%;margin:0;font-family:'Anton',sans-serif;text-transform:uppercase;color:#fff;line-height:1}
+.af-l1{bottom:30%;font-size:min(1.9rem,1.7vw)}
+.af-l2{bottom:22%;font-size:min(1.25rem,1.1vw);color:#0b0e13}
+.af-pied{position:absolute;left:6%;right:6%;bottom:5%;margin:0;display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:.5rem;letter-spacing:.16em;text-transform:uppercase;color:#fff}
+.af-coupe{position:absolute;width:16px;height:16px;border:0 solid rgba(255,255,255,.6)}
+.af-coupe.c1{left:-22px;top:-22px;border-right-width:1px;border-bottom-width:1px}.af-coupe.c2{right:-22px;top:-22px;border-left-width:1px;border-bottom-width:1px}
+.af-coupe.c3{left:-22px;bottom:-22px;border-right-width:1px;border-top-width:1px}.af-coupe.c4{right:-22px;bottom:-22px;border-left-width:1px;border-top-width:1px}
+.recit.vivant .ch[data-i="3"] .ch-vis,.recit.vivant .ch[data-i="3"].on .ch-vis{transform:none;clip-path:none;opacity:1}
+.recit.vivant .ch[data-i="3"] .affiche{opacity:0;transform:translate3d(0,30px,0) rotate(3deg);transition:opacity .4s,transform .9s cubic-bezier(.16,1,.3,1)}
+.recit.vivant .ch[data-i="3"].on .affiche{opacity:1;transform:rotate(-2deg)}
+.recit.vivant .ch[data-i="3"] .af-grille{clip-path:inset(0 100% 0 0)}
+.recit.vivant .ch[data-i="3"] .af-bloc{transform:scaleY(0);transform-origin:50% 100%}
+.recit.vivant .ch[data-i="3"] .af-titre{opacity:0;transform:scale(1.6);transform-origin:0 0}
+.recit.vivant .ch[data-i="3"] .af-l1,.recit.vivant .ch[data-i="3"] .af-l2,.recit.vivant .ch[data-i="3"] .af-pied{opacity:0;transform:translate3d(0,8px,0)}
+.recit.vivant .ch[data-i="3"] .af-coupe{opacity:0}
+.recit.vivant .ch[data-i="3"].on .af-grille{animation:grille .7s cubic-bezier(.6,0,.3,1) .4s both,grilleOff .6s ease 2.6s forwards}
+.recit.vivant .ch[data-i="3"].on .af-bloc{animation:bloc .6s cubic-bezier(.16,1,.3,1) 1s both}
+.recit.vivant .ch[data-i="3"].on .af-titre{animation:titre .7s cubic-bezier(.16,1,.3,1) 1.3s both}
+.recit.vivant .ch[data-i="3"].on .af-l1{animation:ligneAf .5s ease 1.8s both}
+.recit.vivant .ch[data-i="3"].on .af-l2{animation:ligneAf .5s ease 1.95s both}
+.recit.vivant .ch[data-i="3"].on .af-pied{animation:ligneAf .5s ease 2.1s both}
+.recit.vivant .ch[data-i="3"].on .af-coupe{animation:pts .4s ease 2.4s both}
+@keyframes grille{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
+@keyframes grilleOff{to{opacity:0}}
+@keyframes bloc{from{transform:scaleY(0)}to{transform:none}}
+@keyframes titre{from{opacity:0;transform:scale(1.6)}to{opacity:1;transform:none}}
+@keyframes ligneAf{to{opacity:1;transform:none}}
+.recit.vivant .ch[data-i="3"].sort .affiche{opacity:0;transform:scale(.85) rotate(-8deg);transition:opacity .4s,transform .55s cubic-bezier(.5,0,.75,0)}
+.recit:not(.vivant) .af-grille{display:none}
+@media(max-width:860px){
+  .tirage{width:42vw;padding:8px 8px 30px}.tirage figcaption{bottom:9px;font-size:.5rem}
+  .guichet{width:84vw}.b2-trajet b{font-size:1.4rem}.b2-corps{padding:.55rem .7rem}.b2-infos em{font-size:.56rem}
+  .affiche{width:40vw}.af-titre{font-size:17vw}.af-l1{font-size:3.6vw}.af-l2{font-size:2.6vw}.af-pied{font-size:.36rem}
+}
+@media(prefers-reduced-motion:reduce){.tirage,.billet2,.affiche *{animation:none!important;transition:none!important}}
+
+/* Stages : un vrai calendrier de bureau — spirale, pile de feuilles, tampon a l'encre */
+.recit.vivant .cal{box-shadow:0 3px 0 #dfe3e8,0 6px 0 #cdd2d8,0 9px 0 #bbc1c8,0 12px 0 #a9b0b8,0 50px 70px -24px rgba(0,0,0,.95)}
+.cal-ann{display:none}
+.cal::before{content:'';position:absolute;left:7%;right:7%;top:-9px;height:18px;z-index:3;
+  background:repeating-linear-gradient(90deg,transparent 0 9px,#b8c1cb 9px 11px,#7d8793 11px 13px,transparent 13px 22px)}
+.cal-page{background:linear-gradient(180deg,#f7f8fa,#eceff3)}
+.cal-num{text-shadow:0 1px 0 #fff}
+.cal-tampon{background:transparent!important;-webkit-mask:repeating-radial-gradient(circle at 30% 40%,#000 0 2px,rgba(0,0,0,.7) 2px 3px);mask:repeating-radial-gradient(circle at 30% 40%,#000 0 2px,rgba(0,0,0,.7) 2px 3px);color:#d42a1b;border-color:#d42a1b}
 </style>
 </head>
 <body>
@@ -2440,7 +2492,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
       <p class="ch-p ln">Cr&eacute;atif, curieux, impliqu&eacute;. Je cr&eacute;e des visuels qui racontent quelque chose.</p>
       <p class="ch-p ln">Cr&eacute;er, imaginer, donner vie : c'est ce qui fait battre mon quotidien. J'aborde la publicit&eacute; comme un terrain de jeu o&ugrave; le concept prime autant que l'esth&eacute;tique.</p>
     </div>
-    <div class="ch-vis" aria-hidden="true"><figure class="ch-photo"><img src="images/profil.jpg" alt="" width="900" height="1353" loading="lazy" decoding="async"><span class="vf vf1"></span><span class="vf vf2"></span><span class="vf vf3"></span><span class="vf vf4"></span><span class="vf-pt"></span><span class="flash"></span></figure></div>
+    <div class="ch-vis" aria-hidden="true"><figure class="tirage"><div class="ti-img"><img src="images/profil.jpg" alt="" width="900" height="1353" loading="lazy" decoding="async"></div><figcaption>Jaurys &middot; Paris</figcaption></figure></div>
   </article>
   <article class="ch" data-i="1">
     <div class="ch-txt">
@@ -2450,8 +2502,16 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
       <p class="ch-p ln">Le socle : communication, strat&eacute;gie de contenu et production visuelle.</p>
       <ul class="ch-tags ln"><li>Communication</li><li>Strat&eacute;gie digitale</li><li>Production de contenu</li></ul>
     </div>
-    <div class="ch-vis" aria-hidden="true"><div class="ch-bts"><div class="ch-mot"><b data-t="BTS">BTS</b><i>2023 &rarr; 2025</i></div>
-      <div class="billet-fente"><div class="billet"><div class="bi-g"><span class="bi-l">D&eacute;part</span><b>Amiens</b><span class="bi-l">2023</span></div><div class="bi-fl">&rarr;</div><div class="bi-d"><span class="bi-l">Arriv&eacute;e</span><b>Paris</b><span class="bi-l">2025</span></div><div class="bi-pied"><span>Classe : Communication</span><span>Voie DA</span></div><i class="bi-trou"></i></div></div></div></div>
+    <div class="ch-vis" aria-hidden="true"><div class="guichet"><div class="fente"></div><div class="billet2">
+        <div class="b2-talon"><span>N&deg;</span><b>2023</b><span>&rarr;</span><b>2025</b><i class="b2-trou"></i></div>
+        <div class="b2-corps">
+          <div class="b2-bande"><span>Billet</span><span>Aller &middot; 2 ans</span></div>
+          <div class="b2-trajet"><div><span>D&eacute;part</span><b>Amiens</b><em>2023</em></div><svg viewBox="0 0 60 12"><path d="M0 6H54M48 1l6 5-6 5" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><div class="dr"><span>Arriv&eacute;e</span><b>Paris</b><em>2025</em></div></div>
+          <div class="b2-infos"><div><span>Voiture</span><em>BTS Communication</em></div><div><span>Place</span><em>Direction artistique</em></div></div>
+          <div class="b2-code"></div>
+        </div>
+        <div class="b2-compo">Compost&eacute;</div>
+      </div></div></div>
   </article>
   <article class="ch" data-i="2" data-poids="2">
     <div class="cal" aria-hidden="true"><i class="cal-ann"></i><i class="cal-ann"></i><div class="cal-page"><div class="cal-tete"><span class="cal-ent">AGCO</span><span>2024</span></div><div class="cal-feuille"><span class="cal-num">01</span></div><div class="cal-pied">jour <b class="cal-j">1</b> / 30</div></div><span class="cal-tampon">1 mois</span></div>
@@ -2474,7 +2534,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
       <p class="ch-p ln">Les codes de la publicit&eacute;, le graphisme et la conception de campagnes.</p>
       <ul class="ch-tags ln"><li>Cr&eacute;ation publicitaire</li><li>Graphisme</li><li>Suite Adobe</li></ul>
     </div>
-    <div class="ch-vis" aria-hidden="true"><div class="ch-mot"><b data-t="B3">B3<span class="selec" aria-hidden="true"><i></i><i></i><i></i><i></i></span><svg class="fleche" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 2l7 19 2.6-7.4L20 11z" fill="#fff" stroke="#06070a" stroke-width="1.4" stroke-linejoin="round"/></svg></b><i>2025 &rarr; 2026</i></div></div>
+    <div class="ch-vis" aria-hidden="true"><div class="affiche"><i class="af-grille"></i><i class="af-bloc"></i><b class="af-titre">B3</b><p class="af-l1">Bachelor</p><p class="af-l2">Cr&eacute;ation publicitaire</p><p class="af-pied"><span>ESP Paris</span><span>2025 &rarr; 2026</span></p><i class="af-coupe c1"></i><i class="af-coupe c2"></i><i class="af-coupe c3"></i><i class="af-coupe c4"></i></div></div>
   </article>
   <article class="ch" data-i="4">
     <canvas class="fumee-cv" aria-hidden="true"></canvas>
@@ -2566,12 +2626,6 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 <section id="selection" class="piste-3d" aria-label="Projets">
   <div class="colle">
     <canvas class="cv-3d" aria-hidden="true"></canvas>
-    <div class="sel-anim" aria-hidden="true">
-      <div class="an an-da"><i class="cm c"></i><i class="cm m"></i><i class="cm j"></i><i class="cm n"></i><span class="cm-cible"></span><b>Calage CMJN</b></div>
-      <div class="an an-auto"><div class="ob"><i class="ob-h"></i><i class="ob-b"></i><span class="ob-flash"></span></div><b>1/250 s · f/2.8</b></div>
-      <div class="an an-nuit"><canvas width="360" height="360"></canvas><b>Pose longue</b></div>
-      <div class="an an-video"><svg viewBox="0 0 120 100"><g class="cl-bras"><rect x="10" y="14" width="100" height="16" fill="#f3f5f8"/><path d="M18 14l12 16M38 14l12 16M58 14l12 16M78 14l12 16M98 14l10 13" stroke="#06070a" stroke-width="7"/></g><rect x="10" y="32" width="100" height="58" fill="#0e1218" stroke="#f3f5f8" stroke-width="2"/><path d="M18 32l12 0" stroke="#f3f5f8"/><text x="18" y="54" fill="#ff4433" font-family="Anton,Impact,sans-serif" font-size="13">SC&Egrave;NE 04</text><text x="18" y="76" fill="#f3f5f8" font-family="IBM Plex Mono,monospace" font-size="8" letter-spacing="1.5">PRISE 1</text></svg></div>
-    </div>
     <div class="sel-couche">
       <div class="sel-tete"><span class="sel-lbl">Projets</span><div class="sel-fams" role="group" aria-label="Familles de projets"></div><span class="sel-aide">Cliquez sur l'image au centre pour l'ouvrir</span></div>
       <div class="sel-bas">
@@ -4136,18 +4190,6 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   // l'appel de phares de la 991
   var v=document.querySelector('.ch-voiture');
   if(v) v.addEventListener('click',function(){ v.classList.remove('phares'); void v.offsetWidth; v.classList.add('phares'); });
-  // l'arc : trop vite !
-  var sel=document.getElementById('selection');
-  if(sel){
-    var msg=document.createElement('div'); msg.className='sel-doucement'; msg.textContent='Doucement, c’est de l’art'; msg.setAttribute('aria-hidden','true');
-    var colle=sel.querySelector('.colle'); if(colle) colle.appendChild(msg);
-    var yP=window.scrollY, tP=performance.now(), cache=0;
-    window.addEventListener('scroll',function(){
-      var r=sel.getBoundingClientRect(), t=performance.now(), y=window.scrollY;
-      var v=Math.abs(y-yP)/Math.max(1,t-tP); yP=y; tP=t;
-      if(r.top<0 && r.bottom>innerHeight && v>4.5){ msg.classList.add('vu'); clearTimeout(cache); cache=setTimeout(function(){ msg.classList.remove('vu'); },1100); }
-    },{passive:true});
-  }
   // le hero : si on ne bouge pas, une petite invitation
   if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
     var hint=document.createElement('div'); hint.className='hint-scroll'; hint.setAttribute('aria-hidden','true');
@@ -4179,31 +4221,6 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   });
 })();
 </script>
-<script>
-// Projets : la sequence propre a chaque famille, jouee quand on y entre
-(function(){
-  var sec=document.getElementById('selection'); if(!sec) return;
-  var anims={}; sec.querySelectorAll('.an').forEach(function(a){ anims[a.className.match(/an-(\w+)/)[1]]=a; });
-  var cvn=sec.querySelector('.an-nuit canvas'), g=cvn&&cvn.getContext('2d'), raf=0;
-  function filesEtoiles(){
-    if(!g) return; cancelAnimationFrame(raf);
-    var etoiles=[]; for(var i=0;i<70;i++) etoiles.push({r:8+Math.random()*165,a:Math.random()*6.283,w:.5+Math.random()*1.4,c:Math.random()<.15?'255,190,170':'215,228,255'});
-    var t0=performance.now();
-    (function pas(t){
-      var u=Math.min(1,(t-t0)/1500);
-      g.clearRect(0,0,360,360); g.fillStyle='#05070b'; g.beginPath(); g.arc(180,180,178,0,6.283); g.fill();
-      etoiles.forEach(function(e){ g.strokeStyle='rgba('+e.c+','+(.35+.5*(e.w/1.9))+')'; g.lineWidth=e.w; g.beginPath(); g.arc(180,180,e.r,e.a,e.a+u*1.3); g.stroke(); });
-      if(u<1) raf=requestAnimationFrame(pas);
-    })(t0);
-  }
-  sec.addEventListener('famille',function(e){
-    var a=anims[e.detail]; if(!a) return;
-    Object.keys(anims).forEach(function(k){ anims[k].classList.remove('joue'); });
-    void a.offsetWidth; a.classList.add('joue');
-    if(e.detail==='nuit') filesEtoiles();
-  });
-})();
-</script>
-<script type="module" src="js/experiences.js?v=19"></script>
+<script type="module" src="js/experiences.js?v=20"></script>
 </body>
 </html>

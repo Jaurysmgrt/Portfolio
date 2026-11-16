@@ -415,8 +415,6 @@ void main(){float s=uV*0.018+0.0015;
         elFam.dataset.f = pr.fam; elFam.textContent = pr.famNum + ' · ' + pr.famNom;
         if (puces) puces.querySelectorAll('button').forEach(x => x.classList.toggle('on', x.dataset.f === pr.fam));
         elFam.animate([{ opacity: 0, letterSpacing: '.5em' }, { opacity: 1, letterSpacing: '.26em' }], { duration: 700, easing: 'cubic-bezier(.16,1,.3,1)' });
-        elFam.classList.remove('clap'); void elFam.offsetWidth; elFam.classList.add('clap');
-        if (pr.carte) el.dispatchEvent(new CustomEvent('famille', { detail: pr.fam }));
       }
     }
     if (elB) elB.style.width = (p * 100).toFixed(2) + '%';
