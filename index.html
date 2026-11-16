@@ -2003,6 +2003,52 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
 .recit.vivant .ch[data-i="2"].b2 .ch-nom:first-child{opacity:.25}
 .recit.vivant .ch[data-i="2"].b2 .ch-nom-c{color:var(--cream);-webkit-text-stroke-color:transparent}
 .recit.vivant .ch[data-i="2"]:not(.b2) .ch-nom-c{opacity:.4}
+
+/* ═══ Stages : un calendrier qui compte un mois, pour chaque entreprise ═══ */
+.cal{display:none}
+.recit.vivant .cal{display:block;position:absolute;left:7vw;top:calc(var(--nav-h,70px) + 7.5rem);width:clamp(150px,13vw,200px);z-index:1;
+  background:#f3f5f8;color:#0b0e13;box-shadow:0 30px 60px -20px rgba(0,0,0,.9),0 0 0 1px rgba(255,255,255,.08);transform-origin:50% 0;
+  opacity:0;transform:translate3d(0,-40px,0) rotate(-6deg);transition:opacity .4s,transform .9s cubic-bezier(.3,1.5,.5,1)}
+.recit.vivant .ch[data-i="2"].on .cal{opacity:1;transform:rotate(-3deg)}
+.recit.vivant .ch[data-i="2"].sort .cal{opacity:0;transform:translate3d(0,-30px,0) rotate(4deg);transition-duration:.4s}
+.cal-ann{position:absolute;top:-9px;width:10px;height:18px;border-radius:5px;background:#9aa6b3;box-shadow:inset 0 -3px 0 rgba(0,0,0,.25)}
+.cal-ann:nth-child(1){left:24%}.cal-ann:nth-child(2){right:24%}
+.cal-tete{display:flex;justify-content:space-between;align-items:baseline;background:var(--red);color:#fff;padding:.7rem .8rem .55rem;font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.16em;text-transform:uppercase}
+.cal-ent{font-family:'Anton',sans-serif;font-size:1.05rem;letter-spacing:.04em}
+.cal-feuille{perspective:500px;text-align:center;padding:.6rem 0 .2rem}
+.cal-num{display:inline-block;font-family:'Anton',sans-serif;font-size:clamp(4.5rem,6.5vw,6.5rem);line-height:1;transform-origin:50% 0}
+.cal-pied{border-top:1px dashed #c6cdd5;padding:.45rem .8rem .6rem;font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:.14em;text-transform:uppercase;color:#4a5561;text-align:center}
+.cal-pied b{color:var(--red);font-weight:600}
+@media(max-width:860px){.recit.vivant .cal{display:none}}
+
+/* ═══ Master : le contrat d'alternance, qui attend son entreprise ═══ */
+.contrat{position:relative;width:min(520px,100%);background:#0e1218;border:1px solid var(--border);padding:1.4rem 1.5rem 1.2rem;font-family:'IBM Plex Sans',sans-serif;
+  box-shadow:0 40px 80px -30px rgba(0,0,0,.95)}
+.ct-tete{display:flex;justify-content:space-between;align-items:baseline;gap:1rem;border-bottom:2px solid var(--red2);padding-bottom:.7rem;margin-bottom:.6rem}
+.ct-tete b{font-family:'Anton',sans-serif;font-weight:400;font-size:1.35rem;text-transform:uppercase;color:var(--cream)}
+.ct-tete span{font-family:'IBM Plex Mono',monospace;font-size:.56rem;letter-spacing:.16em;text-transform:uppercase;color:var(--red2);white-space:nowrap}
+.ct-l{display:grid;grid-template-columns:6.5rem 1fr;gap:.8rem;align-items:baseline;padding:.55rem 0;border-bottom:1px dashed rgba(255,255,255,.12)}
+.ct-l span{font-family:'IBM Plex Mono',monospace;font-size:.55rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.ct-l em{font-style:normal;font-size:.86rem;color:var(--cream);min-height:1.2em}
+.ct-vide em{border-bottom:1px solid var(--red2);color:var(--red2)}
+.ct-curseur{display:inline-block;width:.5em;height:1em;background:var(--red2);vertical-align:-.15em}
+.ct-sign em{height:1.8rem;border-bottom:1px solid rgba(255,255,255,.3)}
+.ct-tampon{position:absolute;right:1.2rem;bottom:1.6rem;font-family:'Anton',sans-serif;font-size:1.3rem;letter-spacing:.06em;text-transform:uppercase;color:var(--red2);
+  border:3px solid var(--red2);padding:.2rem .7rem;transform:rotate(-10deg);opacity:0;mix-blend-mode:screen}
+.recit.vivant .ch[data-i="5"] .ch-vis{transform:translate3d(0,24vh,0) rotate(5deg);clip-path:none;opacity:0;transition:transform .9s cubic-bezier(.16,1,.3,1),opacity .4s}
+.recit.vivant .ch[data-i="5"].on .ch-vis{transform:rotate(-1.5deg);opacity:1}
+.recit.vivant .ch[data-i="5"] .ct-l{opacity:0;transform:translate3d(-14px,0,0);transition:opacity .4s,transform .5s cubic-bezier(.16,1,.3,1)}
+.recit.vivant .ch[data-i="5"].on .ct-l{opacity:1;transform:none}
+.recit.vivant .ch[data-i="5"].on .ct-l:nth-of-type(2){transition-delay:.5s}
+.recit.vivant .ch[data-i="5"].on .ct-l:nth-of-type(3){transition-delay:.68s}
+.recit.vivant .ch[data-i="5"].on .ct-l:nth-of-type(4){transition-delay:.86s}
+.recit.vivant .ch[data-i="5"].on .ct-l:nth-of-type(5){transition-delay:1.04s}
+.recit.vivant .ch[data-i="5"].on .ct-l:nth-of-type(6){transition-delay:1.2s}
+.recit.vivant .ch[data-i="5"].on .ct-curseur{animation:curseur 1s steps(1) 1.4s infinite both}
+.recit.vivant .ch[data-i="5"].on .ct-tampon{animation:tamponC .5s cubic-bezier(.3,1.6,.5,1) 1.9s both}
+@keyframes tamponC{from{opacity:0;transform:rotate(-10deg) scale(3)}to{opacity:1;transform:rotate(-10deg) scale(1)}}
+.recit:not(.vivant) .ct-tampon{opacity:1}
+@media(max-width:860px){.recit.vivant .ch[data-i="5"] .ch-vis{display:none}}
 </style>
 </head>
 <body>
@@ -2209,6 +2255,7 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
     <div class="ch-vis" aria-hidden="true"><div class="ch-mot"><b data-t="BTS">BTS</b><i>2023 &rarr; 2025</i></div></div>
   </article>
   <article class="ch" data-i="2" data-poids="2">
+    <div class="cal" aria-hidden="true"><i class="cal-ann"></i><i class="cal-ann"></i><div class="cal-tete"><span class="cal-ent">AGCO</span><span>2024</span></div><div class="cal-feuille"><span class="cal-num">01</span></div><div class="cal-pied">jour <b class="cal-j">1</b> / 30</div></div>
     <div class="ch-txt">
       <span class="ch-tag ln">Chapitre 02 &middot; Premiers terrains</span>
       <h3 class="ch-an ln"><span>2024</span></h3>
@@ -2300,7 +2347,15 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
       <p class="ch-p ch-mini ln">Photoshop, Illustrator, InDesign, Premiere, After Effects, Lightroom &middot; Fran&ccedil;ais natif, anglais B2 &middot; Permis B</p>
       <div class="ch-cta ln"><a href="#contact" class="hero-btn" onclick="openContact(event)">&Eacute;crivons la suite &rarr;</a><a href="CV-Jaurys-Maigret.pdf" class="hero-btn2" download>CV &middot; PDF</a></div>
     </div>
-    <div class="ch-vis" aria-hidden="true"><div class="ch-mot ch-mot-rouge"><b data-t="M1">M1</b><i class="frappe">La suite s'&eacute;crit en alternance</i></div></div>
+    <div class="ch-vis" aria-hidden="true"><div class="contrat">
+        <div class="ct-tete"><b>Contrat d'alternance</b><span>Rentr&eacute;e sept. 2026</span></div>
+        <div class="ct-l"><span>Alternant</span><em>Jaurys Maigret</em></div>
+        <div class="ct-l"><span>Formation</span><em>Master Direction Artistique &middot; ESP Paris</em></div>
+        <div class="ct-l"><span>Domaine</span><em>Publicit&eacute;, graphisme, cr&eacute;ation visuelle</em></div>
+        <div class="ct-l ct-vide"><span>Entreprise</span><em><i class="ct-curseur"></i></em></div>
+        <div class="ct-l ct-sign"><span>Signature</span><em></em></div>
+        <div class="ct-tampon">&Agrave; compl&eacute;ter</div>
+      </div></div>
   </article>
   <div class="rc-barre"><i></i></div>
  </div>
@@ -3824,6 +3879,29 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
     else if(!on && !sort && etat!=='repart'){ etat='attente'; voit.style.transform=''; }
   }).observe(ch,{attributes:true,attributeFilter:['class']});
   addEventListener('resize',function(){ if(etat!=='attente') taille(); },{passive:true});
+})();
+</script>
+<script>
+// Le calendrier des stages : il compte les jours d'un mois, pour AGCO puis pour Tredelec
+(function(){
+  var ch=document.querySelector('#histoire .ch[data-i="2"]'); if(!ch) return;
+  var num=ch.querySelector('.cal-num'), j=ch.querySelector('.cal-j'), ent=ch.querySelector('.cal-ent'); if(!num) return;
+  var anim=0, etat='';
+  function compter(nom){
+    cancelAnimationFrame(anim); ent.textContent=nom;
+    var t0=performance.now(), D=1700, prec=0;
+    (function pas(t){
+      var u=Math.min(1,(t-t0)/D), e=1-Math.pow(1-u,3), d=Math.max(1,Math.round(1+e*29));
+      if(d!==prec){ prec=d; num.textContent=(d<10?'0':'')+d; j.textContent=d;
+        if(num.animate) num.animate([{transform:'rotateX(-70deg)',opacity:.3},{transform:'none',opacity:1}],{duration:Math.min(180,60+u*160),easing:'ease-out'}); }
+      if(u<1) anim=requestAnimationFrame(pas);
+    })(t0);
+  }
+  new MutationObserver(function(){
+    var on=ch.classList.contains('on'), b2=ch.classList.contains('b2');
+    var s=on?(b2?'tredelec':'agco'):'';
+    if(s!==etat){ etat=s; if(s==='agco') setTimeout(function(){ if(etat==='agco') compter('AGCO'); },350); else if(s==='tredelec') compter('Tredelec'); }
+  }).observe(ch,{attributes:true,attributeFilter:['class']});
 })();
 </script>
 <script type="module" src="js/experiences.js?v=16"></script>
