@@ -247,7 +247,7 @@ function selection() {
     });
   });
   // la longueur de la piste suit le nombre de pieces
-  el.style.height = (100 + projets.length * 15) + 'vh';
+  el.style.height = (100 + projets.length * 32) + 'vh';
   const elFam = el.querySelector('.sel-fam'), elNum = el.querySelector('.sel-num'), elT = el.querySelector('.sel-t'), elC = el.querySelector('.sel-c'),
         elX = el.querySelector('.sel-x'), elTot = el.querySelector('.sel-tot'), elB = el.querySelector('.sel-barre i');
 
