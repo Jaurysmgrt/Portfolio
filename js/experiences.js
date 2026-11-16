@@ -206,7 +206,13 @@ function selection() {
     const cle = fam.dataset.fam;
     const nom = (fam.querySelector('.fam-t') || {}).textContent || '';
     const num = (fam.querySelector('.fam-n') || {}).textContent || '';
-    [...fam.querySelectorAll('.gal-item')].filter(t => !t.classList.contains('brand-secondary')).forEach(t => {
+    const desc = ((fam.querySelector('.fam-p') || {}).textContent || '').trim();
+    const pieces = [...fam.querySelectorAll('.gal-item')].filter(t => !t.classList.contains('brand-secondary'));
+    // chaque famille s'ouvre sur sa carte-titre : on sait toujours dans quelle salle on est
+    projets.push({ carte: true, fam: cle, famNom: nom.trim(), famNum: num.trim(), desc, nb: pieces.length, w: 4, h: 5,
+      titre: nom.trim(), cat: pieces.length + ' pièces' });
+    let rang = 0;
+    pieces.forEach(t => {
       let src = '', w = 0, h = 0;
       const video = t.classList.contains('gal-video');
       if (video) {
@@ -219,7 +225,7 @@ function selection() {
         w = +(im && im.getAttribute('width')) || 1200; h = +(im && im.getAttribute('height')) || 800;
       }
       if (!src) return;
-      projets.push({ tuile: t, fam: cle, famNom: nom.trim(), famNum: num.trim(), src, w, h, video,
+      projets.push({ tuile: t, fam: cle, famNom: nom.trim(), famNum: num.trim(), src, w, h, video, rang: ++rang, nb: pieces.length,
         titre: t.dataset.brand || (t.dataset.title || '').split(',')[0], cat: (t.dataset.cat || '').replace(/&middot;/g, '·') });
     });
   });
@@ -227,7 +233,6 @@ function selection() {
   el.style.height = (100 + projets.length * 15) + 'vh';
   const elFam = el.querySelector('.sel-fam'), elNum = el.querySelector('.sel-num'), elT = el.querySelector('.sel-t'), elC = el.querySelector('.sel-c'),
         elX = el.querySelector('.sel-x'), elTot = el.querySelector('.sel-tot'), elB = el.querySelector('.sel-barre i');
-  if (elTot) elTot.textContent = '/ ' + String(projets.length).padStart(2, '0');
 
   const VS = `uniform float uV,uT;varying vec2 vUv;
 void main(){vUv=uv;vec3 p=position;
@@ -242,7 +247,13 @@ void main(){float s=uV*0.018+0.0015;
   c.rgb=mix(vec3(1.0,0.23,0.14)*uFocus,c.rgb,e);
   gl_FragColor=c;}`;
 
-  const R = 7.2, H = 3.1, ECART = 0.55;
+  const H = 3.1, ECART = 0.55;
+  // le rayon s'adapte au nombre de pieces : l'arc ne fait jamais plus de
+  // 80 % d'un tour, donc les dernieres pieces ne recouvrent pas les premieres
+  let longueur = 0;
+  projets.forEach((pr, i) => { longueur += H * pr.w / pr.h + ECART; if (i > 0 && pr.fam !== projets[i - 1].fam) longueur += 1.6; });
+  const R = Math.max(7.2, longueur / (Math.PI * 2 * 0.8));
+  const RECUL = 9.4 - R;   // la camera garde la meme distance aux images
   const arc = new THREE.Group(); scene.add(arc);
   const chargeur = new THREE.TextureLoader();
   let charge = false;
@@ -258,10 +269,16 @@ void main(){float s=uV*0.018+0.0015;
     let a = 0;
     plans.forEach((p, i) => {
       // entre deux familles, un vrai vide : les groupes se lisent comme des salles
-      if (i > 0 && p.pr.fam !== plans[i - 1].pr.fam) a -= 2.4 / R;
+      if (i > 0 && p.pr.fam !== plans[i - 1].pr.fam) a -= 1.6 / R;
       const da = (p.m.scale.x + ECART) / R; if (i > 0) a -= da / 2; p.piv.rotation.y = a; p.ang = a; a -= da / 2; });
   }
   placer();
+  function allerA(pl) {
+    const total0 = plans.length ? -plans[plans.length - 1].ang : 1;
+    const top = el.getBoundingClientRect().top + pageYOffset;
+    const course = el.offsetHeight - innerHeight;
+    window.scrollTo({ top: top + course * clamp(-pl.ang / total0) + 2, behavior: 'smooth' });
+  }
   // des pastilles pour sauter d'une famille a l'autre
   const puces = el.querySelector('.sel-fams');
   if (puces) {
@@ -270,18 +287,53 @@ void main(){float s=uV*0.018+0.0015;
     plans.forEach(pl => {
       if (vues[pl.pr.fam]) return; vues[pl.pr.fam] = 1;
       const bt = document.createElement('button'); bt.type = 'button'; bt.dataset.f = pl.pr.fam;
-      bt.textContent = pl.pr.famNom; bt.addEventListener('click', () => {
-        const top = el.getBoundingClientRect().top + pageYOffset;
-        const course = el.offsetHeight - innerHeight;
-        window.scrollTo({ top: top + course * clamp(-pl.ang / total0) + 2, behavior: 'smooth' });
-      });
+      bt.textContent = pl.pr.famNom; bt.addEventListener('click', () => allerA(pl));
       puces.appendChild(bt);
     });
   }
+  function dessinerCarte(pr) {
+    const cv = document.createElement('canvas'); cv.width = 800; cv.height = 1000;
+    const g = cv.getContext('2d');
+    g.fillStyle = '#0b0e13'; g.fillRect(0, 0, 800, 1000);
+    g.strokeStyle = 'rgba(255,255,255,.14)'; g.lineWidth = 2; g.strokeRect(1, 1, 798, 998);
+    g.fillStyle = '#ff4433'; g.font = '500 30px "IBM Plex Mono", monospace'; g.fillText('FAMILLE ' + pr.famNum, 64, 96);
+    g.fillRect(64, 122, 90, 4);
+    g.fillStyle = 'rgba(255,255,255,.07)'; g.font = '400 520px Anton, Impact, sans-serif'; g.fillText(pr.famNum, 300, 860);
+    let taille = 112;
+    g.font = '400 ' + taille + 'px Anton, Impact, sans-serif';
+    const plusLong = Math.max(...pr.famNom.toUpperCase().split(' ').map(m => g.measureText(m).width));
+    if (plusLong > 672) { taille = Math.floor(taille * 672 / plusLong); g.font = '400 ' + taille + 'px Anton, Impact, sans-serif'; }
+    g.fillStyle = '#ffffff';
+    let y = 300; const mots = pr.famNom.toUpperCase().split(' '); let ligne = '';
+    mots.forEach(m => { const t = ligne ? ligne + ' ' + m : m; if (g.measureText(t).width > 672 && ligne) { g.fillText(ligne, 64, y); y += taille; ligne = m; } else ligne = t; });
+    g.fillText(ligne, 64, y);
+    g.fillStyle = '#a9b7c6'; g.font = '400 30px "IBM Plex Sans", sans-serif';
+    y += 80; ligne = '';
+    pr.desc.split(' ').forEach(m => { const t = ligne ? ligne + ' ' + m : m; if (g.measureText(t).width > 672 && ligne) { g.fillText(ligne, 64, y); y += 44; ligne = m; } else ligne = t; });
+    if (ligne) g.fillText(ligne, 64, y);
+    g.fillStyle = '#ffffff'; g.font = '500 30px "IBM Plex Mono", monospace'; g.fillText(String(pr.nb).padStart(2, '0') + ' PIÈCES  →', 64, 930);
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+    return tex;
+  }
   function charger() {
     if (charge) return; charge = true;
-    plans.forEach(pl => chargeur.load(pl.pr.src, tex => {
+    const polices = document.fonts ? Promise.all(['400 112px Anton', '500 30px "IBM Plex Mono"', '400 30px "IBM Plex Sans"'].map(f => document.fonts.load(f).catch(() => 0))) : Promise.resolve();
+    polices.then(() => plans.forEach(pl => { if (pl.pr.carte) { pl.u.uMap.value = dessinerCarte(pl.pr); pl.u.uOk.value = 1; } }));
+    plans.forEach(pl => !pl.pr.carte && chargeur.load(pl.pr.src, tex => {
       tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
+      pl.u.uMap.value = tex; pl.u.uOk.value = 1;
+    }, undefined, () => {
+      // miniature introuvable : une affiche dessinee plutot qu'un rectangle vide
+      const cv = document.createElement('canvas'); cv.width = 1280; cv.height = 720;
+      const g = cv.getContext('2d');
+      const gr = g.createLinearGradient(0, 0, 1280, 720); gr.addColorStop(0, '#141a22'); gr.addColorStop(1, '#06070a');
+      g.fillStyle = gr; g.fillRect(0, 0, 1280, 720);
+      g.fillStyle = '#d42a1b'; g.beginPath(); g.arc(640, 300, 74, 0, Math.PI * 2); g.fill();
+      g.fillStyle = '#fff'; g.beginPath(); g.moveTo(618, 262); g.lineTo(618, 338); g.lineTo(680, 300); g.closePath(); g.fill();
+      g.font = '400 64px Anton, Impact, sans-serif'; g.textAlign = 'center';
+      g.fillText(pl.pr.titre.toUpperCase().slice(0, 34), 640, 500);
+      g.fillStyle = '#a9b7c6'; g.font = '500 26px "IBM Plex Mono", monospace'; g.fillText(pl.pr.cat.toUpperCase().slice(0, 60), 640, 560);
+      const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
       pl.u.uMap.value = tex; pl.u.uOk.value = 1;
     }));
   }
@@ -296,7 +348,12 @@ void main(){float s=uV*0.018+0.0015;
   if (!TACTILE) addEventListener('pointermove', e => { mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1; }, { passive: true });
 
   // un clic sur l'image au centre ouvre le projet, comme dans la galerie
-  canvas.addEventListener('click', () => { if (courant >= 0) projets[courant].tuile.click(); });
+  canvas.addEventListener('click', () => {
+    if (courant < 0) return;
+    const pr = projets[courant];
+    if (pr.carte) { const pl = plans[courant + 1]; if (pl) allerA(pl); return; }
+    pr.tuile.click();
+  });
 
   function taille() {
     const [w, h] = tailleCadre(canvas); if (w === w0 && h === h0 && qv === Q.v) return; w0 = w; h0 = h; qv = Q.v; r.setPixelRatio(dpr()); c.setPixelRatio(dpr());
@@ -313,7 +370,7 @@ void main(){float s=uV*0.018+0.0015;
     const total = plans.length ? -plans[plans.length - 1].ang : 0;
     angle += (p * total - angle) * 0.2;
     arc.rotation.y = angle;
-    cam.position.set(mx * 0.35, -0.2 - my * 0.2 + Math.min(0.3, Math.abs(vit) * 0.4), 2.2 + Math.min(1.2, Math.abs(vit) * 1.6));
+    cam.position.set(mx * 0.35, -0.2 - my * 0.2 + Math.min(0.3, Math.abs(vit) * 0.4), RECUL + Math.min(1.2, Math.abs(vit) * 1.6));
     cam.lookAt(0, -0.38, -R);
     let best = 0, bd = 9;
     plans.forEach((pl, i) => {
@@ -325,8 +382,11 @@ void main(){float s=uV*0.018+0.0015;
     });
     if (best !== courant && projets[best]) {
       courant = best; const pr = projets[best];
-      const n = String(best + 1).padStart(2, '0');
-      if (elNum) elNum.textContent = n; if (elX) elX.textContent = n;
+      const n = pr.carte ? '' : String(pr.rang).padStart(2, '0');
+      if (elNum) elNum.textContent = pr.carte ? 'Famille ' + pr.famNum : n;
+      if (elX) elX.textContent = pr.carte ? pr.famNum : n;
+      if (elTot) elTot.textContent = pr.carte ? String(pr.nb).padStart(2, '0') + ' pièces' : '/ ' + String(pr.nb).padStart(2, '0');
+      el.classList.toggle('sur-carte', !!pr.carte);
       if (elT) { elT.textContent = pr.titre; elT.animate([{ opacity: 0, transform: 'translateY(40%)' }, { opacity: 1, transform: 'none' }], { duration: 520, easing: 'cubic-bezier(.16,1,.3,1)' }); }
       if (elC) elC.textContent = pr.cat;
       if (elFam && elFam.dataset.f !== pr.fam) {
