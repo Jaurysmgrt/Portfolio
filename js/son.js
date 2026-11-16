@@ -178,6 +178,55 @@ export const son = {
   clic() { souffle({ freq: 1500, q: 1.8, dur: 0.04, vol: 0.045 });
            ton({ f0: 120, f1: 88, dur: 0.1, vol: 0.03 }); },
 
+  // ── l'histoire ──
+  // declencheur d'appareil photo : miroir qui monte, rideau, miroir qui retombe
+  obturateur() { souffle({ freq: 4200, q: 2.5, dur: 0.025, vol: 0.12 });
+                 ton({ f0: 900, f1: 300, dur: 0.05, vol: 0.05, forme: 'square' });
+                 setTimeout(() => { souffle({ freq: 2600, q: 2, dur: 0.035, vol: 0.1 }); ton({ f0: 220, f1: 90, dur: 0.07, vol: 0.06 }); }, 70);
+                 ton({ f0: 2400, f1: 5200, dur: 0.6, vol: 0.008, forme: 'sine', retard: 0.12 }); },
+  // une punaise s'enfonce dans le liege
+  punaise() { ton({ f0: 140, f1: 60, dur: 0.09, vol: 0.09 }); souffle({ freq: 900, q: 1, dur: 0.03, vol: 0.06 }); },
+  // une feuille de calendrier tourne
+  feuille() { souffle({ freq: 3600, q: 1.2, dur: 0.035, vol: 0.035, type: 'highpass' }); },
+  // on arrache la page
+  arrache() { souffle({ freq: 2200, q: 0.6, dur: 0.38, vol: 0.12, glisse: 0.35 }); souffle({ freq: 5000, q: 1, dur: 0.2, vol: 0.05, type: 'highpass' }); },
+  // un tampon s'ecrase
+  tampon() { ton({ f0: 110, f1: 45, dur: 0.16, vol: 0.13 }); souffle({ freq: 600, q: 0.8, dur: 0.06, vol: 0.09 }); },
+  // le pinceau du colleur d'affiches
+  colle() { souffle({ freq: 900, q: 0.7, dur: 0.42, vol: 0.07, glisse: 2.2 }); },
+  // les projecteurs s'allument et gresillent
+  lampe() { ton({ f0: 100, f1: 100, dur: 0.5, vol: 0.02, forme: 'sawtooth' }); souffle({ freq: 3000, q: 4, dur: 0.05, vol: 0.05 }); },
+  // la 991 arrive : flat-six qui retombe, puis les pneus
+  arrivee() { ton({ f0: 210, f1: 70, dur: 1.4, vol: 0.06, forme: 'sawtooth' });
+              ton({ f0: 105, f1: 38, dur: 1.5, vol: 0.07, forme: 'sawtooth' });
+              souffle({ freq: 2600, q: 6, dur: 0.9, vol: 0.05, glisse: 0.7 }); },
+  // elle repart : patinage puis montee en regime
+  depart() { souffle({ freq: 2400, q: 5, dur: 0.5, vol: 0.07 });
+             ton({ f0: 60, f1: 260, dur: 1.3, vol: 0.07, forme: 'sawtooth', retard: 0.35 });
+             ton({ f0: 120, f1: 520, dur: 1.2, vol: 0.03, forme: 'square', retard: 0.4 }); },
+  // une touche de machine a ecrire
+  touche() { souffle({ freq: 2000 + Math.random() * 800, q: 3, dur: 0.02, vol: 0.05 }); ton({ f0: 300, f1: 160, dur: 0.03, vol: 0.02 }); },
+  // on change de chapitre : un souffle court
+  page() { souffle({ freq: 500, q: 0.6, dur: 0.35, vol: 0.06, glisse: 4 }); },
+
+  // le klaxon de la 991, deux notes
+  klaxon() { ton({ f0: 392, f1: 392, dur: 0.16, vol: 0.06, forme: 'square' }); ton({ f0: 494, f1: 494, dur: 0.16, vol: 0.05, forme: 'square' });
+             ton({ f0: 392, f1: 392, dur: 0.22, vol: 0.06, forme: 'square', retard: 0.22 }); ton({ f0: 494, f1: 494, dur: 0.22, vol: 0.05, forme: 'square', retard: 0.22 }); },
+  // appel de phares : deux relais
+  phares() { [0, 0.18].forEach(r => ton({ f0: 1400, f1: 1400, dur: 0.03, vol: 0.03, forme: 'square', retard: r })); },
+  // l'avion en papier
+  avion() { souffle({ freq: 700, q: 0.8, dur: 1.1, vol: 0.06, glisse: 5 }); },
+  // le rideau de la page projet
+  rideau() { souffle({ freq: 260, q: 0.5, dur: 1.0, vol: 0.09, glisse: 6 }); ton({ f0: 60, f1: 120, dur: 0.9, vol: 0.04, forme: 'sawtooth' }); },
+  // la traversee des anneaux de l'ouverture
+  tunnel() { souffle({ freq: 150, q: 0.4, dur: 1.6, vol: 0.12, glisse: 14 }); ton({ f0: 40, f1: 160, dur: 1.4, vol: 0.06, forme: 'sawtooth' }); },
+  // une lettre qui tombe en place
+  lettre() { ton({ f0: 180 + Math.random() * 60, f1: 70, dur: 0.08, vol: 0.05 }); },
+  // un post-it qui se decroche
+  chute() { souffle({ freq: 1800, q: 0.7, dur: 0.3, vol: 0.06, glisse: 0.4 }); ton({ f0: 600, f1: 200, dur: 0.3, vol: 0.02, forme: 'triangle' }); },
+  // une piece de l'arc passe au centre
+  cran() { souffle({ freq: 2600, q: 4, dur: 0.02, vol: 0.03 }); },
+
   // on passe devant une piece : elle a une presence, tres faible
   frole() { ton({ f0: 294, f1: 294, dur: 0.9, vol: 0.012, forme: 'triangle' }); }
 };

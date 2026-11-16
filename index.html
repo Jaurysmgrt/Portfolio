@@ -2207,7 +2207,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 .recit.vivant .ch[data-i="0"] .ch-vis{clip-path:none}
 .recit.vivant .ch[data-i="0"] .tirage{transform:translate3d(0,40vh,0) rotate(6deg);transition:transform .9s cubic-bezier(.16,1,.3,1)}
 .recit.vivant .ch[data-i="0"].on .tirage{transform:translate3d(0,calc((.5 - var(--t,.5)) * 3vh),0) rotate(-4deg)}
-.recit.vivant .ch[data-i="0"].on .ti-img img{animation:revele 2.2s cubic-bezier(.4,0,.2,1) .25s both}
+
 @keyframes revele{0%{filter:brightness(.12) saturate(0) sepia(.7) hue-rotate(160deg) contrast(.6)}45%{filter:brightness(.6) saturate(.3) sepia(.5) hue-rotate(150deg) contrast(.8)}100%{filter:none}}
 .recit.vivant .ch[data-i="0"] figcaption{opacity:0;transition:opacity .5s 1.6s}
 .recit.vivant .ch[data-i="0"].on figcaption{opacity:1}
@@ -2344,11 +2344,101 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 .recit.vivant .ch[data-i="2"].on .cal{animation:pendule 4.4s ease-in-out 1.4s infinite}
 @keyframes pendule{0%,100%{rotate:0deg}35%{rotate:1.8deg}70%{rotate:-1.4deg}}
 /* l'affiche, une fois composee, respire et suit le defilement */
-.recit.vivant .ch[data-i="3"].on .affiche{animation:flotte 5.6s ease-in-out 2.2s infinite}
 .recit.vivant .ch[data-i="3"] .ch-vis{translate:0 calc((.5 - var(--t,.5)) * 6vh)}
 /* le contrat flotte aussi, a peine */
 .recit.vivant .ch[data-i="5"].on .contrat{animation:flotte 6s ease-in-out 2.4s infinite}
 @media(prefers-reduced-motion:reduce){.note,.note-in,.tirage,.cal,.affiche,.contrat{animation:none!important}}
+
+/* ═══ Bachelor : un panneau 4x3, l'affiche collee le par le, puis eclairee ═══ */
+.panneau{position:relative;width:min(470px,36vw);display:flex;flex-direction:column;align-items:center}
+.pn-lampes{position:relative;width:100%;height:30px;display:flex;justify-content:space-around;z-index:3}
+.pn-lampe{position:relative;width:26px;height:10px;background:#2a313b;border-radius:2px;margin-top:14px;box-shadow:0 -12px 0 -10px #2a313b}
+.pn-lampe::before{content:'';position:absolute;left:50%;top:-14px;width:2px;height:14px;background:#2a313b}
+.pn-cone{position:absolute;left:50%;top:8px;width:260%;height:180px;transform:translateX(-50%);pointer-events:none;opacity:0;
+  background:radial-gradient(ellipse 50% 100% at 50% 0,rgba(255,236,200,.38),rgba(255,236,200,0) 70%);clip-path:polygon(42% 0,58% 0,100% 100%,0 100%);mix-blend-mode:screen}
+.pn-cadre{position:relative;width:100%;aspect-ratio:4/3;background:#1b2028;padding:10px;box-shadow:0 40px 70px -30px rgba(0,0,0,.95),inset 0 0 0 1px #2f3743}
+.pn-face{position:relative;width:100%;height:100%;display:grid;grid-template-columns:44% 56%;overflow:hidden;background:#f3f1ec}
+.pn-g{display:flex;flex-direction:column;justify-content:space-between;padding:8% 8%;color:#0b0e13}
+.pn-g b{font-family:'Anton',sans-serif;font-weight:400;font-size:min(7.5rem,7vw);line-height:.82;letter-spacing:-.02em}
+.pn-g span,.pn-d span{font-family:'IBM Plex Mono',monospace;font-size:.55rem;letter-spacing:.18em;text-transform:uppercase}
+.pn-d{background:var(--red);color:#fff;display:flex;flex-direction:column;justify-content:flex-end;padding:8%}
+.pn-d em{font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.22em;text-transform:uppercase;opacity:.85}
+.pn-d strong{font-family:'Anton',sans-serif;font-weight:400;font-size:min(2.2rem,2.1vw);line-height:.95;text-transform:uppercase;margin:.3rem 0 .7rem}
+/* les les : trois bandes du panneau nu qui se retirent quand l'affiche est collee */
+.le{position:absolute;top:0;bottom:0;width:33.4%;background:#262d37;transform-origin:50% 100%;
+  background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.035) 0 2px,transparent 2px 9px)}
+.l1{left:0}.l2{left:33.3%}.l3{left:66.6%}
+.le::after{content:'';position:absolute;left:0;right:0;top:-10px;height:10px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.55))}
+.pn-pied{width:14px;height:70px;background:linear-gradient(90deg,#1b2028,#2f3743,#1b2028)}
+.recit.vivant .ch[data-i="3"] .ch-vis{clip-path:none}
+.recit.vivant .ch[data-i="3"] .panneau{opacity:0;transform:translate3d(0,40px,0);transition:opacity .4s,transform .8s cubic-bezier(.16,1,.3,1)}
+.recit.vivant .ch[data-i="3"].on .panneau{opacity:1;transform:none}
+.recit.vivant .ch[data-i="3"].on .le{animation:colleLe .55s cubic-bezier(.55,0,.35,1) both}
+.recit.vivant .ch[data-i="3"].on .l1{animation-delay:.35s}.recit.vivant .ch[data-i="3"].on .l2{animation-delay:.75s}.recit.vivant .ch[data-i="3"].on .l3{animation-delay:1.15s}
+@keyframes colleLe{from{transform:scaleY(1)}to{transform:scaleY(0)}}
+.recit.vivant .ch[data-i="3"].on .pn-cone{animation:allume 1.2s steps(1) 1.8s both,lueur 3.2s ease-in-out 3s infinite}
+.recit.vivant .ch[data-i="3"].on .pn-lampe:last-child .pn-cone{animation-delay:1.95s,3.3s}
+@keyframes allume{0%{opacity:0}10%{opacity:1}18%{opacity:.1}30%{opacity:1}40%{opacity:.3}55%,100%{opacity:1}}
+@keyframes lueur{0%,100%{opacity:1}50%{opacity:.82}}
+.recit.vivant .ch[data-i="3"].on .pn-face{animation:eclaire .4s ease 2.6s both}
+@keyframes eclaire{from{filter:brightness(.82)}to{filter:brightness(1.04)}}
+.recit.vivant .ch[data-i="3"] .ch-vis{translate:0 calc((.5 - var(--t,.5)) * 6vh)}
+.recit.vivant .ch[data-i="3"].sort .panneau{opacity:0;transform:translate3d(0,-30px,0) scale(.94);transition:opacity .4s,transform .5s cubic-bezier(.5,0,.75,0)}
+.recit:not(.vivant) .le{display:none}
+@media(max-width:860px){.panneau{width:76vw}.pn-g b{font-size:16vw}.pn-d strong{font-size:5vw}.pn-pied{height:40px}}
+@media(prefers-reduced-motion:reduce){.le{display:none}.pn-cone{opacity:1!important;animation:none!important}}
+
+/* Prologue : viseur, mise au point, flash, puis le tirage se developpe */
+.ti-img{position:relative}
+.ti-vf{position:absolute;inset:7%;z-index:2;opacity:0;pointer-events:none;
+  background:linear-gradient(#fff,#fff) 0 0/18px 2px,linear-gradient(#fff,#fff) 0 0/2px 18px,linear-gradient(#fff,#fff) 100% 0/18px 2px,linear-gradient(#fff,#fff) 100% 0/2px 18px,
+  linear-gradient(#fff,#fff) 0 100%/18px 2px,linear-gradient(#fff,#fff) 0 100%/2px 18px,linear-gradient(#fff,#fff) 100% 100%/18px 2px,linear-gradient(#fff,#fff) 100% 100%/2px 18px;background-repeat:no-repeat}
+.ti-af{position:absolute;left:50%;top:26%;width:26px;height:26px;margin:-13px;border:2px solid var(--red2);z-index:2;opacity:0}
+.ecran-flash{position:absolute;inset:-40%;background:radial-gradient(circle at 50% 45%,#fff 0,rgba(255,255,255,.85) 22%,rgba(255,255,255,0) 60%);opacity:0;pointer-events:none;z-index:50}
+.recit.vivant .ch[data-i="0"] .ch-vis{position:relative}
+.recit.vivant .ch[data-i="0"].on .ti-vf{animation:vfIn .4s ease .5s both,vfOut .2s ease 1.35s forwards}
+.recit.vivant .ch[data-i="0"].on .ti-af{animation:mise .7s ease .6s both,vfOut .2s ease 1.35s forwards}
+.recit.vivant .ch[data-i="0"].on .ecran-flash{animation:declic .7s ease-out 1.3s both}
+@keyframes vfIn{from{opacity:0;transform:scale(1.15)}to{opacity:.95;transform:none}}
+@keyframes vfOut{to{opacity:0}}
+.recit.vivant .ch[data-i="0"].on .ti-img img{animation:revele 2.2s cubic-bezier(.4,0,.2,1) 1.35s both}
+.recit.vivant .ch[data-i="0"] .ti-img img{filter:none}
+/* le son sur telephone : dans la barre du haut, a cote du menu */
+@media(max-width:860px){.son{display:flex!important;position:fixed!important;top:14px!important;right:66px!important;bottom:auto!important;left:auto!important;height:36px!important;max-height:36px;width:40px;opacity:.9!important;z-index:501;padding:0!important;align-items:center;justify-content:center;transform:none!important}.son .son-t{display:none}}
+/* Bachelor sur telephone : le panneau ne recouvre plus l'annee */
+@media(max-width:860px){.panneau{width:64vw}.pn-pied{height:22px}.pn-lampes{height:22px}}
+
+/* ═══ Un peu d'humour ═══ */
+/* le tirage : « Souriez... » puis le nom apres le declic */
+.cap-avant,.cap-apres{display:block}
+.recit:not(.vivant) .cap-avant{display:none}
+.recit.vivant .ch[data-i="0"] figcaption{opacity:1!important}
+.recit.vivant .ch[data-i="0"] .cap-avant{position:absolute;left:0;right:0;color:var(--red);opacity:0}
+.recit.vivant .ch[data-i="0"] .cap-apres{opacity:0}
+.recit.vivant .ch[data-i="0"].on .cap-avant{animation:capAv 1.3s ease .4s both}
+.recit.vivant .ch[data-i="0"].on .cap-apres{animation:pts .5s ease 2.2s both}
+@keyframes capAv{0%{opacity:0}15%,80%{opacity:1}100%{opacity:0}}
+/* la 991 : trois clics, elle klaxonne */
+.ch-voiture{position:relative}
+.bulle-991{position:absolute;left:46%;top:-18%;background:#fff;color:#0b0e13;font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:.06em;padding:.45rem .7rem;white-space:nowrap;opacity:0;transform:translate3d(-50%,10px,0) scale(.8);pointer-events:none;box-shadow:0 10px 20px rgba(0,0,0,.5)}
+.bulle-991::after{content:'';position:absolute;left:30%;bottom:-8px;border:8px solid transparent;border-top-color:#fff;border-bottom:0}
+.bulle-991.vu{animation:bulle 2.4s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes bulle{0%{opacity:0;transform:translate3d(-50%,10px,0) scale(.8)}12%,82%{opacity:1;transform:translate3d(-50%,0,0) scale(1)}100%{opacity:0;transform:translate3d(-50%,-6px,0) scale(1)}}
+.ch-voiture.klaxon svg{animation:sursaut .35s ease}
+@keyframes sursaut{0%,100%{transform:none}30%{transform:translate3d(0,-6px,0) scaleY(1.03)}60%{transform:translate3d(0,2px,0)}}
+/* le post-it « Production de contenu » : au survol, il perd sa punaise */
+.recit.vivant .ch[data-i="1"].on .n3 .note-in{transition:transform .5s cubic-bezier(.3,1.4,.5,1)}
+.recit.vivant .ch[data-i="1"].on .n3.lache .note-in{animation:none;transform:rotate(-24deg);transform-origin:12% 6%}
+.n3.lache .punaise{transform:translate3d(-30px,-10px,0) rotate(40deg)!important;opacity:.8!important;transition:transform .4s}
+.recit.vivant .ch[data-i="1"] .ch-vis,.recit.vivant .ch[data-i="1"] .note{pointer-events:auto}
+/* le calendrier : une fois le mois fini, il s'etonne */
+.cal-deja{position:absolute;left:100%;top:-6%;margin-left:.6rem;font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.12em;color:var(--cream);white-space:nowrap;opacity:0;transform:translate3d(-6px,0,0)}
+.cal.fini .cal-deja{animation:deja .5s ease .6s both}
+@keyframes deja{to{opacity:.85;transform:none}}
+@media(max-width:860px){.cal-deja{top:auto;bottom:-1.8rem;left:0;margin:0}}
+/* le panneau : un projecteur grille, puis revient */
+.recit.vivant .ch[data-i="3"].on .pn-lampe:first-child .pn-cone{animation:allume 1.2s steps(1) 1.8s both,lueur 3.2s ease-in-out 3s infinite,grille 8s steps(1) 5s infinite}
+@keyframes grille{0%,90%,94%,100%{filter:none}91%,93%{filter:brightness(0)}}
 </style>
 </head>
 <body>
@@ -2543,7 +2633,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
       <p class="ch-p ln">Cr&eacute;atif, curieux, impliqu&eacute;. Je cr&eacute;e des visuels qui racontent quelque chose.</p>
       <p class="ch-p ln">Cr&eacute;er, imaginer, donner vie : c'est ce qui fait battre mon quotidien. J'aborde la publicit&eacute; comme un terrain de jeu o&ugrave; le concept prime autant que l'esth&eacute;tique.</p>
     </div>
-    <div class="ch-vis" aria-hidden="true"><figure class="tirage"><div class="ti-img"><img src="images/profil.jpg" alt="" width="900" height="1353" loading="lazy" decoding="async"></div><figcaption>Jaurys &middot; Paris</figcaption></figure></div>
+    <div class="ch-vis" aria-hidden="true"><figure class="tirage"><div class="ti-img"><i class="ti-vf"></i><i class="ti-af"></i><img src="images/profil.jpg" alt="" width="900" height="1353" loading="lazy" decoding="async"></div><figcaption><span class="cap-avant">Souriez&hellip;</span><span class="cap-apres">Jaurys &middot; Paris</span></figcaption></figure><i class="ecran-flash"></i></div>
   </article>
   <article class="ch" data-i="1">
     <div class="ch-txt">
@@ -2561,7 +2651,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
       </div></div>
   </article>
   <article class="ch" data-i="2" data-poids="2">
-    <div class="cal" aria-hidden="true"><i class="cal-ann"></i><i class="cal-ann"></i><div class="cal-page"><div class="cal-tete"><span class="cal-ent">AGCO</span><span>2024</span></div><div class="cal-feuille"><span class="cal-num">01</span></div><div class="cal-pied">jour <b class="cal-j">1</b> / 30</div></div><span class="cal-tampon">1 mois</span></div>
+    <div class="cal" aria-hidden="true"><i class="cal-ann"></i><i class="cal-ann"></i><div class="cal-page"><div class="cal-tete"><span class="cal-ent">AGCO</span><span>2024</span></div><div class="cal-feuille"><span class="cal-num">01</span></div><div class="cal-pied">jour <b class="cal-j">1</b> / 30</div></div><span class="cal-tampon">1 mois</span><span class="cal-deja">… d&eacute;j&agrave; fini ?</span></div>
     <div class="ch-txt">
       <span class="ch-tag ln">Chapitre 02 &middot; Premiers terrains</span>
       <h3 class="ch-an ln"><span>2024</span></h3>
@@ -2581,7 +2671,15 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
       <p class="ch-p ln">Les codes de la publicit&eacute;, le graphisme et la conception de campagnes.</p>
       <ul class="ch-tags ln"><li>Cr&eacute;ation publicitaire</li><li>Graphisme</li><li>Suite Adobe</li></ul>
     </div>
-    <div class="ch-vis" aria-hidden="true"><div class="affiche"><i class="af-grille"></i><i class="af-bloc"></i><b class="af-titre">B3</b><p class="af-l1">Bachelor</p><p class="af-l2">Cr&eacute;ation publicitaire</p><p class="af-pied"><span>ESP Paris</span><span>2025 &rarr; 2026</span></p><i class="af-coupe c1"></i><i class="af-coupe c2"></i><i class="af-coupe c3"></i><i class="af-coupe c4"></i></div></div>
+    <div class="ch-vis" aria-hidden="true"><div class="panneau">
+        <div class="pn-lampes"><i class="pn-lampe"><b class="pn-cone"></b></i><i class="pn-lampe"><b class="pn-cone"></b></i></div>
+        <div class="pn-cadre"><div class="pn-face">
+          <div class="pn-g"><b>B3</b><span>ESP Paris</span></div>
+          <div class="pn-d"><em>Bachelor</em><strong>Cr&eacute;ation publicitaire</strong><span>2025 &rarr; 2026</span></div>
+          <i class="le l1"></i><i class="le l2"></i><i class="le l3"></i>
+        </div></div>
+        <div class="pn-pied"></div>
+      </div></div>
   </article>
   <article class="ch" data-i="4">
     <canvas class="fumee-cv" aria-hidden="true"></canvas>
@@ -3163,6 +3261,7 @@ var CAMPAIGNS = {
 var pp=document.getElementById('projectPage'),ppWrap=document.getElementById('ppWrap'),ppBarLogo=document.getElementById('ppBarLogo');
 // CONTACT MODAL
 function openContact(e){
+  if(window.__jmSon) window.__jmSon('clac');
   if(e)e.preventDefault();
   var m=document.getElementById('cmod');
   m.classList.add('on');
@@ -3194,7 +3293,7 @@ function openProject(group){
   var intro=document.getElementById('ppIntro');
   if(intro && !matchMedia('(prefers-reduced-motion:reduce)').matches){
     intro.querySelector('b').textContent=(c.name||'').split(',')[0];
-    intro.classList.remove('joue'); void intro.offsetWidth; intro.classList.add('joue');
+    intro.classList.remove('joue'); void intro.offsetWidth; intro.classList.add('joue'); if(window.__jmSon) window.__jmSon('rideau');
   }
   var imgs=groupItems(group).map(function(it){return {src:it.querySelector('img').src,title:it.dataset.title};});
   ppBarLogo.src=c.logo;
@@ -3717,6 +3816,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
     charge=true;
   }
 
+  window.__jmSon=function(nom){ if(on&&S&&S.son[nom]) S.son[nom](); };
   btn.addEventListener('click',function(){
     if(!S){
       import('./js/son.js').then(function(m){
@@ -4241,10 +4341,17 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   var titre=document.title;
   document.addEventListener('visibilitychange',function(){ document.title=document.hidden?'Revenez, la suite s’écrit… — J.M':titre; });
   // remonter tout en haut
-  var h=document.querySelector('.ft-haut'); if(h) h.addEventListener('click',function(){ window.scrollTo({top:0,behavior:'smooth'}); });
+  var h=document.querySelector('.ft-haut'); if(h) h.addEventListener('click',function(){ if(window.__jmSon) window.__jmSon('tunnel'); h.textContent='Ascenseur, 0 étage… ↑'; setTimeout(function(){ h.textContent='Remonter ↑'; },2600); window.scrollTo({top:0,behavior:'smooth'}); });
   // l'appel de phares de la 991
   var v=document.querySelector('.ch-voiture');
-  if(v) v.addEventListener('click',function(){ v.classList.remove('phares'); void v.offsetWidth; v.classList.add('phares'); });
+  if(v){ var nClic=0, tClic=0, bulle=document.createElement('span'); bulle.className='bulle-991'; bulle.setAttribute('aria-hidden','true'); v.appendChild(bulle);
+    v.addEventListener('click',function(){
+      var t=Date.now(); nClic = t-tClic<1500 ? nClic+1 : 1; tClic=t;
+      v.classList.remove('phares'); void v.offsetWidth; v.classList.add('phares'); if(window.__jmSon) window.__jmSon('phares');
+      if(nClic>=3){ nClic=0; if(window.__jmSon) window.__jmSon('klaxon');
+        bulle.textContent=['Pas sur la carrosserie !','Elle sort du lavage...','On regarde avec les yeux !'][Math.floor(Math.random()*3)];
+        bulle.classList.remove('vu'); void bulle.offsetWidth; bulle.classList.add('vu'); v.classList.remove('klaxon'); void v.offsetWidth; v.classList.add('klaxon'); }
+    }); }
   // le hero : si on ne bouge pas, une petite invitation
   if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
     var hint=document.createElement('div'); hint.className='hint-scroll'; hint.setAttribute('aria-hidden','true');
@@ -4269,11 +4376,68 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
     var r=a.getBoundingClientRect(), x=r.left+r.width/2, y=r.top;
     var av=document.createElement('div'); av.className='avion';
     av.innerHTML='<svg viewBox="0 0 24 24" width="34" height="34"><path d="M2 11.5 22 3l-6.5 18-3.6-7.2L2 11.5Z" fill="currentColor"/><path d="m11.9 13.8 3.6-6.3" stroke="#06070a" stroke-width="1.2"/></svg>';
+if(window.__jmSon) window.__jmSon('avion');
     av.style.left=(x-17)+'px'; av.style.top=(y-17)+'px'; document.body.appendChild(av);
     av.animate([{transform:'translate3d(0,0,0) rotate(0) scale(.6)',opacity:0},{transform:'translate3d(30px,-30px,0) rotate(-8deg) scale(1)',opacity:1,offset:.15},
       {transform:'translate3d(160px,-140px,0) rotate(10deg)',offset:.55},{transform:'translate3d('+(innerWidth*.5)+'px,'+(-innerHeight*.7)+'px,0) rotate(-20deg) scale(.7)',opacity:0}],
       {duration:1500,easing:'cubic-bezier(.4,0,.2,1)'}).onfinish=function(){ av.remove(); };
   });
+})();
+</script>
+<script>
+// ═══ Le son de l'histoire : chaque objet a le sien ═══
+(function(){
+  var S=function(n){ if(window.__jmSon) window.__jmSon(n); };
+  var sec=document.getElementById('histoire'); if(!sec) return;
+  var minus=[];
+  function plus(f,ms){ minus.push(setTimeout(f,ms)); }
+  function stop(){ minus.forEach(clearTimeout); minus=[]; }
+  var scenes={
+    0:function(){ plus(function(){S('obturateur');},1300); },
+    1:function(){ [600,900,1200,1500].forEach(function(t){ plus(function(){S('punaise');},t); }); },
+    2:function(){},
+    3:function(){ [350,750,1150].forEach(function(t){ plus(function(){S('colle');},t); }); plus(function(){S('lampe');},1800); plus(function(){S('lampe');},1950); },
+    4:function(){ S('arrivee'); },
+    5:function(){ for(var k=0;k<7;k++) plus(function(){S('touche');},300+k*110); plus(function(){S('tampon');},1300); }
+  };
+  var avant=-1;
+  new MutationObserver(function(){
+    var i=-1; sec.querySelectorAll('.ch').forEach(function(c,k){ if(c.classList.contains('on')) i=k; });
+    if(i===avant) return;
+    var sortant=avant; avant=i; stop();
+    if(sortant===4) S('depart');
+    if(i>=0){ if(sortant>=0 && sortant!==4) S('page'); scenes[i]&&scenes[i](); }
+  }).observe(sec,{subtree:true,attributes:true,attributeFilter:['class']});
+  // le calendrier : chaque feuille, l'arrachage, le tampon
+  var cal=sec.querySelector('.cal'), num=cal&&cal.querySelector('.cal-num'), dernier=0;
+  if(num) new MutationObserver(function(){ var t=performance.now(); if(t-dernier>55){ dernier=t; S('feuille'); } }).observe(num,{childList:true,characterData:true,subtree:true});
+  if(cal) new MutationObserver(function(m){
+    m.forEach(function(r){ r.addedNodes&&[].forEach.call(r.addedNodes,function(n){ if(n.classList&&n.classList.contains('cal-arrache')) S('arrache'); }); });
+  }).observe(cal,{childList:true});
+  if(cal) new MutationObserver(function(){ if(cal.classList.contains('fini')) setTimeout(function(){S('tampon');},80); }).observe(cal,{attributes:true,attributeFilter:['class']});
+})();
+</script>
+<script>
+(function(){
+  var S=function(n){ if(window.__jmSon) window.__jmSon(n); };
+  // le post-it qui lache sa punaise
+  var n3=document.querySelector('#histoire .n3');
+  if(n3){ var lache=function(){ if(n3.classList.contains('lache')) return; n3.classList.add('lache'); S('chute'); setTimeout(function(){ n3.classList.remove('lache'); S('punaise'); },1800); };
+    n3.addEventListener('pointerenter',lache); n3.addEventListener('click',lache); }
+  // l'ouverture : la traversee du tunnel
+  var ouv=document.getElementById('ouverture'), passe=false;
+  if(ouv) window.addEventListener('scroll',function(){
+    var r=ouv.getBoundingClientRect(), p=-r.top/Math.max(1,r.height-innerHeight);
+    if(p>.82 && !passe){ passe=true; S('tunnel'); } else if(p<.6) passe=false;
+  },{passive:true});
+  // l'arc : chaque piece qui passe au centre, chaque famille, chaque ouverture
+  var sel=document.getElementById('selection');
+  if(sel){ var tt=sel.querySelector('.sel-t'), dern=0, fam='';
+    if(tt) new MutationObserver(function(){ var t=performance.now(); if(t-dern>90){ dern=t; S(sel.classList.contains('sur-carte')?'page':'cran'); } }).observe(tt,{childList:true,characterData:true,subtree:true});
+    var cv=sel.querySelector('canvas'); if(cv) cv.addEventListener('click',function(){ S(sel.classList.contains('sur-carte')?'page':'clac'); });
+  }
+  // la copie d'un contact
+  document.querySelectorAll('.cmod-copy').forEach(function(b){ b.addEventListener('click',function(){ S('tic'); }); });
 })();
 </script>
 <script type="module" src="js/experiences.js?v=21"></script>
