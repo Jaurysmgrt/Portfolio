@@ -2178,6 +2178,52 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 .pp-lecture{position:absolute;left:0;bottom:-1px;height:2px;width:100%;background:var(--red2);transform:scaleX(var(--lu,0));transform-origin:0 50%;pointer-events:none}
 /* Contact : un avion en papier s'envole quand on clique sur l'email */
 .avion{position:fixed;z-index:4000;pointer-events:none;width:34px;height:34px;color:var(--red2);filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
+
+/* ═══ Projets : un decor discret, propre a chaque famille ═══ */
+.sel-deco{position:absolute;left:50%;top:50%;width:min(46vw,640px);height:min(52vh,470px);transform:translate(-50%,-56%);z-index:1;pointer-events:none}
+.sel-deco > *{position:absolute;opacity:0;transition:opacity .5s ease}
+/* direction artistique : traits de coupe et cibles d'impression */
+.dc-coupe{width:18px;height:18px;border:0 solid rgba(255,255,255,.45)}
+.dc-coupe.c1{left:-26px;top:-26px;border-right-width:1px;border-bottom-width:1px}
+.dc-coupe.c2{right:-26px;top:-26px;border-left-width:1px;border-bottom-width:1px}
+.dc-coupe.c3{left:-26px;bottom:-26px;border-right-width:1px;border-top-width:1px}
+.dc-coupe.c4{right:-26px;bottom:-26px;border-left-width:1px;border-top-width:1px}
+.dc-cible{width:16px;height:16px;border:1px solid rgba(255,255,255,.4);border-radius:50%;top:50%;margin-top:-8px}
+.dc-cible::before,.dc-cible::after{content:'';position:absolute;background:rgba(255,255,255,.4)}
+.dc-cible::before{left:-5px;right:-5px;top:50%;height:1px}.dc-cible::after{top:-5px;bottom:-5px;left:50%;width:1px}
+.dc-cible.t1{left:-44px}.dc-cible.t2{right:-44px}
+#selection[data-f="da"]:not(.sur-carte) .dc-coupe,#selection[data-f="da"]:not(.sur-carte) .dc-cible{opacity:1}
+/* photo automobile : viseur et mise au point */
+.dc-vf{width:22px;height:22px;border:0 solid rgba(255,255,255,.55)}
+.dc-vf.v1{left:-14px;top:-14px;border-top-width:1.5px;border-left-width:1.5px}
+.dc-vf.v2{right:-14px;top:-14px;border-top-width:1.5px;border-right-width:1.5px}
+.dc-vf.v3{left:-14px;bottom:-14px;border-bottom-width:1.5px;border-left-width:1.5px}
+.dc-vf.v4{right:-14px;bottom:-14px;border-bottom-width:1.5px;border-right-width:1.5px}
+.dc-af{left:50%;top:50%;width:26px;height:26px;margin:-13px;border:1.5px solid rgba(255,68,51,.75)}
+#selection[data-f="auto"]:not(.sur-carte) .dc-vf{opacity:1}
+#selection[data-f="auto"]:not(.sur-carte) .dc-af{opacity:1;animation:af 2.6s ease-in-out infinite}
+@keyframes af{0%,100%{transform:scale(1)}8%{transform:scale(1.25)}14%{transform:scale(.9)}20%{transform:scale(1)}}
+/* astrophotographie : quelques etoiles qui scintillent autour */
+.dc-et{width:3px;height:3px;border-radius:50%;background:#fff;box-shadow:0 0 6px 1px rgba(200,220,255,.8)}
+#selection[data-f="nuit"]:not(.sur-carte) .dc-et{opacity:1;animation:scint 2.2s ease-in-out infinite}
+@keyframes scint{0%,100%{opacity:.15;transform:scale(.6)}50%{opacity:.9;transform:scale(1.1)}}
+/* video : un timecode de montage */
+.dc-tc{right:0;bottom:-30px;font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.14em;color:rgba(255,255,255,.6)}
+#selection[data-f="video"]:not(.sur-carte) .dc-tc{opacity:1}
+@media(max-width:860px){.sel-deco{width:62vw;height:30vh;transform:translate(-50%,-62%)}.dc-cible{display:none}}
+/* entre deux familles : le libelle claque */
+.sel-fam.clap{animation:clap .45s cubic-bezier(.3,1.6,.5,1)}
+@keyframes clap{0%{transform:rotate(-8deg);transform-origin:0 100%}60%{transform:rotate(2deg)}100%{transform:none}}
+
+/* ═══ Page projet : le brief recoit un tampon ═══ */
+.pp-brief::after{content:'Brief';position:absolute;right:1.4rem;top:1.2rem;font-family:'Anton',sans-serif;font-size:.95rem;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--red);border:2px solid var(--red);padding:.05rem .5rem;transform:rotate(8deg) scale(2);opacity:0;transition:transform .4s cubic-bezier(.3,1.6,.5,1) .9s,opacity .2s .9s}
+.pp.on .pp-brief::after{transform:rotate(8deg) scale(1);opacity:.85}
+
+/* ═══ Contact : la disponibilite a un pouls ═══ */
+.pouls{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--red2);margin-right:.5em;vertical-align:.1em;box-shadow:0 0 0 0 rgba(255,68,51,.6);animation:pouls 1.8s ease-out infinite}
+@keyframes pouls{0%{box-shadow:0 0 0 0 rgba(255,68,51,.6)}100%{box-shadow:0 0 0 9px rgba(255,68,51,0)}}
+@media(prefers-reduced-motion:reduce){.dc-af,.dc-et,.pouls,.sel-fam.clap{animation:none!important}}
 </style>
 </head>
 <body>
@@ -2497,6 +2543,13 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 <section id="selection" class="piste-3d" aria-label="Projets">
   <div class="colle">
     <canvas class="cv-3d" aria-hidden="true"></canvas>
+    <div class="sel-deco" aria-hidden="true">
+      <span class="dc-coupe c1"></span><span class="dc-coupe c2"></span><span class="dc-coupe c3"></span><span class="dc-coupe c4"></span>
+      <span class="dc-cible t1"></span><span class="dc-cible t2"></span>
+      <span class="dc-vf v1"></span><span class="dc-vf v2"></span><span class="dc-vf v3"></span><span class="dc-vf v4"></span><span class="dc-af"></span>
+      <i class="dc-et" style="left:18%;top:22%"></i><i class="dc-et" style="left:80%;top:30%;animation-delay:.7s"></i><i class="dc-et" style="left:26%;top:74%;animation-delay:1.3s"></i><i class="dc-et" style="left:73%;top:70%;animation-delay:.35s"></i><i class="dc-et" style="left:52%;top:12%;animation-delay:1.8s"></i>
+      <span class="dc-tc">00:00:00:00</span>
+    </div>
     <div class="sel-couche">
       <div class="sel-tete"><span class="sel-lbl">Projets</span><div class="sel-fams" role="group" aria-label="Familles de projets"></div><span class="sel-aide">Cliquez sur l'image au centre pour l'ouvrir</span></div>
       <div class="sel-bas">
@@ -2664,7 +2717,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
     <div class="ci"><label>Téléphone</label><a href="tel:+33609977401">06 09 97 74 01</a></div>
     <div class="ci"><label>Localisation</label><p>Paris 75 000</p></div>
     <div class="ci"><label>LinkedIn</label><a href="https://www.linkedin.com/in/jaurys-maigret" target="_blank" rel="noopener">Jaurys Maigret →</a></div>
-    <div class="ci"><label>Disponibilité</label><p>Dès maintenant · Paris &amp; Île-de-France</p></div>
+    <div class="ci"><label><i class="pouls" aria-hidden="true"></i>Disponibilité</label><p>Dès maintenant · Paris &amp; Île-de-France</p></div>
     <div class="ci"><label>Mobilité</label><p>Permis B · Véhiculé</p></div>
     <div class="ci"><label>CV</label><a href="CV-Jaurys-Maigret.pdf" download>Télécharger le CV (PDF) ↓</a></div>
   </div>
@@ -4099,6 +4152,6 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   });
 })();
 </script>
-<script type="module" src="js/experiences.js?v=17"></script>
+<script type="module" src="js/experiences.js?v=18"></script>
 </body>
 </html>
