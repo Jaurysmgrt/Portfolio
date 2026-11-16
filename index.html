@@ -441,7 +441,7 @@ body.loaded .hn2 span{transition-delay:.06s;transform:translateY(0)}
 .tl-item::before{content:'';position:absolute;left:150px;top:2rem;width:10px;height:10px;border-radius:50%;background:var(--red);transform:translateX(-50%);box-shadow:0 0 0 4px rgba(200,40,26,.2),0 0 12px rgba(200,40,26,.4);z-index:2;transition:box-shadow .3s}
 .tl-item:hover::before{box-shadow:0 0 0 6px rgba(200,40,26,.25),0 0 20px rgba(200,40,26,.5)}
 .tl-left{padding-right:2rem;padding-top:1.8rem;text-align:right}
-.tl-yr{font-family:'Anton',sans-serif;font-size:2rem;color:rgba(240,234,216,.1);line-height:1;display:block}
+.tl-yr{font-family:'Anton',sans-serif;font-size:2rem;color:rgba(240,234,216,.45);line-height:1;display:block}
 .tl-period{font-size:.58rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:var(--red);display:block;margin-top:.3rem}
 .tl-right{padding-left:2.5rem;padding-top:1rem}
 .tl-paper{background:var(--paper2);padding:2rem;position:relative;box-shadow:3px 5px 18px rgba(0,0,0,.5);transition:transform .3s,box-shadow .3s}
@@ -472,7 +472,7 @@ body.loaded .hn2 span{transition-delay:.06s;transform:translateY(0)}
 
 footer{padding:1.5rem 3rem;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);flex-wrap:wrap;gap:.5rem}
 .ft-logo{font-family:'Anton',sans-serif;font-size:1.1rem;color:rgba(240,234,216,.1)}
-.ft-copy,.ft-r{font-size:.55rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(240,234,216,.1)}
+.ft-copy,.ft-r{font-size:.55rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(240,234,216,.5)}
 
 /* REVEAL · la seule definition est plus bas, section PROFONDEUR.
    Il y en avait trois ici, qui s'ecrasaient l'une l'autre. */
@@ -562,7 +562,7 @@ footer{padding:1.5rem 3rem;display:flex;justify-content:space-between;align-item
   .ci{flex-direction:column;align-items:flex-start;gap:.3rem}
   .ci p,.ci a{text-align:left}
   .lb-inner{grid-template-columns:1fr;max-height:90vh;overflow-y:auto}
-  .lb-img-wrap{padding:1rem;max-height:50vh}
+  .lb-img-wrap{padding:1rem}
   .lb img{max-height:48vh}
   .lb-info{padding:2rem 1.5rem}
   .lb-info::before{display:none}
@@ -656,7 +656,7 @@ footer{padding:1.5rem 3rem;display:flex;justify-content:space-between;align-item
 
   /* Lightbox */
   .lb-inner{grid-template-columns:1fr}
-  .lb-img-wrap{padding:1rem;max-height:55vw}
+  .lb-img-wrap{padding:1rem}
   .lb img{max-height:55vw}
   .lb-info{padding:1.5rem 1.2rem}
   .lb-info-title{font-size:1.4rem}
@@ -1293,7 +1293,7 @@ footer a:hover::after{width:100%}
   .lb{padding:.7rem!important}
   .lb-inner{grid-template-columns:1fr!important;max-width:100%!important;max-height:94vh!important}
   .lb-img-wrap{padding:0}
-  .lb-img-wrap img{max-height:56vh;width:100%}
+  .lb-img-wrap img{max-height:60vh;width:auto;max-width:100%;object-fit:contain;margin-inline:auto}
   .lb-info{padding:1.4rem 1.3rem 1.6rem!important}
 }
 
@@ -1623,9 +1623,39 @@ body.loaded .son{opacity:.45}
 #ouverture .cv-3d{display:none}
 body.avec-3d #ouverture .cv-3d{display:block;position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
 body.avec-3d #ouverture .hero{position:relative;z-index:1;background:transparent}
+@media(max-width:700px){body.avec-3d #ouverture .cv-3d{opacity:.5}}
 body.avec-3d #ouverture .hero-grid-bg,body.avec-3d #ouverture .hero-ghost{display:none}
 body.avec-3d #ouverture .hn1{transform:translate3d(calc(var(--o1,0) * -18vw),0,0)}
 body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 18vw),0,0)}
+
+/* ═══ Retour d'usage ═══ */
+/* le hero : trois actions claires */
+.hero-actions{display:flex;flex-wrap:wrap;gap:.7rem;align-items:center;justify-content:flex-end}
+.hero-btn2{display:inline-flex;align-items:center;font-family:'Anton',sans-serif;font-size:.85rem;letter-spacing:.1em;text-transform:uppercase;color:var(--cream);text-decoration:none;padding:.65rem 1.4rem;border:1px solid rgba(255,255,255,.35);transition:border-color .2s,color .2s,background .2s;white-space:nowrap}
+.hero-btn2:hover,.hero-btn2:focus-visible{border-color:var(--red2);color:#fff;background:rgba(212,42,27,.15)}
+@media(max-width:700px){.hero-actions{width:100%;justify-content:stretch}.hero-actions .hero-btn{flex:1 1 100%}.hero-btn2{flex:1;justify-content:center;font-size:.72rem;padding:.8rem .6rem}}
+/* au doigt, pas de survol : les titres des pieces restent visibles */
+@media(hover:none){.gal-ov{opacity:1}}
+/* les fenetres fermees sortent aussi du parcours clavier */
+.pp,.cmod{visibility:hidden}
+.pp.on,.cmod.on{visibility:visible}
+.pp:not(.on){transition:opacity .5s cubic-bezier(.16,1,.3,1),visibility 0s .5s}
+.cmod:not(.on){transition:opacity .35s cubic-bezier(.16,1,.3,1),visibility 0s .35s}
+/* la modale contact : de vraies cibles */
+.cmod-main{display:flex;align-items:center;gap:1.2rem;flex:1;min-width:0;color:inherit;text-decoration:none;padding:.2rem 0}
+.cmod-row:has(.cmod-main){padding:.8rem 0}
+.cmod-x{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center;color:#fff}
+.cmod-copy{min-height:44px;padding:.35rem 1rem;flex-shrink:0}
+/* le menu telephone : un vrai bouton de 44 px */
+button.burger{background:none;border:none;min-width:44px;min-height:44px;align-items:center;justify-content:center;padding:10px}
+/* le son : lisible, assez grand pour le doigt */
+.son{min-height:40px;min-width:40px;padding:.5rem .8rem}
+body.loaded .son{opacity:.8}
+.son .son-t{max-width:3rem}
+/* sur telephone le bouton son recouvrait les boutons : on le retire */
+@media(max-width:860px){.son{display:none!important}}
+footer{padding-right:max(1.5rem,7rem)}
+@media(max-width:860px){footer{padding-right:1.5rem}}
 </style>
 </head>
 <body>
@@ -1662,25 +1692,30 @@ body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 18vw),0,0)
   <div class="cmod-box">
     <div class="cmod-top">
       <h2>ME CONTACTER</h2>
-      <button class="cmod-x" onclick="closeContact()">✕</button>
+      <button class="cmod-x" onclick="closeContact()" aria-label="Fermer">✕</button>
     </div>
     <div class="cmod-body">
-      <a class="cmod-row cmod-link" href="mailto:maigretjaurys8@gmail.com">
+      <div class="cmod-row"><a class="cmod-main cmod-link" href="mailto:maigretjaurys8@gmail.com">
         <div class="cmod-icon">✉</div>
         <div class="cmod-info">
           <span class="cmod-label">Email · appuyer pour ouvrir</span>
           <span class="cmod-val">maigretjaurys8@gmail.com</span>
         </div>
-        <button class="cmod-copy" onclick="event.preventDefault();copyText('maigretjaurys8@gmail.com',this)">Copier</button>
-      </a>
-      <a class="cmod-row cmod-link" href="tel:+33609977401">
+      </a><button class="cmod-copy" onclick="copyText('maigretjaurys8@gmail.com',this)">Copier</button></div>
+      <div class="cmod-row"><a class="cmod-main cmod-link" href="tel:+33609977401">
         <div class="cmod-icon">📞</div>
         <div class="cmod-info">
           <span class="cmod-label">Téléphone · appuyer pour appeler</span>
           <span class="cmod-val">06 09 97 74 01</span>
         </div>
-        <button class="cmod-copy" onclick="event.preventDefault();copyText('0609977401',this)">Copier</button>
-      </a>
+      </a><button class="cmod-copy" onclick="copyText('0609977401',this)">Copier</button></div>
+      <div class="cmod-row"><a class="cmod-main cmod-link" href="CV-Jaurys-Maigret.pdf" download>
+        <div class="cmod-icon">↓</div>
+        <div class="cmod-info">
+          <span class="cmod-label">CV · PDF</span>
+          <span class="cmod-val">Télécharger mon CV</span>
+        </div>
+      </a></div>
       <a class="cmod-row cmod-link" href="https://www.linkedin.com/in/jaurys-maigret" target="_blank" rel="noopener">
         <div class="cmod-icon">in</div>
         <div class="cmod-info">
@@ -1753,7 +1788,7 @@ body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 18vw),0,0)
     <a href="#xp">Expériences</a>
     <a href="#contact" class="nav-cta">Contact</a>
   </div>
-  <div class="burger" id="burger"><span></span><span></span><span></span></div>
+  <button class="burger" id="burger" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="navMob"><span></span><span></span><span></span></button>
 </nav>
 <div class="nav-mob" id="navMob">
   <a href="#about-intro" class="nm">À propos</a>
@@ -1777,7 +1812,7 @@ body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 18vw),0,0)
   </div>
   <div class="hero-body">
     <div class="hero-col-l">
-      <div class="avail-pill"><span class="avail-dot"></span>Disponible immédiatement</div>
+      <div class="avail-pill"><span class="avail-dot"></span>Recherche alternance · Master DA</div>
       <div class="hero-sub">Publicité · Graphisme<br>Création visuelle</div>
     </div>
     <div class="hero-title-block">
@@ -1793,7 +1828,11 @@ body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 18vw),0,0)
   </div>
   <div class="hero-bottom">
     <p class="hero-desc">Créatif, curieux, impliqué. Je crée des visuels qui racontent quelque chose. Publicité, graphisme, photo, vidéo.</p>
-    <a href="#contact" class="hero-btn" id="ctaContact" onclick="openContact(event)">Me contacter →</a>
+    <div class="hero-actions">
+      <a href="#contact" class="hero-btn" id="ctaContact" onclick="openContact(event)">Me contacter →</a>
+      <a href="#portfolio" class="hero-btn2">Voir les projets ↓</a>
+      <a href="CV-Jaurys-Maigret.pdf" class="hero-btn2" download>CV · PDF</a>
+    </div>
   </div>
   <div class="hero-scroll"><span class="hs-lbl">Scroll</span><div class="hs-line"></div></div>
 </section>
@@ -1907,7 +1946,7 @@ body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 18vw),0,0)
   <div class="gal-grille">
 <div class="gal-item" data-c="auto photo" data-title="BMW M, Cockpit" data-cat="Photo · Intérieur · Luxe" data-desc="Photo intérieure BMW M, focus sur le tableau de bord. Shooting Talon Pointe."><img src="images/bmw-m-cockpit.jpg" alt="BMW M" width="1200" height="800" loading="lazy" decoding="async"><div class="gal-ov"><div class="gal-paper"><div class="gal-title">BMW M, Cockpit</div><span class="gal-cat">Photo · Intérieur · Luxe</span></div></div><span class="gal-num">05</span></div>
 <div class="gal-item" data-c="auto photo" data-title="Porsche 911, Showroom" data-cat="Photo · Luxe · Talon Pointe" data-desc="Porsche 911 en concession, mise en scène showroom premium. Shooting Talon Pointe."><img src="images/porsche-911-showroom.jpg" alt="Porsche 911" width="800" height="1200" loading="lazy" decoding="async"><div class="gal-ov"><div class="gal-paper"><div class="gal-title">Porsche 911, Showroom</div><span class="gal-cat">Photo · Luxe · Talon Pointe</span></div></div><span class="gal-num">07</span></div>
-<div class="gal-item" data-c="auto photo" data-title="BMW M4CS, Drive Select" data-cat="Photo · Détail · Talon Pointe" data-desc="Détail Drive Select BMW M4CS, macro sur la commande de sélection. Shooting Talon Pointe."><img src="images/bmw-m4cs-drive-select.jpg" alt="Audi R8" width="1200" height="798" loading="lazy" decoding="async"><div class="gal-ov"><div class="gal-paper"><div class="gal-title">BMW M4CS, Drive Select</div><span class="gal-cat">Photo · Détail · Talon Pointe</span></div></div><span class="gal-num">06</span></div>
+<div class="gal-item" data-c="auto photo" data-title="BMW M4CS, Drive Select" data-cat="Photo · Détail · Talon Pointe" data-desc="Détail Drive Select BMW M4CS, macro sur la commande de sélection. Shooting Talon Pointe."><img src="images/bmw-m4cs-drive-select.jpg" alt="BMW M4CS, commande Drive Select" width="1200" height="798" loading="lazy" decoding="async"><div class="gal-ov"><div class="gal-paper"><div class="gal-title">BMW M4CS, Drive Select</div><span class="gal-cat">Photo · Détail · Talon Pointe</span></div></div><span class="gal-num">06</span></div>
 <div class="gal-item" data-c="auto photo" data-title="Porsche, Blason" data-cat="Photo · Macro · Détail" data-desc="Macro du blason Porsche, lumière rasante. Shooting Talon Pointe."><img src="images/porsche-blason.jpg" alt="Porsche badge" width="800" height="1200" decoding="async"><div class="gal-ov"><div class="gal-paper"><div class="gal-title">Porsche, Blason</div><span class="gal-cat">Photo · Macro · Détail</span></div></div><span class="gal-num">08</span></div>
 <div class="gal-item" data-c="auto photo" data-title="Porsche, Jante Carrera" data-cat="Photo · Détail · Talon Pointe" data-desc="Jante Carrera Porsche, composition graphique. Shooting Talon Pointe."><img src="images/porsche-jante-carrera.jpg" alt="Porsche jante" width="1200" height="800" loading="lazy" decoding="async"><div class="gal-ov"><div class="gal-paper"><div class="gal-title">Porsche, Jante Carrera</div><span class="gal-cat">Photo · Détail · Talon Pointe</span></div></div><span class="gal-num">09</span></div>
 <div class="gal-item" data-c="auto photo" data-title="Jeep Wrangler Rubicon" data-cat="Photo · Outdoor · Talon Pointe" data-desc="Jeep Wrangler Rubicon en extérieur, terrain et caractère. Shooting Talon Pointe."><img src="images/jeep-wrangler-rubicon.jpg" alt="Jeep" width="800" height="1200" loading="lazy" decoding="async"><div class="gal-ov"><div class="gal-paper"><div class="gal-title">Jeep Wrangler Rubicon</div><span class="gal-cat">Photo · Outdoor · Talon Pointe</span></div></div><span class="gal-num">10</span></div>
@@ -1970,7 +2009,7 @@ body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 18vw),0,0)
         
         <div class="gv-play"><span class="gv-ring"></span><svg viewBox="0 0 24 24"><path d="M5 3l14 9-14 9V3z"/></svg></div>
       </div>
-      <div class="gal-ov"><div class="gal-paper"><div class="gal-title">Vidéo 3</div><span class="gal-cat">Montage · Vidéo</span></div></div>
+      <div class="gal-ov"><div class="gal-paper"><div class="gal-title">Talon Pointe, motion design</div><span class="gal-cat">Montage · Vidéo</span></div></div>
       <span class="gal-num">▶</span>
     </div>
 <div class="gal-item gal-video gv-h" data-c="video" data-vsrc="https://youtu.be/WfOoewW3jts" data-title="Les Deux Marmottes" data-cat="Publicité · Projet École" data-desc="Film publicitaire : direction artistique et montage, écrit et produit en semaine intensive.">
@@ -1984,6 +2023,8 @@ body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 18vw),0,0)
     </div>
 </div>
 
+</section>
+</div>
 </section>
 
 <!-- XP -->
@@ -2025,8 +2066,6 @@ body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 18vw),0,0)
     </div>
   </div>
 </section>
-</div>
-</section>
 
 <!-- FORMATIONS -->
 <section class="sec tl-bg" id="form">
@@ -2059,11 +2098,12 @@ body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 18vw),0,0)
     </div>
   </div>
   <div class="cr rvr">
-    <div class="ci"><label>Téléphone</label><p>06 09 97 74 01</p></div>
+    <div class="ci"><label>Téléphone</label><a href="tel:+33609977401">06 09 97 74 01</a></div>
     <div class="ci"><label>Localisation</label><p>Paris 75 000</p></div>
-    <div class="ci"><label>LinkedIn</label><a href="https://www.linkedin.com/in/jaurys-maigret">Jaurys Maigret →</a></div>
+    <div class="ci"><label>LinkedIn</label><a href="https://www.linkedin.com/in/jaurys-maigret" target="_blank" rel="noopener">Jaurys Maigret →</a></div>
     <div class="ci"><label>Disponibilité</label><p>Dès maintenant · Paris &amp; Île-de-France</p></div>
     <div class="ci"><label>Mobilité</label><p>Permis B · Véhiculé</p></div>
+    <div class="ci"><label>CV</label><a href="CV-Jaurys-Maigret.pdf" download>Télécharger le CV (PDF) ↓</a></div>
   </div>
 </div>
 
@@ -2151,11 +2191,15 @@ body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 18vw),0,0)
 // du systeme sans rien apporter.
 
 // NAV
-window.addEventListener('scroll',function(){document.getElementById('nav').classList.toggle('compact',window.scrollY>60)});
+(function(){var nav=document.getElementById('nav'),etat=null;
+  function maj(){var c=window.scrollY>60; if(c!==etat){etat=c; nav.classList.toggle('compact',c);}}
+  window.addEventListener('scroll',maj,{passive:true}); maj();})();
 var burger=document.getElementById('burger'),navMob=document.getElementById('navMob');
 burger.addEventListener('click',function(){
   var open=navMob.classList.toggle('open');
   burger.classList.toggle('x',open);
+  burger.setAttribute('aria-expanded',open?'true':'false');
+  burger.setAttribute('aria-label',open?'Fermer le menu':'Ouvrir le menu');
   document.body.style.overflow=open?'hidden':'';
 });
 document.querySelectorAll('.nm').forEach(function(a){a.addEventListener('click',function(){navMob.classList.remove('open');burger.classList.remove('x');document.body.style.overflow=''})});
@@ -2344,6 +2388,7 @@ function openContact(e){
   var m=document.getElementById('cmod');
   m.classList.add('on');
   document.body.style.overflow='hidden';
+  setTimeout(function(){ var x=m.querySelector('.cmod-x'); if(x) x.focus({preventScroll:true}); },60);
 }
 function closeContact(){
   var m=document.getElementById('cmod');
@@ -2366,6 +2411,7 @@ var imgSvg='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-wi
 function openProject(group){
   var c=CAMPAIGNS[group];
   if(!c)return;
+  var dejaOuvert=pp.classList.contains('on');
   var imgs=groupItems(group).map(function(it){return {src:it.querySelector('img').src,title:it.dataset.title};});
   ppBarLogo.src=c.logo;
   ppBarLogo.alt=c.name;
@@ -2501,7 +2547,10 @@ function openProject(group){
       }).catch(function(){markVidMissing(el);});
     }
   });
-  history.replaceState(null,'','#p-'+group);
+  // une entree d'historique : le bouton Retour du navigateur (ou le geste
+  // retour sur telephone) ferme le projet au lieu de quitter le site
+  if(dejaOuvert && history.state && history.state.pp) history.replaceState({pp:1},'','#p-'+group);
+  else history.pushState({pp:1},'','#p-'+group);
 }
 // Vidéo absente -> emplacement « bientôt disponible », jamais de cadre vide
 function markVidMissing(el){
@@ -2534,12 +2583,24 @@ function showPpLb(){
 }
 function closePpLb(){document.getElementById('ppLb').classList.remove('on');}
 var ppLbIdx=0;
-function closeProject(){
+function closeProject(parHistorique){
   pp.classList.remove('on');
   document.body.style.overflow='';
+  if(parHistorique!==true && history.state && history.state.pp){ history.back(); return; }
   if(location.hash.indexOf('#p-')===0){history.replaceState(null,'','#portfolio');}
 }
-document.getElementById('ppBack').addEventListener('click',closeProject);
+window.addEventListener('popstate',function(){
+  if(pp.classList.contains('on') && !(history.state && history.state.pp)) closeProject(true);
+  else if(!pp.classList.contains('on') && history.state && history.state.pp){
+    var g=location.hash.slice(3); if(CAMPAIGNS[g]) openProject(g);
+  }
+});
+// un lien partage vers un projet (#p-voss) l'ouvre directement
+(function(){
+  var g=location.hash.indexOf('#p-')===0 ? location.hash.slice(3) : '';
+  if(g && CAMPAIGNS[g]){ history.replaceState(null,'','#portfolio'); setTimeout(function(){ openProject(g); },300); }
+})();
+document.getElementById('ppBack').addEventListener('click',function(){closeProject();});
 // lightbox projet : navigation
 document.getElementById('ppLbX').addEventListener('click',closePpLb);
 document.getElementById('ppLbPrev').addEventListener('click',function(){ppLbIdx=(ppLbIdx-1+ppImgs.length)%ppImgs.length;showPpLb();});
@@ -2717,7 +2778,7 @@ allItems.forEach(function(item){
       openProject(g);
     } else {
       // standalone photo: navigate among currently visible standalone (non-video) items
-      var v=getVisible().filter(function(i){return !i.dataset.group && !i.classList.contains('gal-video')});
+      var v=getVisible().filter(function(i){return !i.dataset.group && !i.dataset.href && !i.classList.contains('gal-video')});
       openLb(v,v.indexOf(item));
     }
   });
@@ -2961,6 +3022,10 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
   });
 
 })();
+// ═══ Le nombre de pieces de chaque famille, compte dans la page ═══
+document.querySelectorAll('#gallery .fam').forEach(function(f){
+  var b=f.querySelector('.fam-c b'); if(b) b.textContent=f.querySelectorAll('.gal-item').length;
+});
 // ═══ Avant-goût : trois visuels clonés depuis la galerie ═══
 // On réutilise les <img> existantes : même src, donc pas un octet d'image en plus.
 (function(){
@@ -2986,7 +3051,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
     cadre.appendChild(c);
 
     var cap=document.createElement('figcaption'); cap.className='tzi-cap';
-    var n=document.createElement('span'); n.className='tzi-n'; n.textContent=(i<9?'0':'')+(i+1);
+    var n=document.createElement('span'); n.className='tzi-n'; var gn=src.querySelector('.gal-num'); n.textContent=(gn&&/\d/.test(gn.textContent))?gn.textContent.trim():'';
     var t=document.createElement('span'); t.className='tzi-t'; t.textContent=titre;
     if(src.dataset.cat){
       var sc=document.createElement('span'); sc.className='tzi-c'; sc.textContent=src.dataset.cat;
@@ -3006,16 +3071,12 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
   if(sec && !strip.children.length){ sec.style.display='none'; return; }
 
   // Fin de planche : on compte les projets réels (une campagne = un projet)
-  var groupes={}, isoles=0;
-  document.querySelectorAll('#gallery .gal-item').forEach(function(it){
-    if(it.dataset.group) groupes[it.dataset.group]=1; else isoles++;
-  });
-  var total=isoles+Object.keys(groupes).length;
+  var total=document.querySelectorAll('#gallery .gal-item').length;
   var fin=document.createElement('a');
   fin.className='tz-end'; fin.href='#portfolio';
   fin.style.setProperty('--td',(choix.length*140)+'ms');
   var fn=document.createElement('span'); fn.className='tz-end-n'; fn.textContent=total;
-  var ft=document.createElement('span'); ft.className='tz-end-t'; ft.textContent='projets au total';
+  var ft=document.createElement('span'); ft.className='tz-end-t'; ft.textContent='pièces au total';
   var fa=document.createElement('span'); fa.className='tz-end-a'; fa.textContent='Tout voir \u2192';
   fin.appendChild(fn); fin.appendChild(ft); fin.appendChild(fa);
   strip.appendChild(fin);

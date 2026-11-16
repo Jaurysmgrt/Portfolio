@@ -130,6 +130,7 @@ vec3 objectTangent=vec3(tangent.xyz);
   anneau.rotation.x = Math.PI / 2.2; scene.add(anneau);
 
   const { c, b } = composer(r, scene, cam, 0.3, 0.45, 0.94);
+  if (TACTILE) b.enabled = false;   // sur telephone : pas de halo, la batterie et la fluidite d'abord
   const hero = el.querySelector('.hero');
   let qv = 0, pPrec = 0, vit = 0, mx = 0, my = 0, w0 = 0, h0 = 0;
   if (!TACTILE) addEventListener('pointermove', e => { mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1; }, { passive: true });
@@ -158,7 +159,7 @@ vec3 objectTangent=vec3(tangent.xyz);
     rouge.position.set(Math.cos(s * 0.6 + p * 6) * 3.2, Math.sin(p * 4) * 1.5 + 1, Math.sin(s * 0.6 + p * 6) * 3.2);
     rouge.intensity = 12 + p3 * 6;
     anneau.scale.setScalar(mix(0.2, 1.25, p3)); anneau.visible = p3 > 0.02; anneau.rotation.z = s * 0.2;
-    b.strength = 0.25 + p3 * 0.1;
+    if (b.enabled) b.strength = 0.25 + p3 * 0.1;
     // la typographie accompagne : le nom s'ecarte, le reste du hero s'efface
     if (hero) { hero.style.setProperty('--o1', p1.toFixed(3)); hero.style.setProperty('--o2', p2.toFixed(3)); }
     c.render(); return true;
