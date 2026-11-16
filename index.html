@@ -1635,7 +1635,8 @@ body.avec-3d #ouverture .hero{position:relative;z-index:1;height:100%;min-height
 body.avec-3d #ouverture .hero-grid-bg,body.avec-3d #ouverture .hero-ghost{display:none}
 body.avec-3d #ouverture .hn1{transform:translate3d(calc(var(--o1,0) * -24vw),calc(var(--o2,0) * -10vh),0)}
 body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 24vw),calc(var(--o2,0) * 10vh),0)}
-body.avec-3d #ouverture .hn{opacity:calc(1 - var(--o2,0))}
+body.avec-3d #ouverture .hn{opacity:calc(1 - var(--o2,0));scale:calc(1 + var(--o2,0) * 1.6)}
+body.avec-3d #ouverture .hero-rule{scale:calc(1 + var(--o1,0) * .8) 1}
 body.avec-3d.loaded #ouverture .hero-topbar,body.avec-3d.loaded #ouverture .hero-col-l,
 body.avec-3d.loaded #ouverture .hero-col-r,body.avec-3d.loaded #ouverture .hero-bottom,
 body.avec-3d.loaded #ouverture .hero-rule,body.avec-3d.loaded #ouverture .hero-scroll{opacity:calc(1 - var(--o1,0) * 1.3)}
@@ -1721,10 +1722,11 @@ footer{padding-right:max(1.5rem,7rem)}
    --p va de 0 (l'element entre par le bas) a 1 (il sort par le haut). */
 @media(prefers-reduced-motion:no-preference){
   /* les grands titres glissent en sens contraire : la typo respire */
-  body.mvt .sec-title{transform:translate3d(calc((.5 - var(--p,.5)) * 10vw),0,0)}
+  body.mvt .sec-title{transform:translate3d(calc((.5 - var(--p,.5)) * 10vw),0,0);transform-origin:0 100%;
+    scale:calc(1 + max(0, .42 - var(--p,1)) * 2.6);opacity:calc(.25 + min(.75, var(--p,1) * 2.6))}
   /* le portrait se devoile comme un tirage qui sort du bac */
-  body.mvt .ai-photo{clip-path:inset(calc(max(0, .42 - var(--p,1)) * 160%) 0 0 0)}
-  body.mvt .ai-photo img{transform:scale(calc(1 + max(0, .5 - var(--p,1)) * .5)) translate3d(0,calc((var(--p,.5) - .5) * -6%),0)}
+  body.mvt .ai-photo{clip-path:inset(calc(max(0, .5 - var(--p,1)) * 50%) calc(max(0, .5 - var(--p,1)) * 60%))}
+  body.mvt .ai-photo img{scale:calc(1 + max(0, .5 - var(--p,1)) * .9);transform:translate3d(0,calc((var(--p,.5) - .5) * -6%),0)}
   /* la galerie a de l'inertie : elle se penche avec la vitesse */
   body.mvt #gallery .gal-grille{transform:skewY(calc(var(--v,0) * 1deg));transform-origin:50% 0;will-change:transform}
   /* le parcours : la ligne rouge se trace a mesure qu'on descend */
@@ -1732,6 +1734,15 @@ footer{padding-right:max(1.5rem,7rem)}
   /* les experiences : un filet rouge se tire sous chaque ligne */
   body.mvt .xr::after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--red2);
     transform:scaleX(calc(min(1, max(0, var(--p,0) * 2.4 - .35))));transform-origin:0 50%}
+
+  /* la galerie : chaque piece grandit en arrivant au centre et rapetisse en le quittant */
+  body.mvt #gallery .gal-grille{perspective:1400px}
+  body.mvt #gallery .gal-item{scale:calc(1 - var(--d,0) * .22);rotate:1 0 0 calc(var(--ds,0) * 12deg);opacity:calc(1 - var(--d,0) * .35)}
+  /* les experiences : chaque ligne prend sa taille en entrant */
+  body.mvt .xr{scale:calc(.86 + min(1, var(--p,1) * 2.6) * .14);transform-origin:0 50%}
+  /* le contact : le titre grandit jusqu'a sa taille */
+  body.mvt .c-big{scale:calc(.62 + min(1, var(--p,1) * 2.2) * .38);transform-origin:0 50%}
+  body.mvt .contact-grid{--p:1}
   /* le contact : les lettres montent une a une */
   body.mvt .c-big .l{display:inline-block;transform:translate3d(0,.9em,0) rotate(6deg);opacity:0;
     transition:transform .8s cubic-bezier(.16,1,.3,1),opacity .5s;transition-delay:calc(var(--i) * 28ms)}
@@ -2410,7 +2421,7 @@ applyFilter('all');   // après galObs
       for(var k=0;k<n;k++) bas.push(0);
       g.querySelectorAll('.gal-item').forEach(function(it){
         if(it.style.display==='none' || getComputedStyle(it).display==='none'){ it.style.gridRowEnd=''; it.style.gridColumn=''; return; }
-        var h=it.getBoundingClientRect().height;
+        var h=it.offsetHeight;   // hauteur sans les transformations du defilement
         var r=Math.max(1,Math.ceil((h+e)/RANG));
         // la piece va dans la colonne la plus courte : pas de trou
         var c=0; for(var k=1;k<n;k++) if(bas[k]<bas[c]-1) c=k;
@@ -3290,13 +3301,15 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
 (function(){
   if(matchMedia('(prefers-reduced-motion:reduce)').matches) return;
   document.body.classList.add('mvt');
-  var sel='.sec-title,.ai-photo,.timeline,.xr';
+  var sel='.sec-title,.ai-photo,.timeline,.xr,.c-big';
   var els=[].map.call(document.querySelectorAll(sel),function(el){return {el:el,top:0,h:1,p:-1};});
   var gal=document.getElementById('gallery');
   function haut(el){ var y=0; for(var e=el;e;e=e.offsetParent) y+=e.offsetTop; return y; }
-  function mesurer(){ els.forEach(function(o){ o.top=haut(o.el); o.h=o.el.offsetHeight||1; }); }
+  var pieces=[].map.call(document.querySelectorAll('#gallery .gal-item'),function(it){ return {el:it,top:0,h:1,d:-1}; });
+  function mesurer(){ els.forEach(function(o){ o.top=haut(o.el); o.h=o.el.offsetHeight||1; }); pieces.forEach(function(o){ o.top=haut(o.el); o.h=o.el.offsetHeight; }); }
   mesurer();
   addEventListener('resize',mesurer,{passive:true}); addEventListener('load',mesurer);
+  document.querySelectorAll('.ft').forEach(function(b){ b.addEventListener('click',function(){ setTimeout(mesurer,150); setTimeout(mesurer,800); }); });
   if(window.ResizeObserver) new ResizeObserver(mesurer).observe(document.body);
   var yPrec=window.scrollY, v=0, vAff=99;
   function image(){
@@ -3305,6 +3318,15 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
       if(o.top>y+vh+200 || o.top+o.h<y-200) return;
       var p=(y+vh-o.top)/(vh+o.h); p=p<0?0:(p>1?1:p);
       if(Math.abs(p-o.p)>.0015){ o.p=p; o.el.style.setProperty('--p',p.toFixed(4)); }
+    });
+    // galerie : distance de chaque piece au centre de l'ecran
+    pieces.forEach(function(o){
+      if(o.el.offsetParent===null) return;
+      var c=o.top+o.h/2-y;
+      if(c<-vh*.6 || c>vh*1.6) return;
+      var dd=(c-vh/2)/(vh*.75); dd=dd<-1?-1:(dd>1?1:dd);
+      var a=Math.pow(Math.abs(dd),1.6);
+      if(Math.abs(a-o.d)>.004){ o.d=a; o.el.style.setProperty('--d',a.toFixed(3)); o.el.style.setProperty('--ds',(dd<0?-a:a).toFixed(3)); }
     });
     // vitesse lissee, bornee : l'inclinaison reste elegante
     var d=y-yPrec; yPrec=y;
@@ -3338,6 +3360,6 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   }
 })();
 </script>
-<script type="module" src="js/experiences.js?v=7"></script>
+<script type="module" src="js/experiences.js?v=8"></script>
 </body>
 </html>
