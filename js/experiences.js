@@ -152,6 +152,7 @@ vec3 objectTangent=vec3(tangent.xyz);
     a.rotation.x = Math.PI / 2.2; a.userData.k = k; a.visible = false; scene.add(a); return a;
   });
   let t0 = -1;                      // l'instant ou le rideau s'ouvre
+  let pL = 0;                        // progression lissee
   let pv = 0, pmx = 0, pmy = 0;      // vitesse du pointeur : le metal reagit
 
   const { c, b } = composer(r, scene, cam, 0.3, 0.45, 0.94);
@@ -168,7 +169,10 @@ vec3 objectTangent=vec3(tangent.xyz);
   return function image(t) {
     if (!P.visible()) { P.progression(); return; }
     taille();
-    const p = SOBRE ? 0 : P.progression();
+    // la progression est lissee : meme un defilement brusque donne un mouvement fluide
+    const pBrut = SOBRE ? 0 : P.progression();
+    pL += (pBrut - pL) * 0.075; if (Math.abs(pBrut - pL) < 0.0004) pL = pBrut;
+    const p = pL;
     vit += (Math.abs(p - pPrec) * 60 - vit) * 0.08; pPrec = p;
     const s = t / 1000;
     if (t0 < 0 && document.body.classList.contains('loaded')) t0 = s + 0.15;

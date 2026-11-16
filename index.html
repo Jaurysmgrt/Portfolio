@@ -1621,7 +1621,7 @@ body.loaded .son{opacity:.45}
    ════════════════════════════════════════════════════════════════════ */
 .piste-3d{position:relative}
 .piste-3d .cv-3d{display:none}
-body.avec-3d #ouverture{height:260vh}
+body.avec-3d #ouverture{height:360vh}
 body.avec-3d #selection{height:430vh}
 /* l'arc remplace l'apercu : les projets ne sont jamais montres deux fois avant la galerie */
 body.avec-3d #apercu{display:none}
@@ -2144,6 +2144,40 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 .ch-cta .hero-btn::before{content:'\270E';display:inline-block;margin-right:.5em;transform-origin:30% 80%}
 .ch-cta .hero-btn:hover::before{animation:griffonne .5s ease-in-out infinite}
 @keyframes griffonne{0%,100%{transform:rotate(0) translateX(0)}25%{transform:rotate(-14deg) translateX(-1px)}75%{transform:rotate(10deg) translateX(1px)}}
+
+/* ═══ Stages, nouvelle composition : le calendrier est le visuel ═══ */
+.recit.vivant .ch[data-i="2"]{grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);align-content:center}
+.recit.vivant .ch[data-i="2"] .ch-vis{display:none}
+.recit.vivant .ch[data-i="2"] .ch-txt{max-width:none;margin:0;grid-column:2;grid-row:1}
+.recit.vivant .ch[data-i="2"] .cal{position:relative;left:auto;top:auto;grid-column:1;grid-row:1;justify-self:center;width:clamp(220px,19vw,290px)}
+.recit.vivant .ch[data-i="2"] .cal-num{font-size:clamp(7rem,10vw,10rem)}
+.recit.vivant .ch[data-i="2"] .cal-ent{font-size:1.5rem}
+.cal-tampon{position:absolute;right:-14%;bottom:18%;font-family:'Anton',sans-serif;font-size:1.3rem;text-transform:uppercase;letter-spacing:.06em;color:var(--red2);border:3px solid var(--red2);
+  padding:.15rem .6rem;transform:rotate(-14deg) scale(2.4);opacity:0;background:rgba(6,7,10,.85);pointer-events:none}
+.cal.fini .cal-tampon{animation:tamponC2 .45s cubic-bezier(.3,1.6,.5,1) both}
+@keyframes tamponC2{from{opacity:0;transform:rotate(-14deg) scale(2.4)}to{opacity:1;transform:rotate(-14deg) scale(1)}}
+.cal-page{position:relative;background:#f3f5f8}
+.cal-arrache{position:absolute;left:0;right:0;top:0;pointer-events:none;background:#f3f5f8;transform-origin:20% 0;animation:arrache .9s cubic-bezier(.5,0,.7,.4) both;z-index:2}
+@keyframes arrache{0%{transform:none}25%{transform:rotate(-4deg)}100%{transform:translate3d(60px,130%,0) rotate(24deg);opacity:0}}
+.recit.vivant .ch[data-i="2"].on .cal{transform:rotate(-3deg)}
+.recit.vivant .st-pile .st{font-size:clamp(.95rem,1.15vw,1.1rem)}
+@media(max-width:860px){
+  .recit.vivant .ch[data-i="2"]{grid-template-columns:1fr;align-content:start}
+  .recit.vivant .ch[data-i="2"] .ch-txt{grid-column:1;grid-row:2}
+  .recit.vivant .ch[data-i="2"] .cal{grid-column:1;grid-row:1;justify-self:start;width:132px}
+  .recit.vivant .ch[data-i="2"] .cal-num{font-size:3.6rem}
+  .recit.vivant .ch[data-i="2"] .cal-ent{font-size:.9rem}
+  .cal-tampon{font-size:.8rem;right:-38%;border-width:2px}
+}
+
+/* ═══ Encore des details ═══ */
+/* Projets : sur une video, l'arc passe en mode « tournage » */
+#selection.sur-video .sel-num::before{content:'\25CF  REC  ';color:var(--red2);animation:rec 1s steps(1) infinite}
+@keyframes rec{50%{opacity:.15}}
+/* Page projet : une barre de lecture rouge sous l'en-tete */
+.pp-lecture{position:absolute;left:0;bottom:-1px;height:2px;width:100%;background:var(--red2);transform:scaleX(var(--lu,0));transform-origin:0 50%;pointer-events:none}
+/* Contact : un avion en papier s'envole quand on clique sur l'email */
+.avion{position:fixed;z-index:4000;pointer-events:none;width:34px;height:34px;color:var(--red2);filter:drop-shadow(0 6px 10px rgba(0,0,0,.5))}
 </style>
 </head>
 <body>
@@ -2250,7 +2284,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 <!-- PAGE PROJET PLEIN ÉCRAN (remplie par JS) -->
 <div class="pp" id="projectPage">
   <div class="pp-bg"></div>
-  <div class="pp-bar">
+  <div class="pp-bar"><i class="pp-lecture" aria-hidden="true"></i>
     <button class="pp-back" id="ppBack"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Retour</button>
     <img class="pp-barlogo" id="ppBarLogo" src="" alt="">
   </div>
@@ -2351,7 +2385,7 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
       <div class="billet-fente"><div class="billet"><div class="bi-g"><span class="bi-l">D&eacute;part</span><b>Amiens</b><span class="bi-l">2023</span></div><div class="bi-fl">&rarr;</div><div class="bi-d"><span class="bi-l">Arriv&eacute;e</span><b>Paris</b><span class="bi-l">2025</span></div><div class="bi-pied"><span>Classe : Communication</span><span>Voie DA</span></div><i class="bi-trou"></i></div></div></div></div>
   </article>
   <article class="ch" data-i="2" data-poids="2">
-    <div class="cal" aria-hidden="true"><i class="cal-ann"></i><i class="cal-ann"></i><div class="cal-tete"><span class="cal-ent">AGCO</span><span>2024</span></div><div class="cal-feuille"><span class="cal-num">01</span></div><div class="cal-pied">jour <b class="cal-j">1</b> / 30</div></div>
+    <div class="cal" aria-hidden="true"><i class="cal-ann"></i><i class="cal-ann"></i><div class="cal-page"><div class="cal-tete"><span class="cal-ent">AGCO</span><span>2024</span></div><div class="cal-feuille"><span class="cal-num">01</span></div><div class="cal-pied">jour <b class="cal-j">1</b> / 30</div></div><span class="cal-tampon">1 mois</span></div>
     <div class="ch-txt">
       <span class="ch-tag ln">Chapitre 02 &middot; Premiers terrains</span>
       <h3 class="ch-an ln"><span>2024</span></h3>
@@ -3697,7 +3731,7 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   function maxY(){ return document.documentElement.scrollHeight-innerHeight; }
   function pas(t){
     var dt=Math.min(50,t-tPrec); tPrec=t;
-    cur+=(cible-cur)*(1-Math.exp(-dt/68));
+    cur+=(cible-cur)*(1-Math.exp(-dt/85));
     if(Math.abs(cible-cur)<.4){ cur=cible; actif=false; }
     window.scrollTo(0,cur);
     if(actif) raf=requestAnimationFrame(pas);
@@ -3707,7 +3741,7 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
     if(document.body.style.overflow==='hidden') return;
     if(Math.abs(e.deltaX)>Math.abs(e.deltaY)) return;
     e.preventDefault();
-    var d=e.deltaY*(e.deltaMode===1?40:(e.deltaMode===2?innerHeight:1))*1.25;
+    var d=e.deltaY*(e.deltaMode===1?40:(e.deltaMode===2?innerHeight:1));
     if(!actif){ cur=window.scrollY; cible=cur; }
     cible=Math.max(0,Math.min(maxY(),cible+d));
     if(!actif){ actif=true; tPrec=performance.now(); raf=requestAnimationFrame(pas); }
@@ -3800,7 +3834,7 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   var poids=chs.map(function(c){ return +c.dataset.poids||1; }), cum=[0];
   poids.forEach(function(w,k){ cum.push(cum[k]+w); }); var tot=cum[n];
   sec.style.height=(100+tot*PAR)+'vh';
-  var top=0, course=1, cur=-1, minuterie=0;
+  var top=0, course=1, cur=-1, minuterie=0, menage=0, cible=-1, tCible=0;
   function mesurer(){ var y=0; for(var e=sec;e;e=e.offsetParent) y+=e.offsetTop; top=y; course=Math.max(1,sec.offsetHeight-innerHeight); }
   mesurer(); addEventListener('resize',mesurer,{passive:true}); addEventListener('load',mesurer);
   if(window.ResizeObserver) new ResizeObserver(mesurer).observe(document.body);
@@ -3812,23 +3846,25 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
       var p=Math.max(0,Math.min(1,(y-top)/course));
       var f=p*tot, i=0; while(i<n-1 && f>=cum[i+1]) i++;
       var t=Math.max(0,Math.min(1,(f-cum[i])/poids[i]));
-      chs[i].classList.toggle('b2',t>=.5);
-      if(i!==cur){
-        var ancien=cur;
+      // on ne change de chapitre que quand le defilement s'y pose un instant :
+      // un passage rapide saute les chapitres traverses au lieu de les lancer tous
+      var maint=performance.now();
+      if(i!==cible){ cible=i; tCible=maint; }
+      if(cible!==cur && (cur<0 || maint-tCible>140)){
+        var ancien=cur; cur=cible;
+        clearTimeout(minuterie); clearTimeout(menage);
         if(ancien>=0){
-          // l'ancien chapitre sort d'abord ; le nouveau entre juste apres :
-          // les deux ne se superposent jamais
+          // l'ancien chapitre sort d'abord ; le nouveau entre juste apres
           chs.forEach(function(c,k){ c.classList.remove('on'); c.classList.toggle('sort',k===ancien); });
-          clearTimeout(minuterie);
-          minuterie=setTimeout(function(){ chs.forEach(function(c,k){ c.classList.toggle('on',k===cur); if(k!==cur && k!==ancien) c.classList.remove('sort'); }); },380);
-          setTimeout(function(){ chs.forEach(function(c,k){ if(k!==cur) c.classList.remove('sort'); }); },2600);
+          minuterie=setTimeout(function(){ chs.forEach(function(c,k){ c.classList.toggle('on',k===cur); }); },380);
+          menage=setTimeout(function(){ chs.forEach(function(c,k){ if(k!==cur) c.classList.remove('sort'); }); },2400);
         } else {
-          chs.forEach(function(c,k){ c.classList.toggle('on',k===i); c.classList.remove('sort'); });
+          chs.forEach(function(c,k){ c.classList.toggle('on',k===cur); c.classList.remove('sort'); });
         }
-        rail.forEach(function(b,k){ b.classList.toggle('on',k===i); });
-        if(num) num.textContent=('0'+i).slice(-2);
-        cur=i;
+        rail.forEach(function(b,k){ b.classList.toggle('on',k===cur); });
+        if(num) num.textContent=('0'+cur).slice(-2);
       }
+      if(i===cur) chs[i].classList.toggle('b2',t>=.5);
       chs[i].style.setProperty('--t',t.toFixed(3));
       sec.style.setProperty('--t',t.toFixed(3));
       if(barre) barre.style.width=(p*100).toFixed(2)+'%';
@@ -3983,20 +4019,26 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   var ch=document.querySelector('#histoire .ch[data-i="2"]'); if(!ch) return;
   var num=ch.querySelector('.cal-num'), j=ch.querySelector('.cal-j'), ent=ch.querySelector('.cal-ent'); if(!num) return;
   var anim=0, etat='';
+  var cal=ch.querySelector('.cal'), page=ch.querySelector('.cal-page');
+  function arracher(){
+    if(!page) return;
+    var c=page.cloneNode(true); c.className='cal-arrache'; cal.appendChild(c);
+    setTimeout(function(){ c.remove(); },950);
+  }
   function compter(nom){
-    cancelAnimationFrame(anim); ent.textContent=nom;
+    cancelAnimationFrame(anim); ent.textContent=nom; cal.classList.remove('fini');
     var t0=performance.now(), D=1700, prec=0;
     (function pas(t){
       var u=Math.min(1,(t-t0)/D), e=1-Math.pow(1-u,3), d=Math.max(1,Math.round(1+e*29));
       if(d!==prec){ prec=d; num.textContent=(d<10?'0':'')+d; j.textContent=d;
         if(num.animate) num.animate([{transform:'rotateX(-70deg)',opacity:.3},{transform:'none',opacity:1}],{duration:Math.min(180,60+u*160),easing:'ease-out'}); }
-      if(u<1) anim=requestAnimationFrame(pas);
+      if(u<1) anim=requestAnimationFrame(pas); else cal.classList.add('fini');
     })(t0);
   }
   new MutationObserver(function(){
     var on=ch.classList.contains('on'), b2=ch.classList.contains('b2');
     var s=on?(b2?'tredelec':'agco'):'';
-    if(s!==etat){ etat=s; if(s==='agco') setTimeout(function(){ if(etat==='agco') compter('AGCO'); },350); else if(s==='tredelec') compter('Tredelec'); }
+    if(s!==etat){ etat=s; if(s==='agco') setTimeout(function(){ if(etat==='agco') compter('AGCO'); },420); else if(s==='tredelec'){ arracher(); compter('Tredelec'); } else { cancelAnimationFrame(anim); cal.classList.remove('fini'); } }
   }).observe(ch,{attributes:true,attributeFilter:['class']});
 })();
 </script>
@@ -4035,6 +4077,28 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   }
 })();
 </script>
-<script type="module" src="js/experiences.js?v=16"></script>
+<script>
+// ═══ Encore des details ═══
+(function(){
+  // page projet : la barre de lecture suit le defilement de la fiche
+  var pp=document.getElementById('projectPage'), lec=pp&&pp.querySelector('.pp-lecture');
+  if(pp&&lec) pp.addEventListener('scroll',function(){
+    var m=pp.scrollHeight-pp.clientHeight; lec.style.setProperty('--lu',m>0?(pp.scrollTop/m).toFixed(3):0);
+  },{passive:true});
+  // l'avion en papier : chaque clic sur un email s'envole vers le haut
+  if(!matchMedia('(prefers-reduced-motion:reduce)').matches)
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('a[href^="mailto:"]'); if(!a||!document.body.animate) return;
+    var r=a.getBoundingClientRect(), x=r.left+r.width/2, y=r.top;
+    var av=document.createElement('div'); av.className='avion';
+    av.innerHTML='<svg viewBox="0 0 24 24" width="34" height="34"><path d="M2 11.5 22 3l-6.5 18-3.6-7.2L2 11.5Z" fill="currentColor"/><path d="m11.9 13.8 3.6-6.3" stroke="#06070a" stroke-width="1.2"/></svg>';
+    av.style.left=(x-17)+'px'; av.style.top=(y-17)+'px'; document.body.appendChild(av);
+    av.animate([{transform:'translate3d(0,0,0) rotate(0) scale(.6)',opacity:0},{transform:'translate3d(30px,-30px,0) rotate(-8deg) scale(1)',opacity:1,offset:.15},
+      {transform:'translate3d(160px,-140px,0) rotate(10deg)',offset:.55},{transform:'translate3d('+(innerWidth*.5)+'px,'+(-innerHeight*.7)+'px,0) rotate(-20deg) scale(.7)',opacity:0}],
+      {duration:1500,easing:'cubic-bezier(.4,0,.2,1)'}).onfinish=function(){ av.remove(); };
+  });
+})();
+</script>
+<script type="module" src="js/experiences.js?v=17"></script>
 </body>
 </html>
