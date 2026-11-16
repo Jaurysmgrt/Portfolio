@@ -1850,9 +1850,9 @@ body.avec-3d #portfolio{display:none}
 
 /* ═══ L'ouverture, version spectacle ═══ */
 /* les lettres s'ecrasent une a une a l'ouverture du rideau */
-.hn .lt{display:inline-block;opacity:0;transform:translate3d(0,-60%,0) scale(2.6) rotate(-8deg);filter:blur(6px);
-  transition:transform 1.3s cubic-bezier(.16,1.2,.3,1),opacity .6s,filter .8s;transition-delay:calc(.6s + var(--i,0) * 120ms)}
-body.loaded .hn .lt{opacity:1;transform:none;filter:none}
+.hn .lt{display:inline-block;opacity:0;transform:translate3d(0,-40%,0) scale(1.8) rotate(-6deg);
+  transition:transform 1s cubic-bezier(.16,1.2,.3,1),opacity .45s;transition-delay:calc(.1s + var(--i,0) * 70ms)}
+body.loaded .hn .lt{opacity:1;transform:none}
 /* au defilement, elles eclatent chacune dans sa direction */
 body.avec-3d #ouverture .hn{overflow:visible}
 body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc(var(--o1,0) * var(--dy,0vh));rotate:calc(var(--o1,0) * var(--dr,0deg))}
@@ -2812,7 +2812,9 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 // Rien n'est bloqué par un faux chargement : la page est prête bien avant.
 (function(){
   var lo=document.getElementById('loader'), pct=document.getElementById('loPct');
-  if(!lo){ document.body.classList.add('loaded'); return; }
+  // plus d'ecran d'entree bloquant : on arrive directement sur le site
+  if(lo && lo.parentNode) lo.parentNode.removeChild(lo);
+  document.body.classList.add('loaded'); return;
 
   var sobre = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   var revu  = false;
@@ -3976,7 +3978,13 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   rail.forEach(function(b){ b.addEventListener('click',function(){ aller(+b.dataset.i); }); });
   function image(){
     var y=window.scrollY;
-    if(y>top-innerHeight && y<top+course+innerHeight){
+    var dedans = y>top-innerHeight*.3 && y<top+course+innerHeight*.5;
+    if(!dedans && cur>=0){
+      clearTimeout(minuterie); clearTimeout(menage);
+      chs.forEach(function(c){ c.classList.remove('on','sort','b2'); });
+      cur=-1; cible=-1;
+    }
+    if(dedans){
       var p=Math.max(0,Math.min(1,(y-top)/course));
       var f=p*tot, i=0; while(i<n-1 && f>=cum[i+1]) i++;
       var t=Math.max(0,Math.min(1,(f-cum[i])/poids[i]));
@@ -4221,6 +4229,6 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   });
 })();
 </script>
-<script type="module" src="js/experiences.js?v=20"></script>
+<script type="module" src="js/experiences.js?v=21"></script>
 </body>
 </html>

@@ -438,12 +438,12 @@ function demarrer() {
     if (!vivant) return;
     const dt = tPrec ? t - tPrec : 16; tPrec = t;
     const actif = scenes.map(f => f(t)).some(Boolean);
-    if (actif && dt < 200) {
+    if (actif && dt < 200 && t > 3000) {   // les premieres secondes (chargement) ne comptent pas
       cumul += dt; n++;
       if (n >= 40) {
         const moy = cumul / n; cumul = 0; n = 0;
-        if (moy > 18.5 && Q.f > 0.5) { Q.f = Math.max(0.5, Q.f * 0.8); Q.v++; calme = 0; }
-        else if (moy < 14 && Q.f < 1 && ++calme > 4) { Q.f = Math.min(1, Q.f * 1.1); Q.v++; calme = 0; }
+        if (moy > 18.5 && Q.f > 0.7) { Q.f = Math.max(0.7, Q.f * 0.85); Q.v++; calme = 0; }
+        else if (moy < 15 && Q.f < 1 && ++calme > 1) { Q.f = Math.min(1, Q.f * 1.15); Q.v++; calme = 0; }
       }
     }
     requestAnimationFrame(boucle);
