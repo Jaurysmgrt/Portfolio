@@ -1910,7 +1910,7 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
 
 /* ═══ Talon Pointe : une voiture traverse l'ecran, se gare, puis repart ═══ */
 .ch[data-i="4"] .ch-vis{flex-direction:column;gap:3vh}
-.ch-voiture{width:min(720px,46vw)}
+.ch-voiture{width:100%}
 .ch-voiture svg{display:block;width:100%;height:auto;overflow:visible}
 .ch-voiture .roue{transform-box:fill-box;transform-origin:center}
 .recit.vivant .ch[data-i="4"] .ch-vis,.recit.vivant .ch[data-i="4"].on .ch-vis{transform:none;clip-path:none;opacity:1}
@@ -1932,7 +1932,26 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
 .recit.vivant .ch[data-i="4"].on .ch-vis::before{opacity:1;animation:vitesse 1.25s cubic-bezier(.16,1,.3,1) both}
 @keyframes vitesse{from{transform:translate3d(60vw,0,0);opacity:1}to{transform:translate3d(0,0,0);opacity:.35}}
 @media(prefers-reduced-motion:reduce){.ch-voiture,.ch-voiture .roue{animation:none!important;transform:none!important}}
-@media(max-width:860px){.ch-voiture{width:78vw}.ch[data-i="4"] .ch-vis{gap:1.4vh}}
+@media(max-width:860px){.ch[data-i="4"] .ch-vis{gap:1.4vh}}
+
+/* ═══ La fumee : au freinage, puis le depart en trombe ═══
+   Des bouffees en degrade radial (pas de flou calcule) : legeres a afficher.
+   Elles restent sur la route quand la voiture s'en va. */
+.ch-route{position:relative;width:min(720px,46vw)}
+.ch-route .ch-voiture{width:100%}
+.fumee{position:absolute;inset:0;pointer-events:none;z-index:2}
+.fumee i{position:absolute;bottom:2%;width:16%;aspect-ratio:2.2/1;margin-left:-8%;border-radius:50%;opacity:0;
+  background:radial-gradient(ellipse at 50% 60%,rgba(214,222,232,.42),rgba(190,200,212,.2) 40%,rgba(160,170,184,0) 70%);transform:scale(.2);transform-origin:50% 100%}
+.recit.vivant .ch[data-i="4"].on .fumee i.frein{animation:bouffee 1.6s cubic-bezier(.2,.7,.3,1) both;animation-delay:var(--d)}
+.recit.vivant .ch[data-i="4"].sort .fumee i.depart{animation:bouffee 1.5s cubic-bezier(.2,.7,.3,1) both;animation-delay:var(--d)}
+@keyframes bouffee{
+  0%{opacity:0;transform:translate3d(0,0,0) scale(.25)}
+  14%{opacity:var(--o,.85)}
+  100%{opacity:0;transform:translate3d(var(--dx),var(--dy),0) scale(var(--s))}}
+/* la chapitre qui part garde sa route visible le temps que la fumee retombe */
+.recit.vivant .ch[data-i="4"].sort .ch-vis{transform:none!important;opacity:1!important;clip-path:none}
+@media(max-width:860px){.ch-route{width:78vw}}
+@media(prefers-reduced-motion:reduce){.fumee{display:none}}
 </style>
 </head>
 <body>
@@ -2167,6 +2186,7 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
       <p class="ch-p ln">R&eacute;seaux sociaux, calendrier &eacute;ditorial, storytelling visuel et image de marque.</p>
     </div>
     <div class="ch-vis" aria-hidden="true"><div class="ch-logo ch-logo-tp"><img src="images/logo-talon-pointe.svg" alt="" loading="lazy" decoding="async"></div>
+      <div class="ch-route"><div class="fumee" aria-hidden="true"></div>
       <div class="ch-voiture"><svg viewBox="0 0 600 190" aria-hidden="true">
         <defs><linearGradient id="carro" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a323d"/><stop offset=".55" stop-color="#11161d"/><stop offset="1" stop-color="#07090d"/></linearGradient></defs>
         <ellipse cx="305" cy="168" rx="270" ry="10" fill="rgba(0,0,0,.6)"/>
@@ -2177,7 +2197,7 @@ body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc
         <rect x="24" y="110" width="16" height="6" rx="2" fill="#e8eef5"/>
         <g class="roue"><circle cx="150" cy="140" r="33" fill="#05070a" stroke="#a9b7c6" stroke-width="2"/><circle cx="150" cy="140" r="20" fill="none" stroke="#ff4433" stroke-width="2"/><path d="M150 120 V160 M130 140 H170 M136 126 L164 154 M164 126 L136 154" stroke="#a9b7c6" stroke-width="2"/></g>
         <g class="roue"><circle cx="470" cy="140" r="33" fill="#05070a" stroke="#a9b7c6" stroke-width="2"/><circle cx="470" cy="140" r="20" fill="none" stroke="#ff4433" stroke-width="2"/><path d="M470 120 V160 M450 140 H490 M456 126 L484 154 M484 126 L456 154" stroke="#a9b7c6" stroke-width="2"/></g>
-      </svg></div></div>
+      </svg></div></div></div>
   </article>
   <article class="ch" data-i="5">
     <div class="ch-txt">
@@ -3538,6 +3558,21 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   function mesurer(){ var y=0; for(var e=sec;e;e=e.offsetParent) y+=e.offsetTop; top=y; course=Math.max(1,sec.offsetHeight-innerHeight); }
   mesurer(); addEventListener('resize',mesurer,{passive:true}); addEventListener('load',mesurer);
   if(window.ResizeObserver) new ResizeObserver(mesurer).observe(document.body);
+  // les bouffees de fumee de la voiture (positions des roues : 25 % et 78 %)
+  var fum=sec.querySelector('.fumee');
+  if(fum){
+    function bouffee(cls,x,d,dx,dy,sc,o){
+      var b=document.createElement('i'); b.className=cls;
+      b.style.left=x+'%'; b.style.setProperty('--d',d+'s'); b.style.setProperty('--dx',dx+'%'); b.style.setProperty('--dy',dy+'%');
+      b.style.setProperty('--s',sc); b.style.setProperty('--o',o); fum.appendChild(b);
+    }
+    var r=function(a,b){ return a+Math.random()*(b-a); };
+    // au freinage : les pneus fument aux deux roues, la fumee part vers l'arriere (a droite)
+    for(var k=0;k<9;k++){ bouffee('frein',25+r(-3,4),.5+k*.05,r(30,220),r(-40,-5),r(1.8,3.4),r(.45,.75)); }
+    for(var k2=0;k2<11;k2++){ bouffee('frein',78+r(-3,4),.45+k2*.05,r(40,280),r(-50,-5),r(2,3.8),r(.5,.8)); }
+    // au depart : patinage, un gros nuage derriere la roue arriere
+    for(var k3=0;k3<20;k3++){ bouffee('depart',70+r(-4,16),k3*.03,r(20,320),r(-90,-5),r(2.6,5.4),r(.55,.9)); }
+  }
   function aller(i){ window.scrollTo({top:top+course*(i+.5)/n,behavior:'smooth'}); }
   rail.forEach(function(b){ b.addEventListener('click',function(){ aller(+b.dataset.i); }); });
   function image(){
@@ -3553,7 +3588,7 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
           chs.forEach(function(c,k){ c.classList.remove('on'); c.classList.toggle('sort',k===ancien); });
           clearTimeout(minuterie);
           minuterie=setTimeout(function(){ chs.forEach(function(c,k){ c.classList.toggle('on',k===cur); if(k!==cur && k!==ancien) c.classList.remove('sort'); }); },380);
-          setTimeout(function(){ chs.forEach(function(c,k){ if(k!==cur) c.classList.remove('sort'); }); },900);
+          setTimeout(function(){ chs.forEach(function(c,k){ if(k!==cur) c.classList.remove('sort'); }); },1700);
         } else {
           chs.forEach(function(c,k){ c.classList.toggle('on',k===i); c.classList.remove('sort'); });
         }
