@@ -146,6 +146,13 @@ vec3 objectTangent=vec3(tangent.xyz);
   const froid = new THREE.PointLight(0x9cc4ff, 25, 20, 2); froid.position.set(-4, 2, 3); scene.add(froid);
   const anneau = new THREE.Mesh(new THREE.TorusGeometry(2.4, 0.012, 16, 220), new THREE.MeshBasicMaterial({ color: 0xff3b24 }));
   anneau.rotation.x = Math.PI / 2.2; scene.add(anneau);
+  // deux anneaux de plus, plus loin : quand on les traverse, ca devient un tunnel
+  const anneaux = [0.7, 1.5].map((k, i) => {
+    const a = new THREE.Mesh(new THREE.TorusGeometry(2.4 * (1 + k * .35), 0.01, 12, 200), new THREE.MeshBasicMaterial({ color: i ? 0x9cc4ff : 0xff3b24, transparent: true, opacity: .8 }));
+    a.rotation.x = Math.PI / 2.2; a.userData.k = k; a.visible = false; scene.add(a); return a;
+  });
+  let t0 = -1;                      // l'instant ou le rideau s'ouvre
+  let pv = 0, pmx = 0, pmy = 0;      // vitesse du pointeur : le metal reagit
 
   const { c, b } = composer(r, scene, cam, 0.3, 0.45, 0.94);
   if (TACTILE) b.enabled = false;   // sur telephone : pas de halo, la fluidite d'abord
@@ -164,20 +171,30 @@ vec3 objectTangent=vec3(tangent.xyz);
     const p = SOBRE ? 0 : P.progression();
     vit += (Math.abs(p - pPrec) * 60 - vit) * 0.08; pPrec = p;
     const s = t / 1000;
+    if (t0 < 0 && document.body.classList.contains('loaded')) t0 = s + 0.15;
+    const e = t0 < 0 ? 0 : clamp((s - t0) / 1.9);          // l'arrivee, de 0 a 1
+    const ressort = e <= 0 ? 0.001 : (e >= 1 ? 1 : Math.pow(2, -9 * e) * Math.sin((e * 10 - .75) * (2 * Math.PI / 3)) + 1);
+    const eclat = Math.pow(1 - e, 3);
+    const dpx = mx - pmx, dpy = my - pmy; pmx = mx; pmy = my;
+    pv += (Math.min(1, Math.hypot(dpx, dpy) * 14) - pv) * 0.08;
+    const p4 = doux(clamp((p - 0.78) / 0.22));             // la traversee de l'anneau
     const p1 = doux(clamp(p / 0.45)), p2 = doux(clamp((p - 0.25) / 0.45)), p3 = doux(clamp((p - 0.55) / 0.4));
-    U.uT.value = s; U.uAmp.value = 0.16 + p2 * 0.12 + Math.min(0.12, vit * 0.5) + p3 * 0.04;
+    U.uT.value = s; U.uAmp.value = 0.16 + p2 * 0.12 + Math.min(0.12, vit * 0.5) + p3 * 0.04 + eclat * 0.7 + pv * 0.22;
     U.uFreq.value = 1.1 + p2 * 0.8; U.uTore.value = p3;
     forme.rotation.y = s * 0.12 + p * 5.2; forme.rotation.x = p * 1.4 + my * 0.15;
-    forme.scale.setScalar(mix(0.95, 1.12, p1) * mix(1, 1.2, p3));
+    forme.scale.setScalar(mix(0.95, 1.12, p1) * mix(1, 1.2, p3) * ressort * Math.max(0.001, 1 - p4 * 1.15));
+    forme.position.x += (mx * 0.35 * (1 - p2) - forme.position.x) * 0.05; forme.position.y += (-my * 0.22 * (1 - p2) - forme.position.y) * 0.05;
     const ang = p * 2.4 + mx * 0.15;
     const dz = cam.aspect < 1 ? 9.5 : 6.6;
-    const d = mix(dz, dz * 1.08, p2);
+    const d = mix(dz, dz * 1.08, p2) * (1 - p4 * 0.55) * mix(1, 1.35, eclat);
     cam.position.set(Math.sin(ang) * d, mix(0.2, 1.4, p2) - p3 * 1.1, Math.cos(ang) * d);
     cam.lookAt(0, 0, 0);
     rouge.position.set(Math.cos(s * 0.6 + p * 6) * 3.2, Math.sin(p * 4) * 1.5 + 1, Math.sin(s * 0.6 + p * 6) * 3.2);
     rouge.intensity = 12 + p3 * 6;
-    anneau.scale.setScalar(mix(0.2, 1.25, p3)); anneau.visible = p3 > 0.02; anneau.rotation.z = s * 0.2;
-    if (b.enabled) b.strength = 0.25 + p3 * 0.1;
+    anneau.scale.setScalar(mix(0.2, 1.25, p3) * (1 + p4 * 2.2)); anneau.visible = p3 > 0.02; anneau.rotation.z = s * 0.2;
+    anneaux.forEach(a => { a.visible = p3 > 0.3; a.scale.setScalar(mix(0.3, 1, p3) * (1 + p4 * (2 + a.userData.k * 2))); a.rotation.z = -s * (0.15 + a.userData.k * .1); a.position.y = -a.userData.k * (1 - p4) * 0.8; });
+    r.toneMappingExposure = 0.95 + eclat * 1.6;
+    if (b.enabled) b.strength = 0.25 + p3 * 0.1 + eclat * 1.4 + p4 * 0.3;
     // la typographie accompagne : le nom s'ecarte, le reste du hero s'efface
     if (hero) { hero.style.setProperty('--o1', p1.toFixed(3)); hero.style.setProperty('--o2', p2.toFixed(3)); }
     c.render(); return true;
