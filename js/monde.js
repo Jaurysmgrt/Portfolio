@@ -33,7 +33,7 @@ export async function demarrer() {
     let on = false;
     const etat = v => { on = v; btn.setAttribute('aria-pressed', v ? 'true' : 'false');
       try { localStorage.setItem('jm-son', v ? '1' : '0'); } catch (e) {} };
-    const charger = () => import('./son.js?v=3').then(m => { SON = m; m.allumer(); etat(true); m.son.tension(); });
+    const charger = () => import('./son.js?v=5').then(m => { SON = m; m.allumer(); etat(true); m.son.tension(); });
     btn.addEventListener('click', () => {
       if (!SON) return charger();
       if (on) { SON.eteindre(); etat(false); } else { SON.allumer(); etat(true); SON.son.tic(); }
@@ -43,7 +43,7 @@ export async function demarrer() {
     if (voulu) {
       const reveil = () => { document.removeEventListener('pointerdown', reveil);
         document.removeEventListener('keydown', reveil);
-        import('./son.js?v=3').then(m => { SON = m; m.allumer(); etat(true); }); };
+        import('./son.js?v=5').then(m => { SON = m; m.allumer(); etat(true); }); };
       document.addEventListener('pointerdown', reveil, { once: true });
       document.addEventListener('keydown', reveil, { once: true });
     }
