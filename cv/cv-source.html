@@ -14,50 +14,50 @@
 @font-face{font-family:'Plex Sans';src:url(fonts/ibm-plex-sans-latin-600-normal.woff) format('woff');font-weight:600}
 
 /* La DA du portfolio, en plus calme : nuit, blanc, un seul rouge. */
-:root{--nuit:#06070a;--blanc:#fff;--texte:#c9d2db;--gris:#7d8b99;--filet:#1f2731;--rouge:#e0301e}
+:root{--nuit:#06070a;--blanc:#fff;--texte:#dfe5eb;--gris:#a3afbb;--filet:#2a3440;--rouge:#ff3b26}
 *{margin:0;padding:0;box-sizing:border-box}
 @page{size:A4;margin:0}
 html,body{width:210mm;height:297mm;background:var(--nuit)}
-body{font-family:'Plex Sans',Arial,sans-serif;font-size:9.2pt;line-height:1.45;color:var(--texte);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:'Plex Sans',Arial,sans-serif;font-size:9.8pt;line-height:1.42;color:var(--texte);-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .page{width:210mm;height:297mm;overflow:hidden;display:flex;flex-direction:column;padding:9mm 15mm 0}
 .mono{font-family:'Plex Mono',monospace;font-weight:500;text-transform:uppercase;letter-spacing:.2em}
 
 /* ── le nom, en affiche ── */
-header{display:grid;grid-template-columns:1fr 44mm;gap:8mm;align-items:end}
-h1{font-family:'Anton',Impact,sans-serif;font-weight:400;text-transform:uppercase;line-height:.84;font-size:66pt;letter-spacing:-.005em}
+header{display:grid;grid-template-columns:1fr 38mm;gap:8mm;align-items:end}
+h1{font-family:'Anton',Impact,sans-serif;font-weight:400;text-transform:uppercase;line-height:.84;font-size:54pt;letter-spacing:-.005em}
 h1 span{display:block}
 h1 .l1{color:var(--blanc)}
 h1 .l2{color:var(--rouge)}
-.accroche{margin-top:4mm;font-size:11.5pt;font-weight:500;color:var(--blanc);line-height:1.35}
+.accroche{margin-top:4mm;font-size:12pt;font-weight:500;color:var(--blanc);line-height:1.35}
 .accroche b{font-weight:600;color:var(--rouge)}
-.photo{height:48mm;position:relative;overflow:hidden}
+.photo{height:40mm;position:relative;overflow:hidden}
 .photo img{width:100%;height:100%;object-fit:cover;object-position:50% 18%;display:block;filter:grayscale(1) contrast(1.05)}
-.contact{display:flex;flex-wrap:wrap;gap:1mm 5mm;margin-top:4.5mm;padding:2.3mm 0;border-top:.3mm solid var(--filet);border-bottom:.3mm solid var(--filet);font-size:8.3pt;color:var(--texte)}
+.contact{display:flex;flex-wrap:wrap;gap:1mm 5mm;margin-top:4.5mm;padding:2.3mm 0;border-top:.3mm solid var(--filet);border-bottom:.3mm solid var(--filet);font-size:9pt;color:var(--texte)}
 .contact a{color:var(--blanc);text-decoration:none;border-bottom:.3mm solid var(--rouge);padding-bottom:.2mm}
 
 /* ── le parcours : une frise de dates ── */
 main{flex:1;padding-top:3.6mm}
-section{margin-bottom:2.4mm}
-h2{font-size:7pt;color:var(--rouge);margin-bottom:2.6mm}
-.profil{font-size:10.2pt;line-height:1.55;color:var(--blanc);max-width:165mm}
-.ligne{display:grid;grid-template-columns:30mm 1fr;gap:5mm;padding:1.3mm 0;border-top:.3mm solid var(--filet)}
+section{margin-bottom:2.6mm}
+h2{font-size:8.2pt;color:var(--rouge);margin-bottom:2.6mm}
+.profil{font-size:10.6pt;line-height:1.5;color:var(--blanc);max-width:165mm}
+.ligne{display:grid;grid-template-columns:30mm 1fr;gap:5mm;padding:1.5mm 0;border-top:.3mm solid var(--filet)}
 .ligne:first-of-type{border-top:0;padding-top:0}
-.date{font-size:7.4pt;letter-spacing:.12em;color:var(--gris);padding-top:.6mm}
-h3{font-family:'Anton',Impact,sans-serif;font-weight:400;font-size:13pt;line-height:1.05;text-transform:uppercase;letter-spacing:.01em;color:var(--blanc)}
-.lieu{font-size:8.8pt;color:var(--gris);margin-top:.4mm}
-.lieu-i{font-family:'Plex Sans',Arial,sans-serif;font-size:8.8pt;text-transform:none;letter-spacing:0;color:var(--gris);font-weight:400}
+.date{font-size:8.4pt;letter-spacing:.1em;color:var(--gris);padding-top:.6mm}
+h3{font-family:'Anton',Impact,sans-serif;font-weight:400;font-size:14pt;line-height:1.05;text-transform:uppercase;letter-spacing:.01em;color:var(--blanc)}
+.lieu{font-size:9.6pt;color:var(--gris);margin-top:.6mm}
+.lieu-i{font-family:'Plex Sans',Arial,sans-serif;font-size:9.6pt;text-transform:none;letter-spacing:0;color:var(--gris);font-weight:400}
 ul{list-style:none;margin-top:1mm}
-li{position:relative;padding-left:4mm;margin-bottom:.3mm}
-li::before{content:'';position:absolute;left:0;top:2.3mm;width:2mm;height:.5mm;background:var(--rouge)}
-.comp{display:grid;grid-template-columns:30mm 1fr;gap:5mm;padding:1.1mm 0}
-.comp dt{font-size:7.4pt;letter-spacing:.12em;color:var(--gris);padding-top:.5mm}
+li{position:relative;padding-left:4mm;margin-bottom:.2mm}
+li::before{content:'';position:absolute;left:0;top:2.5mm;width:2mm;height:.5mm;background:var(--rouge)}
+.comp{display:grid;grid-template-columns:30mm 1fr;gap:5mm;padding:1.4mm 0}
+.comp dt{font-size:8.4pt;letter-spacing:.1em;color:var(--gris);padding-top:.5mm}
 .comp dd{color:var(--blanc)}
 
 /* ── pied : le portfolio ── */
-footer{display:flex;align-items:center;gap:6mm;margin:0 -15mm;padding:4mm 15mm 5mm;border-top:1.2mm solid var(--rouge)}
+footer{display:flex;align-items:center;gap:6mm;margin:0 -15mm;padding:3.4mm 15mm 4.4mm;border-top:1.2mm solid var(--rouge)}
 .qr{width:22mm;height:22mm;flex:0 0 22mm;background:#fff;padding:1.3mm;display:block}
 .qr svg{display:block;width:100%;height:100%}
-.cta b{display:block;font-size:6.8pt;color:var(--rouge);margin-bottom:1.6mm;font-weight:500}
+.cta b{display:block;font-size:7.6pt;color:var(--rouge);margin-bottom:1.6mm;font-weight:500}
 .cta a{font-family:'Anton',Impact,sans-serif;font-weight:400;font-size:24pt;line-height:1;color:var(--blanc);text-decoration:none;text-transform:uppercase}
 </style>
 </head>
@@ -126,8 +126,8 @@ footer{display:flex;align-items:center;gap:6mm;margin:0 -15mm;padding:4mm 15mm 5
 
   <section>
     <h2 class="mono">Formation</h2>
-    <div class="ligne"><div class="date mono">2026 – 2027</div><div><h3>Master Direction Artistique (M1) <span class="lieu-i">· ESP Paris · en cours</span></h3><div class="lieu">Projet : campagne d'affichage Five Guys, trilogie A4 et note d'intention</div></div></div>
-    <div class="ligne"><div class="date mono">2025</div><div><h3>Bachelor Création Publicitaire (B3) <span class="lieu-i">· ESP Paris</span></h3><div class="lieu">Projets : affiche Hermès Cardamusc · campagne de recrutement Atol, brief réel en une semaine</div></div></div>
+    <div class="ligne"><div class="date mono">2026 – 2027</div><div><h3>Master Direction Artistique (M1) <span class="lieu-i">· ESP Paris · en cours</span></h3></div></div>
+    <div class="ligne"><div class="date mono">2025</div><div><h3>Bachelor Création Publicitaire (B3) <span class="lieu-i">· ESP Paris</span></h3></div></div>
     <div class="ligne"><div class="date mono">2023</div><div><h3>BTS Communication <span class="lieu-i">· Amiens</span></h3></div></div>
   </section>
 
