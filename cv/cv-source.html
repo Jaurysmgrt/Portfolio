@@ -19,7 +19,7 @@
 @page{size:A4;margin:0}
 html,body{width:210mm;height:297mm;background:var(--nuit)}
 body{font-family:'Plex Sans',Arial,sans-serif;font-size:9.2pt;line-height:1.45;color:var(--texte);-webkit-print-color-adjust:exact;print-color-adjust:exact}
-.page{width:210mm;height:297mm;overflow:hidden;display:flex;flex-direction:column;padding:11mm 15mm 0}
+.page{width:210mm;height:297mm;overflow:hidden;display:flex;flex-direction:column;padding:9mm 15mm 0}
 .mono{font-family:'Plex Mono',monospace;font-weight:500;text-transform:uppercase;letter-spacing:.2em}
 
 /* ── le nom, en affiche ── */
@@ -32,15 +32,15 @@ h1 .l2{color:var(--rouge)}
 .accroche b{font-weight:600;color:var(--rouge)}
 .photo{height:48mm;position:relative;overflow:hidden}
 .photo img{width:100%;height:100%;object-fit:cover;object-position:50% 18%;display:block;filter:grayscale(1) contrast(1.05)}
-.contact{display:flex;flex-wrap:wrap;gap:1mm 5mm;margin-top:5.5mm;padding:2.6mm 0;border-top:.3mm solid var(--filet);border-bottom:.3mm solid var(--filet);font-size:8.3pt;color:var(--texte)}
+.contact{display:flex;flex-wrap:wrap;gap:1mm 5mm;margin-top:4.5mm;padding:2.3mm 0;border-top:.3mm solid var(--filet);border-bottom:.3mm solid var(--filet);font-size:8.3pt;color:var(--texte)}
 .contact a{color:var(--blanc);text-decoration:none;border-bottom:.3mm solid var(--rouge);padding-bottom:.2mm}
 
 /* ── le parcours : une frise de dates ── */
-main{flex:1;padding-top:4.5mm}
-section{margin-bottom:3.4mm}
+main{flex:1;padding-top:3.6mm}
+section{margin-bottom:2.4mm}
 h2{font-size:7pt;color:var(--rouge);margin-bottom:2.6mm}
 .profil{font-size:10.2pt;line-height:1.55;color:var(--blanc);max-width:165mm}
-.ligne{display:grid;grid-template-columns:30mm 1fr;gap:5mm;padding:1.6mm 0;border-top:.3mm solid var(--filet)}
+.ligne{display:grid;grid-template-columns:30mm 1fr;gap:5mm;padding:1.3mm 0;border-top:.3mm solid var(--filet)}
 .ligne:first-of-type{border-top:0;padding-top:0}
 .date{font-size:7.4pt;letter-spacing:.12em;color:var(--gris);padding-top:.6mm}
 h3{font-family:'Anton',Impact,sans-serif;font-weight:400;font-size:13pt;line-height:1.05;text-transform:uppercase;letter-spacing:.01em;color:var(--blanc)}
@@ -67,7 +67,7 @@ footer{display:flex;align-items:center;gap:6mm;margin:0 -15mm;padding:4mm 15mm 5
 <header>
   <div>
     <h1><span class="l1">Jaurys</span><span class="l2">Maigret</span></h1>
-    <p class="accroche">Directeur artistique en formation · Master DA à l'ESP Paris<br><b>Disponible dès maintenant en alternance</b> · publicité et création visuelle</p>
+    <p class="accroche">Directeur artistique en formation · Master DA à l'ESP Paris<br><b>Disponible dès maintenant en alternance</b> · <span style="white-space:nowrap">pub &amp; création visuelle</span><br>Rythme : <b>4 jours en entreprise / 1 jour à l'école</b></p>
   </div>
   <div class="photo"><img src="../images/profil.jpg" alt="Portrait de Jaurys Maigret"></div>
 </header>
@@ -126,8 +126,8 @@ footer{display:flex;align-items:center;gap:6mm;margin:0 -15mm;padding:4mm 15mm 5
 
   <section>
     <h2 class="mono">Formation</h2>
-    <div class="ligne"><div class="date mono">2026 – 2027</div><div><h3>Master Direction Artistique (M1) <span class="lieu-i">· ESP Paris · en cours</span></h3></div></div>
-    <div class="ligne"><div class="date mono">2025</div><div><h3>Bachelor Création Publicitaire (B3) <span class="lieu-i">· ESP Paris</span></h3></div></div>
+    <div class="ligne"><div class="date mono">2026 – 2027</div><div><h3>Master Direction Artistique (M1) <span class="lieu-i">· ESP Paris · en cours</span></h3><div class="lieu">Projet : campagne d'affichage Five Guys, trilogie A4 et note d'intention</div></div></div>
+    <div class="ligne"><div class="date mono">2025</div><div><h3>Bachelor Création Publicitaire (B3) <span class="lieu-i">· ESP Paris</span></h3><div class="lieu">Projets : affiche Hermès Cardamusc · campagne de recrutement Atol, brief réel en une semaine</div></div></div>
     <div class="ligne"><div class="date mono">2023</div><div><h3>BTS Communication <span class="lieu-i">· Amiens</span></h3></div></div>
   </section>
 
