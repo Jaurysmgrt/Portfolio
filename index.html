@@ -1139,6 +1139,12 @@ body.voyage .sec,body.voyage .porte{
   opacity:0;transition:opacity .8s ease .6s,color .25s,border-color .25s}
 body.loaded .son{opacity:1}
 .son:hover,.son:focus-visible{color:var(--cream);border-color:var(--red2)}
+/* la page bat avec la musique : les pulsations suivent le temps */
+html.musique .avail-dot,html.musique .pouls{animation:none;transition:transform .55s cubic-bezier(.2,.8,.3,1),box-shadow .55s ease-out}
+html.musique.bat .avail-dot,html.musique.bat .pouls{transform:scale(1.35);box-shadow:0 0 0 4px rgba(255,68,51,.16);transition:none}
+html.musique.bat-fort .avail-dot,html.musique.bat-fort .pouls{transform:scale(1.6);box-shadow:0 0 0 6px rgba(255,68,51,.22);transition:none}
+html.musique .son[aria-pressed="true"] .son-onde i{animation:none}
+@media(prefers-reduced-motion:reduce){html.musique .avail-dot,html.musique .pouls{transform:none!important}}
 .son-onde{display:flex;align-items:flex-end;gap:2px;height:11px}
 .son-onde i{width:2px;height:3px;background:var(--chrome);transition:background .25s}
 .son[aria-pressed="true"]{color:var(--cream);border-color:var(--border)}
@@ -2699,7 +2705,7 @@ h2.c-big{margin:0 0 1.5rem;font-weight:400}
     <span class="fam-n">01</span>
     <h3 class="fam-t">Direction artistique</h3>
     <p class="fam-p">Affiches, campagnes de marque et exp&eacute;rience num&eacute;rique.</p>
-    <span class="fam-c"><b>19</b> pi&egrave;ces</span>
+    <span class="fam-c"><b>20</b> pi&egrave;ces</span>
   </header>
   <div class="gal-grille">
 <div class="gal-item brand-thumb has-card" data-c="affiche" data-group="hermes" data-brand="Hermès" data-title="Hermès, Cardamusc" data-cat="Affiche · Parfum · Luxe" data-desc="Affiche Saint-Valentin pour le parfum Cardamusc : chaleur épicée et délicatesse dans une même image."><img src="images/hermes-cardamusc.jpg" alt="Hermès" width="800" height="1200" decoding="async"><div class="brand-card" style="background:#f37021"><img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMzAwIDcwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjE1MCIgeT0iNDgiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCdUaW1lcyBOZXcgUm9tYW4nLHNlcmlmIiBmb250LXNpemU9IjQyIiBmb250LXdlaWdodD0iNDAwIiBsZXR0ZXItc3BhY2luZz0iNiIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+SEVSTcOIUzwvdGV4dD48dGV4dCB4PSIxNTAiIHk9IjY0IiBmb250LWZhbWlseT0iR2VvcmdpYSxzZXJpZiIgZm9udC1zaXplPSI5IiBsZXR0ZXItc3BhY2luZz0iMyIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgb3BhY2l0eT0iMC44NSI+UEFSSVM8L3RleHQ+PC9zdmc+" alt="hermes logo" class="brand-card-logo"></div><div class="brand-badge"><img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDUwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjEwMCIgeT0iMzYiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCdUaW1lcyBOZXcgUm9tYW4nLHNlcmlmIiBmb250LXNpemU9IjMwIiBmb250LXdlaWdodD0iNDAwIiBsZXR0ZXItc3BhY2luZz0iMyIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+SEVSTcOIUzwvdGV4dD48L3N2Zz4=" alt="Hermès logo" class="brand-logo"></div><div class="gal-ov"><div class="gal-paper"><div class="gal-title">Hermès</div><span class="gal-cat">Campagne · Parfum</span></div></div><span class="gal-num">01</span></div>
@@ -2722,13 +2728,14 @@ h2.c-big{margin:0 0 1.5rem;font-weight:400}
   <img src="images/soufflerie.jpg" alt="La Soufflerie, exp&eacute;rience 3D" width="1200" height="750" loading="lazy" decoding="async">
   <div class="gal-ov"><div class="gal-paper"><div class="gal-title">La Soufflerie</div><span class="gal-cat">Exp&eacute;rience 3D</span></div></div>
 </div>
-<div class="gal-item brand-thumb brand-primary has-card" data-c="affiche" data-group="voss" data-brand="VOSS" data-title="VOSS, silhouette" data-cat="Campagne &middot; Eau premium" data-desc="Packshot &agrave; contre-jour : le verre et le geste, rien d'autre."><img src="images/voss-silhouette.jpg" alt="VOSS, silhouette" width="1600" height="1067" loading="lazy" decoding="async"><div class="brand-card" style="background:#e9ebec"><img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMzAwIDcwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjE1MCIgeT0iNDYiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI0MCIgZm9udC13ZWlnaHQ9IjMwMCIgbGV0dGVyLXNwYWNpbmc9IjE2IiBmaWxsPSIjMjMyNzJiIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5WT1NTPC90ZXh0Pjwvc3ZnPg==" alt="voss logo" class="brand-card-logo"></div><div class="brand-badge"><img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDUwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjEwMCIgeT0iMzMiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9IjMwMCIgbGV0dGVyLXNwYWNpbmc9IjEwIiBmaWxsPSIjZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5WT1NTPC90ZXh0Pjwvc3ZnPg==" alt="VOSS logo" class="brand-logo"></div><div class="brand-count"><span>9</span> visuels</div><div class="gal-ov"><div class="gal-paper"><div class="gal-title">VOSS</div><span class="gal-cat">Campagne &middot; Eau premium</span></div></div><span class="gal-num">V</span></div>
+<div class="gal-item brand-thumb brand-primary has-card" data-c="affiche" data-group="voss" data-brand="VOSS" data-title="VOSS, silhouette" data-cat="Campagne &middot; Eau premium" data-desc="Packshot &agrave; contre-jour : le verre et le geste, rien d'autre."><img src="images/voss-silhouette.jpg" alt="VOSS, silhouette" width="1600" height="1067" loading="lazy" decoding="async"><div class="brand-card" style="background:#e9ebec"><img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMzAwIDcwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjE1MCIgeT0iNDYiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSI0MCIgZm9udC13ZWlnaHQ9IjMwMCIgbGV0dGVyLXNwYWNpbmc9IjE2IiBmaWxsPSIjMjMyNzJiIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5WT1NTPC90ZXh0Pjwvc3ZnPg==" alt="voss logo" class="brand-card-logo"></div><div class="brand-badge"><img src="data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMjAwIDUwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjEwMCIgeT0iMzMiIGZvbnQtZmFtaWx5PSJIZWx2ZXRpY2EsQXJpYWwsc2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNiIgZm9udC13ZWlnaHQ9IjMwMCIgbGV0dGVyLXNwYWNpbmc9IjEwIiBmaWxsPSIjZmZmIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5WT1NTPC90ZXh0Pjwvc3ZnPg==" alt="VOSS logo" class="brand-logo"></div><div class="brand-count"><span>10</span> visuels</div><div class="gal-ov"><div class="gal-paper"><div class="gal-title">VOSS</div><span class="gal-cat">Campagne &middot; Eau premium</span></div></div><span class="gal-num">V</span></div>
 <div class="gal-item brand-secondary" data-c="affiche" data-group="voss" data-brand="VOSS" data-title="VOSS, double page" data-cat="Campagne &middot; Eau premium" data-desc="Double page magazine : packshot &agrave; gauche, silhouette &agrave; droite."><img src="images/voss-magazine.jpg" alt="VOSS, double page" width="1600" height="1130" loading="lazy" decoding="async"></div>
 <div class="gal-item brand-secondary" data-c="affiche" data-group="voss" data-brand="VOSS" data-title="VOSS, le magazine" data-cat="Campagne &middot; Eau premium" data-desc="Le magazine en volume, pages ouvertes."><img src="images/voss-magazine-volume.jpg" alt="VOSS, le magazine" width="1600" height="1164" loading="lazy" decoding="async"></div>
 <div class="gal-item brand-secondary" data-c="affiche" data-group="voss" data-brand="VOSS" data-title="VOSS, dans la rue" data-cat="Campagne &middot; Eau premium" data-desc="La bouteille sort de la table dress&eacute;e : trottoir, pose longue sur le passant."><img src="images/voss-rue.jpg" alt="VOSS, dans la rue" width="1080" height="1440" loading="lazy" decoding="async"></div>
 <div class="gal-item brand-secondary" data-c="affiche" data-group="voss" data-brand="VOSS" data-title="VOSS, de main en main" data-cat="Campagne &middot; Eau premium" data-desc="Le passage d'une main &agrave; l'autre, fond neutre."><img src="images/voss-passage.jpg" alt="VOSS, de main en main" width="1600" height="901" loading="lazy" decoding="async"></div>
 <div class="gal-item brand-secondary" data-c="affiche" data-group="voss" data-brand="VOSS" data-title="VOSS, en poche" data-cat="Campagne &middot; Eau premium" data-desc="La bouteille rang&eacute;e dans la parka : un objet qu'on emporte."><img src="images/voss-parka.jpg" alt="VOSS, en poche" width="1600" height="901" loading="lazy" decoding="async"></div>
 <div class="gal-item brand-secondary" data-c="affiche" data-group="voss" data-brand="VOSS" data-title="VOSS, contre-plong&eacute;e" data-cat="Campagne &middot; Eau premium" data-desc="Contre-plong&eacute;e sur ciel bleu, le verre tenu &agrave; bout de bras."><img src="images/voss-ciel.jpg" alt="VOSS, contre-plong&eacute;e" width="1600" height="1067" loading="lazy" decoding="async"></div>
+<div class="gal-item brand-secondary" data-c="affiche" data-group="voss" data-brand="VOSS" data-title="VOSS, packshot studio" data-cat="Campagne &middot; Eau premium" data-desc="La bouteille seule, verre fum&eacute; sous un halo de lumi&egrave;re."><img src="images/voss-studio.jpg" alt="VOSS, packshot studio" width="1600" height="901" loading="lazy" decoding="async"></div>
 <div class="gal-item brand-secondary" data-c="affiche" data-group="voss" data-brand="VOSS" data-title="VOSS, la gorg&eacute;e" data-cat="Campagne &middot; Eau premium" data-desc="Plan serr&eacute; sur la gorg&eacute;e, les passants fil&eacute;s autour."><img src="images/voss-gorgee.jpg" alt="VOSS, la gorg&eacute;e" width="1600" height="901" loading="lazy" decoding="async"></div>
 <div class="gal-item brand-secondary" data-c="affiche" data-group="voss" data-brand="VOSS" data-title="VOSS, gliss&eacute;e dans la poche" data-cat="Campagne &middot; Eau premium" data-desc="La bouteille sort de la poche de la parka."><img src="images/voss-poche.jpg" alt="VOSS, gliss&eacute;e dans la poche" width="1600" height="901" loading="lazy" decoding="async"></div>
   </div>
@@ -3518,6 +3525,7 @@ function playYt(yid){
 }
 
 function openVideo(vsrc,title){
+  if(window.__jmAttenuer) window.__jmAttenuer(true);   // la musique s'efface devant la video
   var yid=ytId(vsrc);
   vm.classList.add('on');
   document.body.style.overflow='hidden';
@@ -3550,6 +3558,7 @@ function openVideo(vsrc,title){
 }
 
 function closeVideo(){
+  if(window.__jmAttenuer) window.__jmAttenuer(false);
   clearTimeout(ytGuard);clearTimeout(vmLocalGuard);
   vm.classList.remove('on');
   vmv.pause();vmv.removeAttribute('src');vmv.load();
@@ -3785,10 +3794,31 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
   }
 
   window.__jmSon=function(nom){ if(on&&S&&S.son[nom]) S.son[nom](); };
+  window.__jmAttenuer=function(v){ if(S&&S.attenuer) S.attenuer(v); };
+
+  // ── la page bat avec la musique ──
+  // Chaque temps du morceau arrive ici : le point « disponible », le pouls
+  // et l'egaliseur du bouton son battent en mesure au lieu de tourner seuls.
+  var racine=document.documentElement, barres=btn.querySelectorAll('.son-onde i'), dernierTemps=0, tBat=0;
+  var sobreSon=matchMedia('(prefers-reduced-motion:reduce)').matches;
+  window.addEventListener('jm-temps',function(e){
+    dernierTemps=Date.now();
+    racine.classList.add('musique');
+    if(sobreSon) return;
+    var fort=e.detail.temps===0;
+    racine.classList.remove('bat','bat-fort'); void racine.offsetWidth;
+    racine.classList.add(fort?'bat-fort':'bat');
+    clearTimeout(tBat); tBat=setTimeout(function(){ racine.classList.remove('bat','bat-fort'); },110);
+    barres.forEach(function(i,k){
+      i.style.transition='none'; i.style.height=(4+Math.random()*(fort?7:5)+(k===1||k===2?2:0))+'px';
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){ i.style.transition='height .5s cubic-bezier(.2,.8,.3,1)'; i.style.height='3px'; }); });
+    });
+  });
+  setInterval(function(){ if(Date.now()-dernierTemps>1600) racine.classList.remove('musique'); },800);
   btn.addEventListener('click',function(){
     if(!S){
       window.__sonLance=true;
-      import('./js/son.js').then(function(m){
+      import('./js/son.js?v=2').then(function(m){
         S=m; m.allumer(); etat(true); if(!charge) brancher(); m.son.tension();
       }).catch(function(){ btn.remove(); });
       return;
@@ -3813,7 +3843,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
       document.removeEventListener('pointerdown',reveiller);
       document.removeEventListener('keydown',reveiller);
       if(S || window.__sonLance) return; window.__sonLance=true;
-      import('./js/son.js').then(function(m){ if(S) return; S=m; m.allumer(); etat(true); if(!charge) brancher(); });
+      import('./js/son.js?v=2').then(function(m){ if(S) return; S=m; m.allumer(); etat(true); if(!charge) brancher(); });
     };
     document.addEventListener('pointerdown',reveiller,{once:true});
     document.addEventListener('touchstart',reveiller,{once:true,passive:true});

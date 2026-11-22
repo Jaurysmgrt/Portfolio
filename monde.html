@@ -162,6 +162,7 @@ body.tactile .mire{opacity:.35}
   backdrop-filter:blur(10px);font-family:'IBM Plex Mono',ui-monospace,monospace;font-size:.5rem;
   letter-spacing:.2em;text-transform:uppercase;color:var(--chrome);transition:color .25s,border-color .25s}
 .son:hover{color:var(--cream);border-color:var(--red2)}
+html.musique .son[aria-pressed="true"] .son-onde i{animation:none}
 .son-onde{display:flex;align-items:flex-end;gap:2px;height:11px}
 .son-onde i{width:2px;height:3px;background:var(--chrome);transition:background .25s}
 .son[aria-pressed="true"]{color:var(--cream)}
@@ -384,7 +385,7 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
     intro.classList.add('parti');
     document.body.classList.add('dedans');
     setTimeout(function(){ intro.remove(); }, 1000);
-    import('./js/monde.js?v=2').then(function(m){ m.demarrer(); })
+    import('./js/monde.js?v=3').then(function(m){ m.demarrer(); })
       .catch(function(e){ console.error(e); document.getElementById('repli').classList.add('on'); });
   }
   document.getElementById('entrer').addEventListener('click', entrer);

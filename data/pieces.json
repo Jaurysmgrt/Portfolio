@@ -99,6 +99,17 @@
   "secondaire": false
  },
  {
+  "src": "images/voss-studio.jpg",
+  "w": 1600,
+  "h": 901,
+  "titre": "VOSS, packshot studio",
+  "cat": "Campagne · Eau premium",
+  "desc": "La bouteille seule, verre fumé sous un halo de lumière.",
+  "groupe": "voss",
+  "marque": "VOSS",
+  "secondaire": true
+ },
+ {
   "src": "images/voss-gorgee.jpg",
   "w": 1600,
   "h": 901,

@@ -32,7 +32,7 @@ export async function demarrer() {
     let on = false;
     const etat = v => { on = v; btn.setAttribute('aria-pressed', v ? 'true' : 'false');
       try { localStorage.setItem('jm-son', v ? '1' : '0'); } catch (e) {} };
-    const charger = () => import('./son.js').then(m => { SON = m; m.allumer(); etat(true); m.son.tension(); });
+    const charger = () => import('./son.js?v=2').then(m => { SON = m; m.allumer(); etat(true); m.son.tension(); });
     btn.addEventListener('click', () => {
       if (!SON) return charger();
       if (on) { SON.eteindre(); etat(false); } else { SON.allumer(); etat(true); SON.son.tic(); }
@@ -42,10 +42,31 @@ export async function demarrer() {
     if (voulu) {
       const reveil = () => { document.removeEventListener('pointerdown', reveil);
         document.removeEventListener('keydown', reveil);
-        import('./son.js').then(m => { SON = m; m.allumer(); etat(true); }); };
+        import('./son.js?v=2').then(m => { SON = m; m.allumer(); etat(true); }); };
       document.addEventListener('pointerdown', reveil, { once: true });
       document.addEventListener('keydown', reveil, { once: true });
     }
+  })();
+
+  // ── la salle bat avec la musique ──
+  // les halos des projecteurs respirent sur chaque temps, un peu plus sur le premier
+  let pouls = 0;
+  (function () {
+    const racine = document.documentElement;
+    const barres = document.querySelectorAll('#son .son-onde i');
+    let dernier = 0;
+    const sobre = matchMedia('(prefers-reduced-motion:reduce)').matches;
+    addEventListener('jm-temps', e => {
+      dernier = Date.now(); racine.classList.add('musique');
+      if (sobre) return;
+      const fort = e.detail.temps === 0;
+      pouls = fort ? 1 : 0.6;
+      barres.forEach((i, k) => {
+        i.style.transition = 'none'; i.style.height = (4 + Math.random() * (fort ? 7 : 5) + (k === 1 || k === 2 ? 2 : 0)) + 'px';
+        requestAnimationFrame(() => requestAnimationFrame(() => { i.style.transition = 'height .5s cubic-bezier(.2,.8,.3,1)'; i.style.height = '3px'; }));
+      });
+    });
+    setInterval(() => { if (Date.now() - dernier > 1600) racine.classList.remove('musique'); }, 800);
   })();
 
   const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: 'high-performance' });
@@ -1127,8 +1148,9 @@ export async function demarrer() {
       const u = c.userData;
       u.k += (u.cible - u.k) * Math.min(1, dt * 7);
       u.mat.emissiveIntensity = 0.06 + u.k * 0.2;
-      u.halo.material.opacity = 0.3 + u.k * 0.22;
+      u.halo.material.opacity = 0.3 + u.k * 0.22 + pouls * 0.07;
     }
+    pouls *= Math.pow(0.02, dt);      // le battement retombe en un demi-temps
 
     // instruments
     const vz = -pos.z;

@@ -16,6 +16,7 @@ let ctx = null, actif = false;
 let maitre, sec, versEcho, echo, bruit;
 let air, airFiltre, airGain, sub, subGain;
 let vitesse = 0, vitesseLisse = 0;
+let nappeFiltre = null, hatBus = null;
 
 // ── la reverberation : un hall long, beton, un peu mat ──
 function impulsion(duree = 2.9, chute = 2.6) {
@@ -92,6 +93,7 @@ function creer() {
   sub.connect(subGain); subGain.connect(sec);
   sub.start();
 
+  creerMusique();
   boucle();
 }
 
@@ -106,6 +108,11 @@ function boucle() {
     airFiltre.frequency.setTargetAtTime(300 + v * 1250, t, 0.14);
     airFiltre.Q.setTargetAtTime(0.42 + v * 0.5, t, 0.2);
     subGain.gain.setTargetAtTime(v * 0.02, t, 0.4);
+    // la musique s'ouvre quand on bouge : nappes plus claires, charleston plus present
+    if (nappeFiltre) {
+      nappeFiltre.frequency.setTargetAtTime(780 + v * 2100, t, 0.6);
+      hatBus.gain.setTargetAtTime(0.75 + v * 0.6, t, 0.4);
+    }
   }
   requestAnimationFrame(boucle);
 }
@@ -242,6 +249,197 @@ for (const nom of Object.keys(son)) {
   };
 }
 
+
+// ═══════════════════════════════════════════════════════════════════════
+// LA MUSIQUE
+//
+// Un morceau original, joue en direct : 98 BPM, re mineur, quatre accords
+// (Rem9, Sib7M, Fa7M, Do add9), deux mesures chacun. Grosse caisse douce,
+// charleston a contretemps, basse, nappes chaudes qui « respirent » sur la
+// grosse caisse, et quelques notes pincees avec un echo.
+//
+// Le morceau se cale sur l'horloge reelle : de la page d'accueil a la
+// Soufflerie, on retombe sur le meme temps et le meme accord. Chaque temps
+// est annonce a la page (evenement « jm-temps ») pour que l'image suive.
+// ═══════════════════════════════════════════════════════════════════════
+const BPM = 98;
+const DOUBLE = 60 / BPM / 4;            // une double croche
+const ACCORDS = [
+  { basse: 38, notes: [50, 53, 57, 60, 64] },   // Rem9
+  { basse: 34, notes: [50, 53, 57, 58, 62] },   // Sib7M
+  { basse: 41, notes: [53, 57, 60, 64, 65] },   // Fa7M
+  { basse: 36, notes: [52, 55, 60, 62, 67] }    // Do add9
+];
+const GAMME = [62, 65, 67, 69, 72, 74, 77, 79];  // pentatonique de re, en haut
+const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+// un hasard qui ne change pas : la meme mesure joue toujours les memes notes
+const des = (a, b) => { const x = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return x - Math.floor(x); };
+
+let musBus, musVol, nappeBus, nappeDuck, echoPince, musiqueVoulue = true;
+let prochain = null, ecart = null, minuteur = null;
+
+function creerMusique() {
+  musVol = ctx.createGain(); musVol.gain.value = 0;
+  musVol.connect(maitre);
+  musBus = ctx.createGain(); musBus.gain.value = 1.15;
+  musBus.connect(musVol);
+
+  // les nappes : filtre commun, et un « pompage » sur chaque grosse caisse
+  nappeFiltre = ctx.createBiquadFilter();
+  nappeFiltre.type = 'lowpass'; nappeFiltre.frequency.value = 900; nappeFiltre.Q.value = 0.6;
+  nappeDuck = ctx.createGain(); nappeDuck.gain.value = 1;
+  nappeBus = ctx.createGain(); nappeBus.gain.value = 1;
+  nappeBus.connect(nappeFiltre); nappeFiltre.connect(nappeDuck);
+  nappeDuck.connect(musBus);
+  const envoiNappe = ctx.createGain(); envoiNappe.gain.value = 0.55;
+  nappeDuck.connect(envoiNappe); envoiNappe.connect(echo);
+
+  hatBus = ctx.createGain(); hatBus.gain.value = 0.8;
+  hatBus.connect(musBus);
+
+  // l'echo des notes pincees : une croche pointee, qui s'eteint
+  echoPince = ctx.createDelay(1.5);
+  echoPince.delayTime.value = DOUBLE * 3;
+  const retour = ctx.createGain(); retour.gain.value = 0.38;
+  const sombre = ctx.createBiquadFilter(); sombre.type = 'lowpass'; sombre.frequency.value = 2600;
+  echoPince.connect(sombre); sombre.connect(retour); retour.connect(echoPince);
+  sombre.connect(musBus);
+  const envoiEcho = ctx.createGain(); envoiEcho.gain.value = 0.35;
+  sombre.connect(envoiEcho); envoiEcho.connect(echo);
+}
+
+function voix(type, f, t, dur, vol, sortie, attaque = 0.005, detune = 0) {
+  const o = ctx.createOscillator(); o.type = type; o.frequency.value = f; o.detune.value = detune;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0, t);
+  g.gain.linearRampToValueAtTime(vol, t + attaque);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  o.connect(g); g.connect(sortie);
+  o.start(t); o.stop(t + dur + 0.05);
+}
+
+function nappe(accord, t, dur) {
+  for (const m of accord.notes) {
+    for (const d of [-7, 7]) {
+      const o = ctx.createOscillator(); o.type = 'sawtooth';
+      o.frequency.value = hz(m); o.detune.value = d + (Math.random() * 4 - 2);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.011, t + 0.9);
+      g.gain.setValueAtTime(0.011, t + dur - 0.2);
+      g.gain.linearRampToValueAtTime(0, t + dur + 1.4);
+      o.connect(g); g.connect(nappeBus);
+      o.start(t); o.stop(t + dur + 1.5);
+    }
+  }
+}
+
+function grosseCaisse(t, vol) {
+  const o = ctx.createOscillator(); o.type = 'sine';
+  o.frequency.setValueAtTime(140, t);
+  o.frequency.exponentialRampToValueAtTime(44, t + 0.13);
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.42);
+  o.connect(g); g.connect(musBus);
+  o.start(t); o.stop(t + 0.5);
+  // les nappes s'effacent un instant : c'est ce qui fait respirer le morceau
+  nappeDuck.gain.cancelScheduledValues(t);
+  nappeDuck.gain.setValueAtTime(0.45, t);
+  nappeDuck.gain.linearRampToValueAtTime(1, t + DOUBLE * 3.2);
+}
+
+function bruitCourt(t, { freq, q = 1, type = 'highpass', dur, vol, sortie, reverb = 0 }) {
+  const src = ctx.createBufferSource(); src.buffer = bruit;
+  src.playbackRate.value = 1;
+  const f = ctx.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  src.connect(f); f.connect(g); g.connect(sortie);
+  if (reverb) { const r = ctx.createGain(); r.gain.value = reverb; g.connect(r); r.connect(echo); }
+  src.start(t, Math.random() * 1.5); src.stop(t + dur + 0.05);
+}
+
+// une double croche du morceau
+function jouer(k, t) {
+  const pas = ((k % 16) + 16) % 16;
+  const mesure = Math.floor(k / 16);
+  const bloc = ((Math.floor(mesure / 8) % 4) + 4) % 4;   // intro, groove, plein, respiration
+  const accord = ACCORDS[((Math.floor(mesure / 2) % 4) + 4) % 4];
+  const grave = bloc !== 3;
+
+  if (pas === 0 && mesure % 2 === 0) nappe(accord, t, DOUBLE * 32);
+
+  if (grave && pas % 4 === 0) grosseCaisse(t, bloc === 0 ? 0.2 : 0.3);
+  if (bloc >= 1 && bloc !== 3 && (pas === 4 || pas === 12))
+    bruitCourt(t, { freq: 1500, q: 0.8, type: 'bandpass', dur: 0.16, vol: 0.07, sortie: musBus, reverb: 0.5 });
+  if (pas % 4 === 2) bruitCourt(t, { freq: 7200, dur: 0.045, vol: 0.03, sortie: hatBus });
+  else if (bloc >= 1 && pas % 2 === 1 && des(mesure, pas) < 0.35)
+    bruitCourt(t, { freq: 8000, dur: 0.025, vol: 0.012, sortie: hatBus });
+
+  if (bloc >= 1 && grave && [0, 3, 6, 10, 11].includes(pas)) {
+    const m = accord.basse + (pas === 10 ? 12 : 0);
+    voix('triangle', hz(m), t, DOUBLE * (pas === 0 ? 3 : 1.8), 0.13, musBus, 0.008);
+    voix('sine', hz(m), t, DOUBLE * 2.5, 0.09, musBus, 0.008);
+  }
+
+  if ((bloc === 2 || bloc === 3) && pas % 2 === 0 && des(mesure * 3, pas) < (bloc === 3 ? 0.4 : 0.26)) {
+    const n = GAMME[Math.floor(des(mesure, pas * 7) * GAMME.length)];
+    voix('triangle', hz(n), t, 0.55, 0.045, echoPince, 0.004);
+    voix('triangle', hz(n), t, 0.55, 0.03, musBus, 0.004);
+  }
+
+  // la page suit le temps
+  if (pas % 4 === 0) {
+    const temps = pas / 4, d = Math.max(0, (t - ctx.currentTime) * 1000);
+    setTimeout(() => {
+      try { window.dispatchEvent(new CustomEvent('jm-temps', { detail: { temps, mesure, bloc } })); } catch (e) {}
+    }, d);
+  }
+}
+
+function planifier() {
+  if (!ctx || !actif || !musiqueVoulue || ctx.state !== 'running') { prochain = null; return; }
+  const absolu = (performance.timeOrigin + performance.now()) / 1000;
+  const e = absolu - ctx.currentTime;
+  if (ecart === null || Math.abs(e - ecart) > 0.05) { ecart = e; prochain = null; }
+  if (prochain === null) prochain = Math.ceil((absolu + 0.05) / DOUBLE);
+  // on prepare 0,4 s d'avance : si la page rame un instant, le morceau ne trebuche pas
+  while (prochain * DOUBLE - ecart < ctx.currentTime + 0.4) {
+    const t = prochain * DOUBLE - ecart;
+    if (t > ctx.currentTime - 0.01) jouer(prochain, t);
+    prochain++;
+  }
+}
+
+function lancerMusique() {
+  if (!ctx || !musVol) return;
+  if (!minuteur) minuteur = setInterval(planifier, 50);
+  const t = ctx.currentTime;
+  musVol.gain.cancelScheduledValues(t);
+  musVol.gain.setValueAtTime(musVol.gain.value, t);
+  musVol.gain.linearRampToValueAtTime(attenue ? 0 : 1, t + 3.5);   // elle arrive, elle ne surgit pas
+}
+let attenue = false;
+// quand une video joue, la musique se met en retrait
+export function attenuer(v) {
+  attenue = !!v;
+  if (!ctx || !musVol || !actif) return;
+  const t = ctx.currentTime;
+  musVol.gain.cancelScheduledValues(t);
+  musVol.gain.setValueAtTime(musVol.gain.value, t);
+  musVol.gain.linearRampToValueAtTime(attenue ? 0.0 : 1, t + 0.8);
+}
+export function musique(v) {
+  musiqueVoulue = !!v;
+  try { localStorage.setItem('jm-musique', v ? '1' : '0'); } catch (e) {}
+  if (v) lancerMusique();
+  else if (ctx && musVol) { const t = ctx.currentTime; musVol.gain.cancelScheduledValues(t);
+    musVol.gain.setValueAtTime(musVol.gain.value, t); musVol.gain.linearRampToValueAtTime(0, t + 0.8); }
+}
+try { musiqueVoulue = localStorage.getItem('jm-musique') !== '0'; } catch (e) {}
+
 // ── le deplacement pilote le souffle : 0 a l'arret, 1 a pleine vitesse ──
 export function flux(v) { vitesse = Math.max(0, Math.min(1.4, v || 0)); }
 
@@ -253,6 +451,7 @@ export function allumer() {
   maitre.gain.cancelScheduledValues(ctx.currentTime);
   maitre.gain.setValueAtTime(maitre.gain.value, ctx.currentTime);
   maitre.gain.linearRampToValueAtTime(0.42, ctx.currentTime + 1.1);
+  if (musiqueVoulue) lancerMusique();
   return true;
 }
 
