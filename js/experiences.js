@@ -447,7 +447,7 @@ void main(){float s=uV*0.0035;
       if (elFam && elFam.dataset.f !== pr.fam) {
         elFam.dataset.f = pr.fam; elFam.textContent = pr.famNum + ' · ' + pr.famNom;
         if (puces) puces.querySelectorAll('button').forEach(x => x.classList.toggle('on', x.dataset.f === pr.fam));
-        if (puces) { const on = puces.querySelector('button.on'); if (on) puces.scrollTo({ left: on.offsetLeft - 12, behavior: 'smooth' }); }
+        if (puces) { const on = puces.querySelector('button.on'); if (on) puces.scrollTo({ left: Math.max(0, on.offsetLeft - puces.offsetLeft - 4), behavior: 'smooth' }); }
         elFam.animate([{ opacity: 0, letterSpacing: '.5em' }, { opacity: 1, letterSpacing: '.26em' }], { duration: 700, easing: 'cubic-bezier(.16,1,.3,1)' });
       }
     }

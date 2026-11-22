@@ -2670,6 +2670,56 @@ body.avec-3d #ouverture .hero{pointer-events:auto}
 .hero-sub{color:rgba(226,236,246,.62)}
 .ch-mot i,.cal-pied{color:rgba(226,236,246,.75)}
 h2.c-big{margin:0 0 1.5rem;font-weight:400}
+
+/* ═══ iPhone : l'en-tete de l'histoire ne recouvre plus rien ═══ */
+@media(max-width:860px){
+  .recit.vivant .rc-tete{top:calc(var(--nav-h,64px) + .8rem)}
+  .recit.vivant .rc-lbl{font-size:.55rem}
+  .recit.vivant .ch{align-content:start!important;padding-top:calc(var(--nav-h,64px) + 4.6rem)!important;gap:1.1rem!important}
+  /* les visuels tiennent dans leur zone */
+  .recit.vivant .ch-vis{max-height:34vh;justify-content:flex-start}
+  .recit.vivant .tirage{width:36vw}
+  .recit.vivant .stv{width:44vw!important;max-height:34vh}
+  .recit.vivant .stv-tred .badge{margin-top:0;width:70%}
+  .badge::after{height:12vh}
+  .badge b{font-size:.9rem}.badge-pied{white-space:nowrap;font-size:.46rem}
+  .recit.vivant .ch[data-i="4"] .ch-vis{gap:.4rem}
+  .recit.vivant .ch-logo-tp img{max-height:7vh}
+  .ch-route{width:84vw}
+  .contrat{transform:none}
+  /* l'annee ne monte plus sur son etiquette */
+  .recit.vivant .ch-tag{margin-bottom:.5rem;line-height:1.5}
+  .recit.vivant .ch-an{margin-top:.15em}
+  /* projets : un seul numero */
+  #selection:not(.sur-carte) .sel-num{display:none}
+}
+@media(max-width:860px) and (max-height:700px){
+  .recit.vivant .ch{padding-top:calc(var(--nav-h,64px) + 4rem)!important}
+  .recit.vivant .ch-vis{max-height:28vh}
+  .recit.vivant .tirage{width:30vw}
+}
+
+@media(max-width:860px){
+  .recit.vivant .ch{padding-top:calc(var(--nav-h,64px) + 5.6rem)!important}
+  .panneau{width:58vw!important}.pn-pied{height:14px!important}
+  .recit.vivant .ch[data-i="3"] .ch-vis{margin-bottom:.8rem}
+}
+@media(max-width:860px) and (max-height:700px){
+  .recit.vivant .ch{padding-top:calc(var(--nav-h,64px) + 4.8rem)!important;gap:.7rem!important}
+  .recit.vivant .ch-vis{max-height:24vh}
+  .recit.vivant .tirage{width:26vw}
+  .tableau{width:46vw!important}
+  .panneau{width:46vw!important}
+  .recit.vivant .ch-logo-tp{display:none}
+  .contrat{padding:.55rem .7rem .5rem}.ct-tete b{font-size:.85rem}
+  .recit.vivant .ch-an{font-size:2.6rem!important}
+}
+
+@media(max-width:860px) and (max-height:700px){
+  .recit.vivant .tirage{width:21vw;padding:6px 6px 20px}.tirage figcaption{font-size:.4rem;bottom:5px}
+  .tableau{width:38vw!important}
+  .recit.vivant .ch[data-i="0"] .ch-vis,.recit.vivant .ch[data-i="1"] .ch-vis{margin-bottom:.6rem}
+}
 </style>
 </head>
 <body>
@@ -4822,6 +4872,6 @@ if(window.__jmSon) window.__jmSon('avion');
   });
 })();
 </script>
-<script type="module" src="js/experiences.js?v=34" onerror="window.__pret3d&&window.__pret3d()"></script>
+<script type="module" src="js/experiences.js?v=35" onerror="window.__pret3d&&window.__pret3d()"></script>
 </body>
 </html>
