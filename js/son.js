@@ -440,6 +440,98 @@ export function musique(v) {
 }
 try { musiqueVoulue = localStorage.getItem('jm-musique') !== '0'; } catch (e) {}
 
+
+// ═══════════════════════════════════════════════════════════════════════
+// LE MOTEUR DE LA 991
+// Un six cylindres a plat : trois explosions par tour, donc une
+// fondamentale a regime / 60 x 3. Dent de scie et carre pour le grain,
+// une saturation douce pour l'echappement, un filtre qui s'ouvre avec la
+// charge. Les pneus crissent avec un bruit filtre tres serre. La voiture
+// pilote tout, image par image : regime, charge, crissement, position.
+// ═══════════════════════════════════════════════════════════════════════
+let mot = null;
+function courbe(k) {
+  const n = 1024, c = new Float32Array(n);
+  for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(k * x) / Math.tanh(k); }
+  return c;
+}
+function creerMoteur() {
+  if (mot || !ctx) return;
+  const m = {};
+  m.sortie = ctx.createGain(); m.sortie.gain.value = 0;
+  m.pan = ctx.createStereoPanner ? ctx.createStereoPanner() : ctx.createGain();
+  m.sortie.connect(m.pan); m.pan.connect(sec);
+  const envoi = ctx.createGain(); envoi.gain.value = 0.25; m.pan.connect(envoi); envoi.connect(versEcho);
+
+  m.filtre = ctx.createBiquadFilter(); m.filtre.type = 'lowpass'; m.filtre.frequency.value = 500; m.filtre.Q.value = 0.9;
+  m.sature = ctx.createWaveShaper(); m.sature.curve = courbe(2.6); m.sature.oversample = '2x';
+  m.mix = ctx.createGain(); m.mix.gain.value = 0.55;
+  m.mix.connect(m.sature); m.sature.connect(m.filtre); m.filtre.connect(m.sortie);
+
+  m.o1 = ctx.createOscillator(); m.o1.type = 'sawtooth';
+  m.o2 = ctx.createOscillator(); m.o2.type = 'square';
+  m.o3 = ctx.createOscillator(); m.o3.type = 'sawtooth'; m.o3.detune.value = 9;
+  const g1 = ctx.createGain(); g1.gain.value = 0.6;
+  const g2 = ctx.createGain(); g2.gain.value = 0.35;
+  const g3 = ctx.createGain(); g3.gain.value = 0.18;
+  m.o1.connect(g1); m.o2.connect(g2); m.o3.connect(g3);
+  g1.connect(m.mix); g2.connect(m.mix); g3.connect(m.mix);
+
+  // le souffle de l'echappement
+  m.air = ctx.createBufferSource(); m.air.buffer = bruit; m.air.loop = true;
+  m.airF = ctx.createBiquadFilter(); m.airF.type = 'bandpass'; m.airF.Q.value = 1.1;
+  m.airG = ctx.createGain(); m.airG.gain.value = 0.2;
+  m.air.connect(m.airF); m.airF.connect(m.airG); m.airG.connect(m.mix);
+
+  // les pneus
+  m.cri = ctx.createBufferSource(); m.cri.buffer = bruit; m.cri.loop = true;
+  m.criF = ctx.createBiquadFilter(); m.criF.type = 'bandpass'; m.criF.frequency.value = 2500; m.criF.Q.value = 7;
+  m.criG = ctx.createGain(); m.criG.gain.value = 0;
+  m.cri.connect(m.criF); m.criF.connect(m.criG); m.criG.connect(m.pan);
+  const criLfo = ctx.createOscillator(); criLfo.frequency.value = 7;
+  const criLfoG = ctx.createGain(); criLfoG.gain.value = 220;
+  criLfo.connect(criLfoG); criLfoG.connect(m.criF.frequency);
+
+  [m.o1, m.o2, m.o3, m.air, m.cri, criLfo].forEach(o => o.start());
+  mot = m;
+}
+// une petarade a la decelere : un claquement sourd dans l'echappement
+function petarade(pan) {
+  if (!ctx || !actif) return;
+  const t = ctx.currentTime;
+  const src = ctx.createBufferSource(); src.buffer = bruit;
+  const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 700 + Math.random() * 500; f.Q.value = 1.4;
+  const g = ctx.createGain();
+  g.gain.setValueAtTime(0.32, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+  const p = ctx.createStereoPanner ? ctx.createStereoPanner() : ctx.createGain();
+  if (p.pan) p.pan.value = pan || 0;
+  src.connect(f); f.connect(g); g.connect(p); p.connect(sec); p.connect(versEcho);
+  src.start(t, Math.random()); src.stop(t + 0.1);
+  ton({ f0: 90, f1: 50, dur: 0.08, vol: 0.06 });
+}
+// appele a chaque image par la voiture
+export function moteur({ regime = 900, charge = 0.3, crisse = 0, pan = 0, volume = 1, pop = false } = {}) {
+  if (!ctx || !actif) return;
+  creerMoteur();
+  const t = ctx.currentTime, f = regime / 60 * 3;
+  mot.o1.frequency.setTargetAtTime(f, t, 0.035);
+  mot.o2.frequency.setTargetAtTime(f / 2, t, 0.035);
+  mot.o3.frequency.setTargetAtTime(f * 2, t, 0.035);
+  mot.airF.frequency.setTargetAtTime(f * 2.2, t, 0.05);
+  mot.airG.gain.setTargetAtTime(0.12 + charge * 0.35, t, 0.05);
+  mot.filtre.frequency.setTargetAtTime(260 + regime * (0.12 + charge * 0.28), t, 0.05);
+  mot.sortie.gain.setTargetAtTime(0.34 * volume * (0.55 + charge * 0.6), t, 0.06);
+  mot.criG.gain.setTargetAtTime(crisse * 0.12 * volume, t, 0.04);
+  if (mot.pan.pan) mot.pan.pan.setTargetAtTime(Math.max(-1, Math.min(1, pan)), t, 0.05);
+  if (pop) petarade(pan);
+}
+export function moteurCoupe() {
+  if (!mot || !ctx) return;
+  const t = ctx.currentTime;
+  mot.sortie.gain.setTargetAtTime(0, t, 0.25);
+  mot.criG.gain.setTargetAtTime(0, t, 0.1);
+}
+
 // ── le deplacement pilote le souffle : 0 a l'arret, 1 a pleine vitesse ──
 export function flux(v) { vitesse = Math.max(0, Math.min(1.4, v || 0)); }
 

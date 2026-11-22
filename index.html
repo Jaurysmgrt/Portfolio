@@ -3832,6 +3832,8 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
 
   window.__jmSon=function(nom){ if(on&&S&&S.son[nom]) S.son[nom](); };
   window.__jmAttenuer=function(v){ if(S&&S.attenuer) S.attenuer(v); };
+  window.__jmMoteur=function(o){ if(on&&S&&S.moteur) S.moteur(o); };
+  window.__jmMoteurCoupe=function(){ if(S&&S.moteurCoupe) S.moteurCoupe(); };
 
   // ── la page bat avec la musique ──
   // Chaque temps du morceau arrive ici : le point « disponible », le pouls
@@ -3855,7 +3857,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
   btn.addEventListener('click',function(){
     if(!S){
       window.__sonLance=true;
-      import('./js/son.js?v=2').then(function(m){
+      import('./js/son.js?v=3').then(function(m){
         S=m; m.allumer(); etat(true); if(!charge) brancher(); m.son.tension();
       }).catch(function(){ btn.remove(); });
       return;
@@ -3880,7 +3882,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
       document.removeEventListener('pointerdown',reveiller);
       document.removeEventListener('keydown',reveiller);
       if(S || window.__sonLance) return; window.__sonLance=true;
-      import('./js/son.js?v=2').then(function(m){ if(S) return; S=m; m.allumer(); etat(true); if(!charge) brancher(); });
+      import('./js/son.js?v=3').then(function(m){ if(S) return; S=m; m.allumer(); etat(true); if(!charge) brancher(); });
     };
     document.addEventListener('pointerdown',reveiller,{once:true});
     document.addEventListener('touchstart',reveiller,{once:true,passive:true});
@@ -4315,8 +4317,18 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
     raf=0; var t=(ts-t0)/1000, dt=Math.min(.05,(ts-(derniere||ts))/1000); derniere=ts;
     var larg=voit.getBoundingClientRect().width||600, rpx=44.7/640*larg;
     var D=innerWidth*1.25, prev=x;
+    var M=window.__jmMoteur, pan=Math.max(-1,Math.min(1,(voit.getBoundingClientRect().left+larg/2)/innerWidth*2-1));
     if(etat==='arrive'){
       var T=1.7, u=Math.min(1,t/T);
+      // le son : il arrive vite, retrograde deux fois en freinant (le regime
+      // remonte a chaque rapport), petarade a la decelere, puis ralenti
+      if(M){
+        var reg, ch2=.12;
+        if(u<1){ var base=6400-5200*u; reg=base+((u>.32&&u<.42)?1500*(1-(u-.32)/.1):0)+((u>.6&&u<.7)?1100*(1-(u-.6)/.1):0); }
+        else { reg=880+Math.sin(t*9)*25+Math.max(0,1-(t-T)*2)*300; ch2=.08; }
+        var vol=u<1?1:Math.max(0,1-(t-T-.6)/1.2);
+        M({regime:reg, charge:ch2, crisse:(u>.3&&u<.98)?.55:0, pan:pan, volume:vol, pop:u<.9&&Math.random()<dt*7});
+      }
       x=D*Math.pow(1-u,2);                          // deceleration constante
       var freinage=u<1? (u>.25?1:u/.25) : 0;
       var pitch=u<1? -1.6*freinage*(1-u*.2) : -1.6*.8*reb(t-T);
@@ -4324,9 +4336,16 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
       if(feu) feu.style.opacity=(u<1?1:.55).toString();
       // les pneus fument pendant le gros du freinage
       if(u>.3 && u<.98){ var vit=2*D*(1-u)/T; emettre(0,2,vit*.2,-14,larg*.045,1.5,.5); emettre(1,3,vit*.24,-18,larg*.055,1.7,.6); }
-      if(t>T+1.2) etat='garee';
+      if(t>T+1.2){ etat='garee'; if(window.__jmMoteurCoupe) window.__jmMoteurCoupe(); }
     } else if(etat==='repart'){
       var patine=.3, T2=.6;
+      if(M){
+        var tt=t-patine, r2;
+        if(t<patine) r2=2200+t/patine*4200;                       // coup d'accelerateur, les roues patinent
+        else if(tt<.35) r2=5200+tt/.35*2600;                      // premiere
+        else r2=5600+Math.min(1,(tt-.35)/.6)*2000;                // seconde
+        M({regime:r2, charge:1, crisse:t<patine+.15?1:0, pan:pan, volume:Math.max(0,1-Math.max(0,tt-.25)/1.1)});
+      }
       if(t<patine){ // les roues patinent sur place, l'arriere s'ecrase
         poser(0,1.4*Math.min(1,t/.15),-(28+t*40));
         emettre(1,3,innerWidth*.22,-30,larg*.06,1.4,.42); emettre(0,1,innerWidth*.08,-16,larg*.04,1.1,.35);
@@ -4336,7 +4355,7 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
         poser(x,1.4*(1-u2),-(prev-x)/rpx*57.3-12*(1-u2));
         if(u2<.3) emettre(1,2,innerWidth*.22,-24,larg*.06,1.2,.38);
       }
-      if(t>patine+T2+1.6) etat='attente';
+      if(t>patine+T2+1.6){ etat='attente'; if(window.__jmMoteurCoupe) window.__jmMoteurCoupe(); }
     }
     // la fumee : elle traine, s'etale, monte un peu et se dissipe
     g.clearRect(0,0,W,H);
@@ -4456,7 +4475,7 @@ if(window.__jmSon) window.__jmSon('avion');
     1:function(){ [600,1200].forEach(function(t){ plus(function(){S('punaise');},t); }); },
     2:function(){},
     3:function(){ plus(function(){S('colle');},500); plus(function(){S('lampe');},1800); },
-    4:function(){ S('arrivee'); },
+    4:function(){},
     5:function(){ plus(function(){S('touche');},350); plus(function(){S('touche');},650); plus(function(){S('tampon');},1300); }
   };
   var avant=-1;
@@ -4464,7 +4483,7 @@ if(window.__jmSon) window.__jmSon('avion');
     var i=-1; sec.querySelectorAll('.ch').forEach(function(c,k){ if(c.classList.contains('on')) i=k; });
     if(i===avant) return;
     var sortant=avant; avant=i; stop();
-    if(sortant===4) S('depart');
+
     if(i>=0){ if(sortant>=0 && sortant!==4) S('page'); scenes[i]&&scenes[i](); }
   }).observe(sec,{subtree:true,attributes:true,attributeFilter:['class']});
   // le calendrier : chaque feuille, l'arrachage, le tampon
