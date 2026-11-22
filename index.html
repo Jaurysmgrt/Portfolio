@@ -3915,7 +3915,6 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
   function brancher(){
     // le survol d'une piece
     document.querySelectorAll('#gallery .gal-item, .tzi').forEach(function(el){
-      el.addEventListener('pointerenter',function(){ if(on&&S) S.son.tic(); });
       el.addEventListener('click',function(){ if(on&&S) S.son.clac(); });
     });
     // les passages d'une zone a l'autre
@@ -3959,7 +3958,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
       document.removeEventListener('pointerdown',reveiller);
       document.removeEventListener('keydown',reveiller);
       if(S || window.__sonLance) return; window.__sonLance=true;
-      import('./js/son.js').then(function(m){ if(S) return; S=m; m.allumer(); etat(true); if(!charge) brancher(); m.son.tension(); });
+      import('./js/son.js').then(function(m){ if(S) return; S=m; m.allumer(); etat(true); if(!charge) brancher(); });
     };
     document.addEventListener('pointerdown',reveiller,{once:true});
     document.addEventListener('keydown',reveiller,{once:true});
@@ -4520,11 +4519,11 @@ if(window.__jmSon) window.__jmSon('avion');
   function stop(){ minus.forEach(clearTimeout); minus=[]; }
   var scenes={
     0:function(){ plus(function(){S('punaise');},750); plus(function(){S('balai');},900); },
-    1:function(){ [600,900,1200,1500].forEach(function(t){ plus(function(){S('punaise');},t); }); },
+    1:function(){ [600,1200].forEach(function(t){ plus(function(){S('punaise');},t); }); },
     2:function(){},
-    3:function(){ [350,750,1150].forEach(function(t){ plus(function(){S('colle');},t); }); plus(function(){S('lampe');},1800); plus(function(){S('lampe');},1950); },
+    3:function(){ plus(function(){S('colle');},500); plus(function(){S('lampe');},1800); },
     4:function(){ S('arrivee'); },
-    5:function(){ for(var k=0;k<7;k++) plus(function(){S('touche');},300+k*110); plus(function(){S('tampon');},1300); }
+    5:function(){ plus(function(){S('touche');},350); plus(function(){S('touche');},650); plus(function(){S('tampon');},1300); }
   };
   var avant=-1;
   new MutationObserver(function(){
@@ -4559,7 +4558,7 @@ if(window.__jmSon) window.__jmSon('avion');
   // l'arc : chaque piece qui passe au centre, chaque famille, chaque ouverture
   var sel=document.getElementById('selection');
   if(sel){ var tt=sel.querySelector('.sel-t'), dern=0, fam='';
-    if(tt) new MutationObserver(function(){ var t=performance.now(); if(t-dern>90){ dern=t; S(sel.classList.contains('sur-carte')?'page':'cran'); } }).observe(tt,{childList:true,characterData:true,subtree:true});
+    if(tt) new MutationObserver(function(){ if(sel.classList.contains('sur-carte')) S('page'); }).observe(tt,{childList:true,characterData:true,subtree:true});
     var cv=sel.querySelector('canvas'); if(cv) cv.addEventListener('click',function(){ S(sel.classList.contains('sur-carte')?'page':'clac'); });
   }
   // la copie d'un contact
