@@ -3857,7 +3857,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
   btn.addEventListener('click',function(){
     if(!S){
       window.__sonLance=true;
-      import('./js/son.js?v=5').then(function(m){
+      import('./js/son.js?v=6').then(function(m){
         S=m; m.allumer(); etat(true); if(!charge) brancher(); m.son.tension();
       }).catch(function(){ btn.remove(); });
       return;
@@ -3882,7 +3882,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
       document.removeEventListener('pointerdown',reveiller);
       document.removeEventListener('keydown',reveiller);
       if(S || window.__sonLance) return; window.__sonLance=true;
-      import('./js/son.js?v=5').then(function(m){ if(S) return; S=m; m.allumer(); etat(true); if(!charge) brancher(); });
+      import('./js/son.js?v=6').then(function(m){ if(S) return; S=m; m.allumer(); etat(true); if(!charge) brancher(); });
     };
     document.addEventListener('pointerdown',reveiller,{once:true});
     document.addEventListener('touchstart',reveiller,{once:true,passive:true});

@@ -633,13 +633,13 @@ export function moteur({ regime = 900, charge = 0.3, crisse = 0, pan = 0, volume
   creerMoteur();
   if (!motPret) return;
   const t = ctx.currentTime;
-  mot.boxer.parameters.get('regime').setTargetAtTime(regime, t, 0.04);
+  mot.boxer.parameters.get('regime').setTargetAtTime(regime, t, 0.025);
   mot.boxer.parameters.get('charge').setTargetAtTime(charge, t, 0.05);
   mot.filtre.frequency.setTargetAtTime(700 + regime * (0.35 + charge * 0.6), t, 0.05);
   mot.airF.frequency.setTargetAtTime(500 + regime * 0.25, t, 0.06);
   mot.airG.gain.setTargetAtTime(charge * charge * 0.05 * (regime / 7000), t, 0.06);
-  mot.sortie.gain.setTargetAtTime(0.32 * volume, t, 0.06);
-  mot.criG.gain.setTargetAtTime(crisse * 0.09 * volume, t, 0.04);
+  mot.sortie.gain.setTargetAtTime(0.32 * volume, t, 0.03);
+  mot.criG.gain.setTargetAtTime(crisse * 0.09 * volume, t, crisse > 0 ? 0.015 : 0.09);
   if (mot.pan.pan) mot.pan.pan.setTargetAtTime(Math.max(-1, Math.min(1, pan)), t, 0.05);
   if (pop) petarade(pan);
 }
@@ -662,6 +662,9 @@ export function allumer() {
   maitre.gain.setValueAtTime(maitre.gain.value, ctx.currentTime);
   maitre.gain.linearRampToValueAtTime(0.42, ctx.currentTime + 1.1);
   if (musiqueVoulue) lancerMusique();
+  // le moteur de la 991 se prepare des maintenant : quand la voiture
+  // arrive, il doit demarrer a la meme image, pas une demi-seconde apres
+  creerMoteur();
   return true;
 }
 
