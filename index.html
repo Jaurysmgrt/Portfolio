@@ -2661,6 +2661,15 @@ body.avec-3d #ouverture .hero{pointer-events:auto}
 /* l'aide de l'arc dit comment s'en servir ; les familles ne passent plus a la ligne */
 .rc-rail button{font-size:.72rem}
 @media(min-width:861px) and (max-width:1400px){.sel-fams{flex-wrap:nowrap}.sel-fams button{padding:.5rem .6rem}}
+
+/* ═══ Audit general : accessibilite et lisibilite ═══ */
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+.nav-mob:not(.open){visibility:hidden;transition:opacity .45s cubic-bezier(.22,1,.36,1),transform .45s cubic-bezier(.22,1,.36,1),visibility 0s .45s}
+.ci label{color:rgba(226,236,246,.72)!important;font-size:.7rem}
+.hero-topbar span{color:rgba(226,236,246,.6)}
+.hero-sub{color:rgba(226,236,246,.62)}
+.ch-mot i,.cal-pied{color:rgba(226,236,246,.75)}
+h2.c-big{margin:0 0 1.5rem;font-weight:400}
 </style>
 </head>
 <body>
@@ -2693,7 +2702,7 @@ body.avec-3d #ouverture .hero{pointer-events:auto}
 </div>
 
 <!-- CONTACT MODAL -->
-<div class="cmod" id="cmod">
+<div class="cmod" id="cmod" role="dialog" aria-modal="true" aria-label="Me contacter">
   <div class="cmod-bg" onclick="closeContact()"></div>
   <div class="cmod-box">
     <div class="cmod-top">
@@ -2767,7 +2776,7 @@ body.avec-3d #ouverture .hero{pointer-events:auto}
 
 <!-- PAGE PROJET PLEIN ÉCRAN (remplie par JS) -->
 <div class="pp-intro" id="ppIntro" aria-hidden="true"><span>Projet</span><b></b><i></i></div>
-<div class="pp" id="projectPage">
+<div class="pp" id="projectPage" role="dialog" aria-modal="true" aria-label="Projet">
   <div class="pp-bg"></div>
   <div class="pp-bar"><i class="pp-lecture" aria-hidden="true"></i>
     <button class="pp-back" id="ppBack"><svg viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>Retour</button>
@@ -2805,7 +2814,8 @@ body.avec-3d #ouverture .hero{pointer-events:auto}
 </div>
 
 <!-- HERO -->
-<div id="scene">
+<div id="scene" role="main">
+<h1 class="sr-only">Jaurys Maigret, direction artistique, en recherche d'alternance</h1>
 <div id="ouverture" class="piste-3d"><div class="colle"><i class="trait-ouv" aria-hidden="true"></i>
 <canvas class="cv-3d" aria-hidden="true"></canvas>
 <section class="hero">
@@ -2877,7 +2887,7 @@ body.avec-3d #ouverture .hero{pointer-events:auto}
   <article class="ch" data-i="2" data-poids="2.8">
     <div class="stv" aria-hidden="true">
       <div class="stv-agco"><canvas class="globe" width="440" height="440"></canvas><div class="stv-leg"><span>Groupe international</span></div></div>
-      <div class="stv-tred"><i class="lanyard"></i><div class="badge"><i class="badge-trou"></i><div class="badge-logo"><img src="images/logo-tredelec.png" alt="" width="1684" height="1191" loading="lazy" decoding="async"></div><span class="badge-role">Stagiaire &middot; Communication</span><b>Jaurys Maigret</b><span class="badge-pied">2024 &middot; 1 mois</span></div></div>
+      <div class="stv-tred"><i class="lanyard"></i><div class="badge"><i class="badge-trou"></i><div class="badge-logo"><img src="images/logo-tredelec.png" alt="" width="1684" height="1191" loading="lazy" decoding="async"></div><span class="badge-role">Charg&eacute; de communication &middot; Stage</span><b>Jaurys Maigret</b><span class="badge-pied">2024 &middot; 1 mois</span></div></div>
     </div>
     <div class="ch-txt">
       <span class="ch-tag ln">Chapitre 02 &middot; Premiers terrains</span>
@@ -3001,7 +3011,7 @@ body.avec-3d #ouverture .hero{pointer-events:auto}
     <div class="sel-couche">
       <div class="sel-tete"><span class="sel-lbl clin" data-clin="les meilleurs, promis">Projets</span><div class="sel-fams" role="group" aria-label="Familles de projets"></div><span class="sel-aide">D&eacute;filez pour parcourir &middot; cliquez l'image centrale pour l'ouvrir</span></div>
       <div class="sel-bas">
-        <div class="sel-info"><div class="sel-fam"></div><div class="sel-num"></div><div class="sel-t"></div><div class="sel-c"></div></div>
+        <div class="sel-info" aria-live="polite"><div class="sel-fam"></div><div class="sel-num"></div><div class="sel-t"></div><div class="sel-c"></div></div>
         <div class="sel-cpt"><div class="sel-x"></div><div class="sel-tot"></div></div>
       </div>
       <div class="sel-barre"><i></i></div>
@@ -3087,7 +3097,7 @@ body.avec-3d #ouverture .hero{pointer-events:auto}
 <div class="gal-item gal-astro" data-c="photo nuit" data-title="Ciel étoilé, Toits" data-cat="Astrophotographie" data-desc="Nuit claire au-dessus des toits, pose longue. Traînées d'étoiles filantes visibles."><img src="images/nuit-1.jpg" alt="Ciel étoilé, Toits" width="1616" height="1080" loading="lazy" decoding="async"><div class="gal-ov"><div class="gal-paper"><div class="gal-title">Ciel étoilé, Toits</div><span class="gal-cat">Astrophotographie</span></div></div></div>
 <div class="gal-item gal-astro" data-c="photo nuit" data-title="Voie lactée, Lisière" data-cat="Astrophotographie" data-desc="Voie lactée saisie depuis la lisière, silhouette d'arbre en premier plan."><img src="images/nuit-2.jpg" alt="Voie lactée, Lisière" width="1616" height="1080" loading="lazy" decoding="async"><div class="gal-ov"><div class="gal-paper"><div class="gal-title">Voie lactée, Lisière</div><span class="gal-cat">Astrophotographie</span></div></div></div>
 <div class="gal-item gal-astro" data-c="photo nuit" data-title="Nuit claire, Grand arbre" data-cat="Astrophotographie" data-desc="Arbre isolé sous un ciel dégagé, lumière chaude des villages à l'horizon."><img src="images/nuit-3.jpg" alt="Nuit claire, Grand arbre" width="1616" height="1080" loading="lazy" decoding="async"><div class="gal-ov"><div class="gal-paper"><div class="gal-title">Nuit claire, Grand arbre</div><span class="gal-cat">Astrophotographie</span></div></div></div>
-<div class="gal-item gal-astro" data-c="photo nuit" data-title="Voie lactée, Feuillage" data-cat="Astrophotographie" data-desc="Feuillage éclairé au premier plan, Voie lactée en profondeur dans un ciel dégagé."><img src="images/nuit-4.jpg" alt="Ciel d'été · Verticale" width="1616" height="1080" loading="lazy" decoding="async"><div class="gal-ov"><div class="gal-paper"><div class="gal-title">Voie lactée, Feuillage</div><span class="gal-cat">Astrophotographie</span></div></div></div>
+<div class="gal-item gal-astro" data-c="photo nuit" data-title="Voie lactée, Feuillage" data-cat="Astrophotographie" data-desc="Feuillage éclairé au premier plan, Voie lactée en profondeur dans un ciel dégagé."><img src="images/nuit-4.jpg" alt="Voie lactée au-dessus d'un feuillage" width="1616" height="1080" loading="lazy" decoding="async"><div class="gal-ov"><div class="gal-paper"><div class="gal-title">Voie lactée, Feuillage</div><span class="gal-cat">Astrophotographie</span></div></div></div>
   </div>
 </section>
 
@@ -3156,14 +3166,14 @@ body.avec-3d #ouverture .hero{pointer-events:auto}
     <div class="c-paper torn">
       <div class="tape l"></div><div class="tape r"></div>
       <div class="sec-num" style="background:var(--ink);color:var(--paper);margin-bottom:1.5rem">05 / Contact</div>
-      <div class="c-big">PRENEZ-MOI<span>EN ALTERNANCE.</span></div>
+      <h2 class="c-big">PRENEZ-MOI<span>EN ALTERNANCE.</span></h2><span class="sr-only">Prenez-moi en alternance.</span>
       <p class="c-sub">Alternance à partir de septembre 2026, à Paris et en Île-de-France.<span class="c-sub-note">En recherche d'alternance · Master Direction Artistique, ESP Paris.</span></p>
       <a href="mailto:maigretjaurys8@gmail.com" class="c-mail">maigretjaurys8@gmail.com</a>
     </div>
   </div>
   <div class="cr rvr">
     <div class="ci"><label>Téléphone</label><a href="tel:+33609977401">06 09 97 74 01</a></div>
-    <div class="ci"><label>Localisation</label><p>Paris 75 000</p></div>
+    <div class="ci"><label>Localisation</label><p>Paris &amp; Île-de-France</p></div>
     <div class="ci"><label>LinkedIn</label><a href="https://www.linkedin.com/in/jaurys-maigret" target="_blank" rel="noopener">Jaurys Maigret →</a></div>
     <div class="ci"><label><i class="pouls" aria-hidden="true"></i>Disponibilité</label><p>Rentrée sept. 2026 · Paris &amp; Île-de-France</p></div>
     <div class="ci"><label>Mobilité</label><p>Permis B · Véhiculé</p></div>
@@ -3452,7 +3462,7 @@ var CAMPAIGNS = {
     cat: "Affiche · Parfum · Luxe",
     logo: "data:image/svg+xml;base64,PHN2ZyB2aWV3Qm94PSIwIDAgMzAwIDcwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjx0ZXh0IHg9IjE1MCIgeT0iNDgiIGZvbnQtZmFtaWx5PSJHZW9yZ2lhLCdUaW1lcyBOZXcgUm9tYW4nLHNlcmlmIiBmb250LXNpemU9IjQyIiBmb250LXdlaWdodD0iNDAwIiBsZXR0ZXItc3BhY2luZz0iNiIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+SEVSTcOIUzwvdGV4dD48dGV4dCB4PSIxNTAiIHk9IjY0IiBmb250LWZhbWlseT0iR2VvcmdpYSxzZXJpZiIgZm9udC1zaXplPSI5IiBsZXR0ZXItc3BhY2luZz0iMyIgZmlsbD0iI2ZmZiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgb3BhY2l0eT0iMC44NSI+UEFSSVM8L3RleHQ+PC9zdmc+",
     meta: { "Type": "Affiche", "Secteur": "Parfumerie de luxe", "Année": "2025" },
-    brief: "Première affiche, et déjà un parti pris : faire tenir dans une seule image la chaleur épicée du cardamome et la délicatesse d'une Saint-Valentin, sans trahir le raffinement de la maison. Le ciel nocturne porte le flacon comme un astre, les deux silhouettes en bas de cadre donnent l'échelle et l'histoire. Projet mené à l'ESP Paris.",
+    brief: "Première affiche, et déjà un parti pris : faire tenir dans une seule image la chaleur épicée de la cardamome et la délicatesse d'une Saint-Valentin, sans trahir le raffinement de la maison. Le ciel nocturne porte le flacon comme un astre, les deux silhouettes en bas de cadre donnent l'échelle et l'histoire. Projet mené à l'ESP Paris.",
     posterSlots: 0,   // affiches « à venir » en plus de la/les réelle(s)
     videoSlots: 0
   },
@@ -3629,6 +3639,7 @@ function openProject(group){
   pp.classList.add('on');
   document.body.style.overflow='hidden';
   pp.scrollTop=0;
+  setTimeout(function(){ var b=document.getElementById('ppBack'); if(b) b.focus({preventScroll:true}); },80);
   var vEls=ppWrap.querySelectorAll('.pp-visual');
   vEls.forEach(function(el,idx){setTimeout(function(){el.classList.add('in');}, 150+idx*80);});
   var nx=ppWrap.querySelector('.pp-next');
@@ -3659,7 +3670,7 @@ function openProject(group){
     var src=el.dataset.vsrc;
     var tv=el.querySelector('.pp-visual-cap');
     el.setAttribute('role','button'); el.setAttribute('tabindex','0');
-    el.setAttribute('aria-label','Lire la video : '+(tv?tv.textContent:''));
+    el.setAttribute('aria-label','Lire la vidéo : '+(tv?tv.textContent:''));
     el.addEventListener('keydown',function(e){ if(e.key==='Enter'||e.key===' '){e.preventDefault();el.click();} });
     el.addEventListener('click',function(){
       if(el.classList.contains('pp-slot'))return; // vignette « à venir » : non cliquable
@@ -3887,7 +3898,7 @@ allItems.forEach(function(item){
   if(item.offsetParent!==null || !item.classList.contains('brand-secondary')){
     item.setAttribute('role','button');
     item.setAttribute('tabindex','0');
-    var quoi = item.classList.contains('gal-video') ? 'Lire la video : ' : 'Ouvrir : ';
+    var quoi = item.classList.contains('gal-video') ? 'Lire la vidéo : ' : 'Ouvrir : ';
     item.setAttribute('aria-label', quoi + (item.dataset.title||'projet'));
   }
   item.addEventListener('keydown',function(e){
@@ -4081,7 +4092,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
   // visiteur (clic, touche, toucher), sauf s'il l'a deja coupe. Les
   // navigateurs n'autorisent pas le son avant un geste, et c'est tres bien.
   var voulu=true;
-  try{ var choix=localStorage.getItem('jm-son'); voulu = choix==='1' || (choix===null && matchMedia('(hover:hover) and (pointer:fine)').matches); }catch(e){}
+  try{ var choix=localStorage.getItem('jm-son'); voulu = choix==='1' || (choix===null && matchMedia('(hover:hover) and (pointer:fine)').matches && !matchMedia('(prefers-reduced-motion:reduce)').matches); }catch(e){}
   // l'ambiance suit la vitesse de defilement
   var yS=window.scrollY, vS=0;
   setInterval(function(){ var y=window.scrollY; vS=Math.abs(y-yS)/120; yS=y; if(on&&S&&S.flux) S.flux(Math.min(1.2,vS*.6)); },100);
@@ -4094,7 +4105,6 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
       import('./js/son.js').then(function(m){ if(S) return; S=m; m.allumer(); etat(true); if(!charge) brancher(); });
     };
     document.addEventListener('pointerdown',reveiller,{once:true});
-    document.addEventListener('keydown',reveiller,{once:true});
     document.addEventListener('touchstart',reveiller,{once:true,passive:true});
   }
 })();
@@ -4166,6 +4176,11 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
   });
 
 })();
+// ═══ Le nombre de visuels de chaque campagne, compte dans la page ═══
+document.querySelectorAll('.gal-item[data-group]').forEach(function(t){
+  var n=document.querySelectorAll('.gal-item[data-group="'+t.dataset.group+'"]').length, c=t.querySelector('.brand-count span');
+  if(c) c.textContent=n;
+});
 // ═══ Le nombre de pieces de chaque famille, compte dans la page ═══
 document.querySelectorAll('#gallery .fam').forEach(function(f){
   var b=f.querySelector('.fam-c b'); if(b) b.textContent=f.querySelectorAll('.gal-item').length;
@@ -4807,6 +4822,6 @@ if(window.__jmSon) window.__jmSon('avion');
   });
 })();
 </script>
-<script type="module" src="js/experiences.js?v=33" onerror="window.__pret3d&&window.__pret3d()"></script>
+<script type="module" src="js/experiences.js?v=34" onerror="window.__pret3d&&window.__pret3d()"></script>
 </body>
 </html>

@@ -258,6 +258,12 @@ function selection() {
         titre: t.dataset.brand || (t.dataset.title || '').split(',')[0], cat: (t.dataset.cat || '').replace(/&middot;/g, '·') });
     });
   });
+  // les projets restent accessibles au clavier et aux lecteurs d'ecran : une liste de vrais boutons, invisible a l'oeil
+  const acces = document.createElement('ul'); acces.className = 'sr-only'; acces.setAttribute('aria-label', 'Liste des projets');
+  projets.forEach(pr => { if (pr.carte) return; const li = document.createElement('li'), b = document.createElement('button');
+    b.type = 'button'; b.textContent = (pr.video ? 'Lire la vidéo : ' : 'Ouvrir le projet : ') + pr.titre + ' (' + pr.famNom + ')';
+    b.addEventListener('click', () => pr.tuile.click()); li.appendChild(b); acces.appendChild(li); });
+  el.appendChild(acces);
   // la longueur de la piste suit le nombre de pieces
   el.style.height = (100 + projets.length * (TACTILE ? 48 : 56)) + 'vh';
   const tc = el.querySelector('.dc-tc');
@@ -345,7 +351,8 @@ void main(){float s=uV*0.0035;
     const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
     return tex;
   }
-  setTimeout(() => { if ('requestIdleCallback' in window) requestIdleCallback(() => charger(), { timeout: 4000 }); else charger(); }, 2500);
+  const econome = navigator.connection && (navigator.connection.saveData || /2g/.test(navigator.connection.effectiveType || ''));
+  if (!econome) setTimeout(() => { if ('requestIdleCallback' in window) requestIdleCallback(() => charger(), { timeout: 4000 }); else charger(); }, 2500);
   function charger() {
     if (charge) return; charge = true;
     const polices = document.fonts ? Promise.all(['400 112px Anton', '500 30px "IBM Plex Mono"', '400 30px "IBM Plex Sans"'].map(f => document.fonts.load(f).catch(() => 0))) : Promise.resolve();
