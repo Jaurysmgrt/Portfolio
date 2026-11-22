@@ -1538,7 +1538,7 @@ footer{padding-right:max(1.5rem,7rem)}
 /* l'annee : arrive enorme et se pose, puis s'etire avec le defilement */
 .recit.vivant .ch-an{overflow:visible}
 .recit.vivant .ch-an span{opacity:0;transform:translate3d(0,24%,0) scale(1.5);transform-origin:0 100%;transition:transform .8s cubic-bezier(.16,1,.3,1),opacity .45s ease}
-.recit.vivant .ch.on .ch-an span{opacity:1;transform:translate3d(calc(var(--t,.5) * -3vw),0,0)}
+.recit.vivant .ch.on .ch-an span{opacity:1;transform:none}
 .recit.vivant .ch.sort .ch-an span{opacity:0;transform:translate3d(0,-18%,0) scale(.86);transition:transform .5s cubic-bezier(.5,0,.75,0),opacity .35s ease .1s}
 .recit.vivant .ch-an.ln{transform:none;opacity:1}
 /* le visuel : se devoile par une fenetre qui s'ouvre, en partant de plus grand */
@@ -1579,6 +1579,8 @@ body.loaded .hn .lt{opacity:1;transform:none}
 /* au defilement, elles eclatent chacune dans sa direction */
 body.avec-3d #ouverture .hn{overflow:visible}
 body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw)) calc(var(--o1,0) * var(--dy,0vh));rotate:calc(var(--o1,0) * var(--dr,0deg))}
+/* en eclatant, elles s'effacent : aucune lettre ne reste posee sur la forme 3D */
+body.avec-3d.loaded #ouverture .hn .lt{opacity:calc(1 - var(--o1,0) * 1.8);transition:transform 1s cubic-bezier(.16,1.2,.3,1),opacity .12s linear}
 @media(prefers-reduced-motion:reduce){.hn .lt{opacity:1;transform:none;filter:none;transition:none}}
 
 /* ═══ Mon histoire : un volet entre deux chapitres, jamais le meme ═══ */
@@ -1906,14 +1908,14 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 .cal-num{text-shadow:0 1px 0 #fff}
 
 /* ═══ BTS : des post-it punaises, un par un, qui se balancent ═══ */
-.tableau{position:relative;width:min(460px,36vw);aspect-ratio:1.1/1}
+.tableau{position:relative;width:min(460px,36vw);aspect-ratio:1/1.02;container-type:inline-size}
 .note{position:absolute;width:46%;aspect-ratio:1}
-.note-in{position:relative;width:100%;height:100%;padding:18% 12% 10%;display:flex;flex-direction:column;justify-content:flex-end;transform-origin:50% 6%;
+.note-in{position:relative;width:100%;height:100%;padding:22% 11% 10%;display:flex;flex-direction:column;justify-content:flex-end;transform-origin:50% 6%;
   box-shadow:0 2px 0 rgba(0,0,0,.08),0 26px 30px -18px rgba(0,0,0,.9);background:linear-gradient(170deg,#f6f1e4,#ebe3d0)}
 .note-in::after{content:'';position:absolute;left:0;right:0;bottom:0;height:22%;background:linear-gradient(0deg,rgba(0,0,0,.06),transparent)}
-.note b{font-family:'Anton',sans-serif;font-weight:400;font-size:clamp(1.1rem,1.9vw,1.8rem);line-height:.95;text-transform:uppercase;color:#14181d;hyphens:manual}
-.note span{font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.2em;color:#fff;background:var(--red);align-self:flex-start;padding:.15rem .4rem;margin-bottom:.35rem}
-.note em{font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:.14em;color:#6d6457;margin-top:.35rem}
+.note b{font-family:'Anton',sans-serif;font-weight:400;font-size:min(6.6cqw,1.8rem);line-height:.95;text-transform:uppercase;color:#14181d;hyphens:manual}
+.note span{font-family:'IBM Plex Mono',monospace;font-size:min(2.6cqw,.6rem);letter-spacing:.2em;color:#fff;background:var(--red);align-self:flex-start;padding:.15rem .4rem;margin-bottom:.35rem}
+.note em{font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:min(2.6cqw,.6rem);letter-spacing:.14em;color:#6d6457;margin-top:.35rem}
 .n0{left:0;top:2%;--r:-5deg}.n1{right:2%;top:0;--r:4deg}.n2{left:6%;bottom:0;--r:3deg}.n3{right:0;bottom:4%;--r:-4deg}
 .n1 .note-in,.n3 .note-in{background:linear-gradient(170deg,#e0412f,#c92d1d)}.n1 b,.n3 b{color:#fff}
 .punaise{position:absolute;left:50%;top:6%;width:14px;height:14px;margin-left:-7px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#9aa6b3 40%,#4b5561);box-shadow:0 4px 5px rgba(0,0,0,.5);z-index:2}
@@ -1939,7 +1941,9 @@ html{scrollbar-width:thin;scrollbar-color:var(--red) #06070a}
 @keyframes balance{0%,100%{transform:rotate(0)}30%{transform:rotate(1.6deg)}70%{transform:rotate(-1.3deg)}}
 .recit.vivant .ch[data-i="1"] .tableau{transform:translate3d(0,calc((.5 - var(--t,.5)) * 5vh),0)}
 .recit.vivant .ch[data-i="1"].sort .note{opacity:0;transform:translate3d(0,40px,0) rotate(calc(var(--r) * 2));transition:opacity .35s,transform .5s cubic-bezier(.5,0,.75,0)}
-@media(max-width:860px){.tableau{width:60vw;margin-bottom:.6rem}.note b{font-size:1.05rem}.note span,.note em{font-size:.48rem}}
+@media(max-width:860px){.tableau{width:54vw;margin-bottom:.6rem}
+  /* sur telephone le tableau ne flotte pas : il resterait sur l'en-tete ou sur le texte */
+  .recit.vivant .ch[data-i="1"] .tableau{transform:none}}
 
 /* ═══ Plus de mouvement : les objets vivent une fois poses ═══ */
 /* le tirage flotte et suit le defilement */
@@ -2203,12 +2207,13 @@ body.avec-3d #histoire{margin-top:-156vh;z-index:1}
 
 /* ═══ Textes de l'histoire : chiffre par chiffre, lettre par lettre, mot par mot (jamais coupes) ═══ */
 .recit.vivant .ch-tag.ln,.recit.vivant .ch-t.ln,.recit.vivant .ch-p.ln,.recit.vivant .ch-an.ln{opacity:1!important;transform:none!important}
-.recit.vivant .ch-an > span{opacity:1!important;transform:translate3d(calc(var(--t,.5) * -3vw),0,0)!important;transition:transform .2s linear!important}
+/* l'annee reste alignee sur le texte : plus de glissement lateral au defilement */
+.recit.vivant .ch-an > span{opacity:1!important;transform:none!important}
 .tx{display:inline-block;white-space:nowrap}
 .recit.vivant .ch .tc,.recit.vivant .ch .tw{display:inline-block;opacity:0;will-change:transform,opacity;
   transition:opacity .4s ease,transform .7s cubic-bezier(.16,1,.3,1);transition-delay:calc(var(--d,0s) + var(--k,0) * var(--pas,20ms))}
-/* l'annee : chaque chiffre tombe de haut, avec un leger rebond */
-.recit.vivant .ch-an .tc{transform:translate3d(0,-.45em,0) rotate(-8deg);--pas:70ms;transition-timing-function:ease,cubic-bezier(.3,1.5,.5,1)}
+/* l'annee : chaque chiffre monte en place, net, sans rebond ni rotation */
+.recit.vivant .ch-an .tc{transform:translate3d(0,.32em,0);--pas:65ms;transition-duration:.45s,.75s;transition-timing-function:ease,cubic-bezier(.16,1,.3,1)}
 /* l'etiquette et le titre : lettre par lettre */
 .recit.vivant .ch-tag .tc{transform:translate3d(0,.5em,0);--pas:14ms}
 .recit.vivant .ch-t .tc{transform:translate3d(0,.55em,0) rotate(4deg);--pas:18ms}
@@ -2225,6 +2230,7 @@ body.avec-3d #histoire{margin-top:-156vh;z-index:1}
 @media(max-width:860px){
   /* l'eclatement des lettres reste dans l'ecran et ne recouvre pas le reste */
   body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw) * .45) calc(var(--o1,0) * var(--dy,0vh) * .45);rotate:calc(var(--o1,0) * var(--dr,0deg) * .6)}
+  body.avec-3d.loaded #ouverture .hn .lt{opacity:calc(1 - var(--o1,0) * 2.4)}
   body.avec-3d #ouverture .hn{scale:calc(1 + var(--o2,0) * .5)}
   body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 12vw),0,0)!important}
   body.avec-3d #ouverture .hn1{transform:translate3d(calc(var(--o1,0) * -12vw),0,0)!important}
@@ -2267,9 +2273,12 @@ h2.c-big{margin:0 0 1.5rem;font-weight:400}
   .recit.vivant .ch-vis{max-height:34vh;justify-content:flex-start}
   .recit.vivant .tirage{width:36vw}
   .recit.vivant .stv{width:44vw!important;max-height:34vh}
-  .recit.vivant .stv-tred .badge{margin-top:0;width:70%}
-  .badge::after{height:12vh}
-  .badge b{font-size:.9rem}.badge-pied{white-space:nowrap;font-size:.46rem}
+  /* le badge tient dans sa zone : plus compact, cordon plus court */
+  .recit.vivant .stv-tred .badge{margin-top:6%;width:62%;padding:13% 7% 6%;gap:.3rem}
+  .badge::after{height:9vh}
+  .badge-logo{padding:.35rem .5rem}.badge-logo img{max-height:28px!important}
+  .badge-role{font-size:.4rem;letter-spacing:.12em;padding:.2rem .35rem}
+  .badge b{font-size:.82rem;line-height:1}.badge-pied{white-space:nowrap;font-size:.42rem}
   .recit.vivant .ch[data-i="4"] .ch-vis{gap:.4rem}
   .recit.vivant .ch-logo-tp img{max-height:7vh}
   .ch-route{width:84vw}
@@ -2300,6 +2309,8 @@ h2.c-big{margin:0 0 1.5rem;font-weight:400}
   .recit.vivant .ch-logo-tp{display:none}
   .contrat{padding:.55rem .7rem .5rem}.ct-tete b{font-size:.85rem}
   .recit.vivant .ch-an{font-size:2.6rem!important}
+  /* petit ecran : le contrat du Master descend sous l'en-tete */
+  .recit.vivant .ch[data-i="5"]{padding-top:calc(var(--nav-h,64px) + 5.6rem)!important}
 }
 
 @media(max-width:860px) and (max-height:700px){
