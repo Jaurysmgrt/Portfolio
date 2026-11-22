@@ -201,7 +201,7 @@ vec3 objectTangent=vec3(tangent.xyz);
     r.toneMappingExposure = 0.95 + eclat * 1.6;
     if (b.enabled) b.strength = 0.25 + p3 * 0.1 + eclat * 1.4 + p4 * 0.3;
     // la typographie accompagne : le nom s'ecarte, le reste du hero s'efface
-    if (hero) { hero.style.setProperty('--o1', p1.toFixed(3)); hero.style.setProperty('--o2', p2.toFixed(3)); }
+    if (hero) { hero.style.pointerEvents = p1 > 0.6 ? 'none' : ''; hero.style.setProperty('--o1', p1.toFixed(3)); hero.style.setProperty('--o2', p2.toFixed(3)); }
     // la transition « le trait » : un filet rouge traverse l'ecran, puis le monde se referme dessus
     const tl = 0, tc = doux(clamp((pBrut - 0.72) / 0.28)), tf = 0;
     el.style.setProperty('--tl', tl.toFixed(3)); el.style.setProperty('--tc', tc.toFixed(3)); el.style.setProperty('--tf', tf.toFixed(3));
@@ -259,7 +259,7 @@ function selection() {
     });
   });
   // la longueur de la piste suit le nombre de pieces
-  el.style.height = (100 + projets.length * (TACTILE ? 48 : 32)) + 'vh';
+  el.style.height = (100 + projets.length * (TACTILE ? 48 : 56)) + 'vh';
   const tc = el.querySelector('.dc-tc');
   const elFam = el.querySelector('.sel-fam'), elNum = el.querySelector('.sel-num'), elT = el.querySelector('.sel-t'), elC = el.querySelector('.sel-c'),
         elX = el.querySelector('.sel-x'), elTot = el.querySelector('.sel-tot'), elB = el.querySelector('.sel-barre i');
@@ -272,7 +272,7 @@ void main(){vUv=uv;vec3 p=position;
 void main(){float s=uV*0.0035;
   vec4 c=vec4(texture2D(uMap,vUv+vec2(s,0.)).r,texture2D(uMap,vUv).g,texture2D(uMap,vUv-vec2(s,0.)).b,1.);
   c.rgb=mix(vec3(0.06,0.07,0.09),c.rgb,uOk);
-  c.rgb*=mix(0.38,1.0,uFocus);
+  c.rgb*=mix(0.55,1.0,uFocus);
   float e=smoothstep(0.0,0.012,vUv.x)*smoothstep(1.0,0.988,vUv.x)*smoothstep(0.0,0.012,vUv.y)*smoothstep(1.0,0.988,vUv.y);
   c.rgb=mix(vec3(1.0,0.23,0.14)*uFocus,c.rgb,e);
   gl_FragColor=c;}`;
@@ -397,9 +397,20 @@ void main(){float s=uV*0.0035;
     r.setSize(w, h, false); c.setSize(w, h); cam.aspect = w / h; cam.fov = w < h ? 62 : 42; cam.updateProjectionMatrix();
   }
 
+  let dernierDefil = performance.now(), pose = true;
+  if (!TACTILE) addEventListener('scroll', () => { dernierDefil = performance.now(); pose = false; }, { passive: true });
   return function image(t) {
     if (!P.visible()) { P.progression(); return; }
     charger(); taille();
+    // aimant : a l'arret, l'arc se pose sur la piece la plus proche, centree
+    if (!TACTILE && !pose && performance.now() - dernierDefil > 260 && courant >= 0) {
+      pose = true; const pr0 = P.progression();
+      if (pr0 > 0.001 && pr0 < 0.999) {
+        const pl = plans[courant], total0 = plans.length ? -plans[plans.length - 1].ang : 1;
+        const cible = el.getBoundingClientRect().top + pageYOffset + (el.offsetHeight - innerHeight) * clamp(-pl.ang / total0) + 2;
+        if (Math.abs(cible - pageYOffset) > 6) allerA(pl);
+      }
+    }
     const p = SOBRE ? 0 : P.progression();
     const dv = (p - pPrec) * 60; pPrec = p;
     vit += (dv - vit) * 0.12;
@@ -424,7 +435,7 @@ void main(){float s=uV*0.0035;
       if (elX) elX.textContent = pr.carte ? pr.famNum : n;
       if (elTot) elTot.textContent = pr.carte ? String(pr.nb).padStart(2, '0') + ' pièces' : '/ ' + String(pr.nb).padStart(2, '0');
       el.classList.toggle('sur-carte', !!pr.carte); el.classList.toggle('sur-video', !!pr.video); el.dataset.f = pr.fam;
-      if (elT) { elT.textContent = pr.titre; elT.animate([{ opacity: 0, transform: 'translateY(40%)' }, { opacity: 1, transform: 'none' }], { duration: 520, easing: 'cubic-bezier(.16,1,.3,1)' }); }
+      if (elT) { elT.textContent = pr.titre; elT.animate([{ opacity: 0, transform: 'translateY(40%)' }, { opacity: 1, transform: 'none' }], { duration: 320, easing: 'cubic-bezier(.16,1,.3,1)' }); }
       if (elC) elC.textContent = pr.cat;
       if (elFam && elFam.dataset.f !== pr.fam) {
         elFam.dataset.f = pr.fam; elFam.textContent = pr.famNum + ' · ' + pr.famNom;

@@ -1621,7 +1621,7 @@ body.loaded .son{opacity:.45}
    ════════════════════════════════════════════════════════════════════ */
 .piste-3d{position:relative}
 .piste-3d .cv-3d{display:none}
-body.avec-3d #ouverture{height:360vh}
+body.avec-3d #ouverture{height:300vh}
 body.avec-3d #selection{height:430vh}
 /* l'arc remplace l'apercu : les projets ne sont jamais montres deux fois avant la galerie */
 body.avec-3d #apercu{display:none}
@@ -2510,7 +2510,7 @@ body.avec-3d #ouverture .hero{pointer-events:auto}
 body.avec-3d #ouverture .cv-3d{transform:scale(calc(1 + var(--tc,0) * .35));transform-origin:50% 50%}
 body.avec-3d .trait-ouv{display:none;position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;z-index:5;pointer-events:none;
   background:var(--red2);box-shadow:0 0 18px 2px rgba(255,68,51,.6);transform:scaleX(calc(var(--tl,0) + var(--tf,0) * .6));opacity:calc(var(--tl,0) * 4 - var(--tf,0) * 5)}
-body.avec-3d #histoire{margin-top:-172.8vh;z-index:1}
+body.avec-3d #histoire{margin-top:-156vh;z-index:1}
 /* l'histoire attend sous la 3D : rien n'apparait avant que la 3D soit presque partie */
 .recit.vivant .rc-tete,.recit.vivant .rc-barre,.recit.vivant .rc-fond{transition:opacity .6s ease}
 .recit.vivant:not(.arrive) .rc-tete,.recit.vivant:not(.arrive) .rc-barre,.recit.vivant:not(.arrive) .rc-fond{opacity:0}
@@ -2647,6 +2647,20 @@ body.avec-3d #histoire{margin-top:-172.8vh;z-index:1}
   body.avec-3d #ouverture .colle{height:100lvh!important}
   body.avec-3d #ouverture .hero{padding-bottom:calc(1rem + env(safe-area-inset-bottom,0px) + (100lvh - 100svh))!important}
 }
+
+/* ═══ Retour d'audit ordinateur ═══ */
+/* l'accueil efface ne bloque plus les clics sur l'histoire */
+body.avec-3d #ouverture{pointer-events:none}
+body.avec-3d #ouverture .hero{pointer-events:auto}
+/* rythme : les animations demarrent plus tot */
+.recit.vivant .ch[data-i="0"].on .tirage{animation-delay:.4s,3s!important}
+.recit.vivant .ch[data-i="3"].on .pn-cone{animation-delay:1.1s,2.3s!important}
+.recit.vivant .ch[data-i="3"].on .pn-lampe:last-child .pn-cone{animation-delay:1.25s,2.5s!important}
+.recit.vivant .ch[data-i="4"].sort .ch-route{opacity:0;transition:opacity .35s ease .35s}
+.recit.vivant .ch[data-i="5"].on .ct-bulle{transition-delay:1.6s!important}
+/* l'aide de l'arc dit comment s'en servir ; les familles ne passent plus a la ligne */
+.rc-rail button{font-size:.72rem}
+@media(min-width:861px) and (max-width:1400px){.sel-fams{flex-wrap:nowrap}.sel-fams button{padding:.5rem .6rem}}
 </style>
 </head>
 <body>
@@ -2835,7 +2849,7 @@ body.avec-3d #histoire{margin-top:-172.8vh;z-index:1}
 <section id="histoire" class="recit" aria-label="Mon histoire">
  <div class="colle">
   <div class="rc-fond" aria-hidden="true"><span class="rc-num">00</span></div>
-  <div class="rc-tete"><span class="rc-lbl">Mon histoire <a href="#selection" class="rc-passer">Passer aux projets &darr;</a></span><ol class="rc-rail"><li><button type="button" data-i="0">Prologue</button></li><li><button type="button" data-i="1">Amiens</button></li><li><button type="button" data-i="2">Stages</button></li><li><button type="button" data-i="3">ESP Paris</button></li><li><button type="button" data-i="4">Talon Pointe</button></li><li><button type="button" data-i="5">Master</button></li></ol></div>
+  <div class="rc-tete"><span class="rc-lbl">Mon histoire <a href="#selection" class="rc-passer">Passer aux projets &darr;</a></span><ol class="rc-rail"><li><button type="button" data-i="0">Prologue</button></li><li><button type="button" data-i="1">2023 · BTS</button></li><li><button type="button" data-i="2">2024 · Stages</button></li><li><button type="button" data-i="3">2025 · Bachelor</button></li><li><button type="button" data-i="4">2025 · Talon Pointe</button></li><li><button type="button" data-i="5">2026 · Master</button></li></ol></div>
   <article class="ch" data-i="0" data-poids="1.4">
     <div class="ch-txt">
       <span class="ch-tag ln">Prologue</span>
@@ -2985,7 +2999,7 @@ body.avec-3d #histoire{margin-top:-172.8vh;z-index:1}
   <div class="colle">
     <canvas class="cv-3d" aria-hidden="true"></canvas>
     <div class="sel-couche">
-      <div class="sel-tete"><span class="sel-lbl clin" data-clin="les meilleurs, promis">Projets</span><div class="sel-fams" role="group" aria-label="Familles de projets"></div><span class="sel-aide">Cliquez sur l'image au centre pour l'ouvrir</span></div>
+      <div class="sel-tete"><span class="sel-lbl clin" data-clin="les meilleurs, promis">Projets</span><div class="sel-fams" role="group" aria-label="Familles de projets"></div><span class="sel-aide">D&eacute;filez pour parcourir &middot; cliquez l'image centrale pour l'ouvrir</span></div>
       <div class="sel-bas">
         <div class="sel-info"><div class="sel-fam"></div><div class="sel-num"></div><div class="sel-t"></div><div class="sel-c"></div></div>
         <div class="sel-cpt"><div class="sel-x"></div><div class="sel-tot"></div></div>
@@ -3519,6 +3533,7 @@ function openProject(group){
   var c=CAMPAIGNS[group];
   if(!c)return;
   var dejaOuvert=pp.classList.contains('on');
+  if(!dejaOuvert) window.__yAvantProjet=window.scrollY;
   var intro=document.getElementById('ppIntro');
   if(intro && !matchMedia('(prefers-reduced-motion:reduce)').matches){
     intro.querySelector('b').textContent=(c.name||'').split(',')[0];
@@ -3626,7 +3641,7 @@ function openProject(group){
       btn.addEventListener('click',function(){
         closeProject();
         if(btn.dataset.act==='contact'){ setTimeout(function(){openContact();},260); }
-        else { var g=document.getElementById('portfolio'); if(g) setTimeout(function(){g.scrollIntoView({behavior:'smooth'});},120); }
+        else { var g=document.getElementById('portfolio'); if(!g||!g.offsetHeight) g=document.getElementById('selection'); if(g) setTimeout(function(){g.scrollIntoView({behavior:'smooth'});},400); }
       });
     });
   }
@@ -3698,9 +3713,11 @@ var ppLbIdx=0;
 function closeProject(parHistorique){
   pp.classList.remove('on');
   document.body.style.overflow='';
+  var yr=window.__yAvantProjet; if(typeof yr==='number'){ setTimeout(function(){ window.scrollTo(0,yr); },30); setTimeout(function(){ window.scrollTo(0,yr); },200); }
   if(parHistorique!==true && history.state && history.state.pp){ history.back(); return; }
   if(location.hash.indexOf('#p-')===0){history.replaceState(null,'','#portfolio');}
 }
+if('scrollRestoration' in history) history.scrollRestoration='manual';
 window.addEventListener('popstate',function(){
   if(pp.classList.contains('on') && !(history.state && history.state.pp)) closeProject(true);
   else if(!pp.classList.contains('on') && history.state && history.state.pp){
@@ -4516,7 +4533,7 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
       if(u>.3 && u<.98){ var vit=2*D*(1-u)/T; emettre(0,2,vit*.2,-14,larg*.045,1.5,.5); emettre(1,3,vit*.24,-18,larg*.055,1.7,.6); }
       if(t>T+1.2) etat='garee';
     } else if(etat==='repart'){
-      var patine=.45, T2=1.05;
+      var patine=.3, T2=.6;
       if(t<patine){ // les roues patinent sur place, l'arriere s'ecrase
         poser(0,1.4*Math.min(1,t/.15),-(28+t*40));
         emettre(1,3,innerWidth*.22,-30,larg*.06,1.4,.42); emettre(0,1,innerWidth*.08,-16,larg*.04,1.1,.35);
@@ -4605,7 +4622,7 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
   if(!matchMedia('(prefers-reduced-motion:reduce)').matches){
     var hint=document.createElement('div'); hint.className='hint-scroll'; hint.setAttribute('aria-hidden','true');
     hint.innerHTML='Faites défiler, ça bouge<b>↓</b>'; document.body.appendChild(hint);
-    var minu=setTimeout(function(){ if(window.scrollY<40) hint.classList.add('vu'); },7000);
+    var minu=setTimeout(function(){ if(window.scrollY<40) hint.classList.add('vu'); },2800);
     window.addEventListener('scroll',function f(){ if(window.scrollY>40){ clearTimeout(minu); hint.classList.remove('vu'); window.removeEventListener('scroll',f); } },{passive:true});
   }
 })();
@@ -4790,6 +4807,6 @@ if(window.__jmSon) window.__jmSon('avion');
   });
 })();
 </script>
-<script type="module" src="js/experiences.js?v=32" onerror="window.__pret3d&&window.__pret3d()"></script>
+<script type="module" src="js/experiences.js?v=33" onerror="window.__pret3d&&window.__pret3d()"></script>
 </body>
 </html>
