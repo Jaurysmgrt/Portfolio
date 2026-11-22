@@ -2730,7 +2730,7 @@ h2.c-big{margin:0 0 1.5rem;font-weight:400}
 .ig-nom{display:flex;flex-direction:column;line-height:1.15;flex:1}
 .ig-nom b{font-size:.86rem;font-weight:600}.ig-nom i{font-style:normal;font-size:.72rem;color:#a8a8a8}
 .ig-plus{font-weight:700;letter-spacing:.06em;color:#f5f5f5}
-.ig-cadre{position:relative;aspect-ratio:4/5;background:#0b0b0b}
+.ig-cadre{position:relative;aspect-ratio:3/4;background:#0b0b0b}
 .ig-piste{position:absolute;inset:0;display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain;cursor:grab;outline:none}
 .ig-piste::-webkit-scrollbar{display:none}
 .ig-piste.tire{scroll-snap-type:none;cursor:grabbing}
@@ -2746,8 +2746,8 @@ h2.c-big{margin:0 0 1.5rem;font-weight:400}
 .ig-actions{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:.6rem .8rem .3rem}
 .ig-actions span{display:flex;gap:.9rem}.ig-actions span:last-child{justify-content:flex-end}
 .ig-actions svg{width:24px;height:24px;fill:none;stroke:#f5f5f5;stroke-width:1.7;stroke-linejoin:round;stroke-linecap:round}
-.ig-points{gap:4px!important;justify-content:center}
-.ig-points i{width:6px;height:6px;border-radius:50%;background:#555;transition:background .2s,transform .2s}
+.ig-points{gap:3px!important;justify-content:center;max-width:42vw;flex-wrap:nowrap}
+.ig-points i{width:5px;height:5px;border-radius:50%;background:#555;transition:background .2s,transform .2s}
 .ig-points i.on{background:#0095f6;transform:scale(1.1)}
 .ig-leg{margin:0;padding:.25rem .85rem .95rem;font-size:.84rem;line-height:1.4;color:#f5f5f5}
 .ig-leg b{font-weight:600;margin-right:.3rem}
@@ -3568,7 +3568,7 @@ var CAMPAIGNS = {
       {src:"https://youtu.be/jALFTSEXKDU",poster:"images/voss-rue.jpg",label:"Format vertical",w:9,h:16}
     ],
     carrousel: { compte: "voss", legende: "Même bouteille, même logo, aucun autre élément graphique : le verre, la lumière et le geste.",
-      slides: ["images/voss-rue.jpg","images/voss-poche.jpg","images/voss-ciel.jpg","images/voss-passage.jpg","images/voss-silhouette.jpg"] },
+      slides: ["images/voss-carrousel-01.jpg", "images/voss-carrousel-02.jpg", "images/voss-carrousel-03.jpg", "images/voss-carrousel-04.jpg", "images/voss-carrousel-05.jpg", "images/voss-carrousel-06.jpg", "images/voss-carrousel-07.jpg", "images/voss-carrousel-08.jpg", "images/voss-carrousel-09.jpg", "images/voss-carrousel-10.jpg", "images/voss-carrousel-11.jpg", "images/voss-carrousel-12.jpg", "images/voss-carrousel-13.jpg"] },
     posterSlots: 0,
     videoSlots: 0
   },
@@ -3686,7 +3686,7 @@ function openProject(group){
     carSection='<div class="pp-vis-label">Le carrousel</div>'
       +'<div class="ig" data-n="'+n+'"><div class="ig-tete"><span class="ig-av"><b>V</b></span><span class="ig-nom"><b>'+cr.compte+'</b><i>Sponsoris&eacute;</i></span><span class="ig-plus">&middot;&middot;&middot;</span></div>'
       +'<div class="ig-cadre"><div class="ig-piste" tabindex="0" aria-label="Carrousel, '+n+' visuels. Faites glisser.">'
-      +cr.slides.map(function(src,i){ return '<figure class="ig-slide"><img class="ig-fond" src="'+src+'" alt="" aria-hidden="true" loading="lazy"><img class="ig-img" src="'+src+'" alt="Carrousel VOSS, visuel '+(i+1)+' sur '+n+'" loading="lazy" decoding="async"></figure>'; }).join('')
+      +cr.slides.map(function(src,i){ return '<figure class="ig-slide"><img class="ig-img" src="'+src+'" alt="Carrousel VOSS, visuel '+(i+1)+' sur '+n+'" loading="lazy" decoding="async"></figure>'; }).join('')
       +'</div><span class="ig-compte">1/'+n+'</span>'
       +'<button type="button" class="ig-fl ig-prec" aria-label="Visuel pr&eacute;c&eacute;dent">&lsaquo;</button><button type="button" class="ig-fl ig-suiv" aria-label="Visuel suivant">&rsaquo;</button></div>'
       +'<div class="ig-actions"><span>'+svg(ic.coeur)+svg(ic.bulle)+svg(ic.avion)+'</span><span class="ig-points">'+cr.slides.map(function(_,i){return '<i'+(i?'':' class="on"')+'></i>';}).join('')+'</span><span>'+svg(ic.signet)+'</span></div>'
