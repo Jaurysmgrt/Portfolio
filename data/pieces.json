@@ -99,12 +99,12 @@
   "secondaire": false
  },
  {
-  "src": "images/voss-magazine.jpg",
+  "src": "images/voss-gorgee.jpg",
   "w": 1600,
-  "h": 1130,
-  "titre": "VOSS, double page",
+  "h": 901,
+  "titre": "VOSS, la gorgée",
   "cat": "Campagne · Eau premium",
-  "desc": "Double page magazine : packshot à gauche, silhouette à droite.",
+  "desc": "Plan serré sur la gorgée, les passants filés autour.",
   "groupe": "voss",
   "marque": "VOSS",
   "secondaire": true
@@ -132,12 +132,12 @@
   "secondaire": true
  },
  {
-  "src": "images/voss-studio.jpg",
+  "src": "images/voss-parka.jpg",
   "w": 1600,
   "h": 901,
-  "titre": "VOSS, packshot studio",
+  "titre": "VOSS, en poche",
   "cat": "Campagne · Eau premium",
-  "desc": "La bouteille seule, verre fumé sous un halo de lumière.",
+  "desc": "La bouteille rangée dans la parka : un objet qu'on emporte.",
   "groupe": "voss",
   "marque": "VOSS",
   "secondaire": true
