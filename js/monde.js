@@ -18,7 +18,8 @@ const ROUGE   = 0xd42a1b;
 const DEMI_L  = 7.4;
 const PLAFOND = 6.2;
 const OEIL    = 1.68;
-const PAS     = 9.5;      // on resserre : le hall etait interminable
+const PAS     = 8;        // les oeuvres se suivent de pres : on va jusqu'au bout
+const DEBUT   = -16;      // la premiere oeuvre, juste apres l'entree
 
 // le son, s'il est demande : synthetise, jamais charge
 let SON = null;
@@ -33,7 +34,7 @@ export async function demarrer() {
     let on = false;
     const etat = v => { on = v; btn.setAttribute('aria-pressed', v ? 'true' : 'false');
       try { localStorage.setItem('jm-son', v ? '1' : '0'); } catch (e) {} };
-    const charger = () => import('./son.js?v=6').then(m => { SON = m; m.allumer(); etat(true); m.son.tension(); });
+    const charger = () => import('./son.js?v=7').then(m => { SON = m; m.allumer(); etat(true); m.son.tension(); });
     btn.addEventListener('click', () => {
       if (!SON) return charger();
       if (on) { SON.eteindre(); etat(false); } else { SON.allumer(); etat(true); SON.son.tic(); }
@@ -43,7 +44,7 @@ export async function demarrer() {
     if (voulu) {
       const reveil = () => { document.removeEventListener('pointerdown', reveil);
         document.removeEventListener('keydown', reveil);
-        import('./son.js?v=6').then(m => { SON = m; m.allumer(); etat(true); }); };
+        import('./son.js?v=7').then(m => { SON = m; m.allumer(); etat(true); }); };
       document.addEventListener('pointerdown', reveil, { once: true });
       document.addEventListener('keydown', reveil, { once: true });
     }
@@ -513,7 +514,7 @@ export async function demarrer() {
 
   expos.forEach((p, i) => {
     const cote = i % 2 ? 1 : -1;
-    const z = -24 - i * PAS;
+    const z = DEBUT - i * PAS;
     const H = p.h > p.w ? 3.05 : 2.3;
     const L = H * (p.w / p.h);
     const M = 0.13, C = 0.06;       // passe-partout, baguette
@@ -594,7 +595,7 @@ export async function demarrer() {
   // en salles, comme une enfilade de musee.
   const matArche = new THREE.MeshStandardMaterial({ color: PAROI, roughness: 0.94, metalness: 0 });
   for (let k = 2; k < expos.length - 1; k += 3) {
-    const za = -24 - (k + 0.5) * PAS;
+    const za = DEBUT - (k + 0.5) * PAS;
     for (const c of [-1, 1]) {
       const pilier = new THREE.Mesh(new THREE.BoxGeometry(0.9, PLAFOND, 0.8), matArche);
       pilier.position.set(c * (DEMI_L - 0.45), PLAFOND / 2, za);
@@ -611,7 +612,7 @@ export async function demarrer() {
   const matCuir = new THREE.MeshStandardMaterial({ color: 0x2a211b, roughness: 0.55, metalness: 0 });
   const matPied = new THREE.MeshStandardMaterial({ color: 0x1a1a1c, roughness: 0.3, metalness: 0.85 });
   for (let k = 1; k < expos.length - 1; k += 3) {
-    const zb = -24 - k * PAS - PAS / 2;
+    const zb = DEBUT - k * PAS - PAS / 2;
     const b = new THREE.Group();
     const assise = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.12, 2.4), matCuir);
     assise.position.y = 0.44; assise.castShadow = true; assise.receiveShadow = true;
@@ -637,6 +638,50 @@ export async function demarrer() {
     bancs.push({ x: 0, z: zb, dx: 0.31 + 0.45, dz: 1.2 + 0.45 });
   }
 
+  // ═══════════ les gardiens ═══════════
+  // Deux silhouettes en uniforme, adossees a un pilier. Elles tournent la
+  // tete vers le visiteur et lui glissent un mot quand il passe.
+  const gardiens = [];
+  const matUni = new THREE.MeshStandardMaterial({ color: 0x343842, roughness: 0.7, metalness: 0.05 });
+  const matChemise = new THREE.MeshStandardMaterial({ color: 0xd9d6cf, roughness: 0.8 });
+  const matBrassard = new THREE.MeshStandardMaterial({ color: 0xc8281a, roughness: 0.6, emissive: 0x3a0804 });
+  const matPeau = new THREE.MeshStandardMaterial({ color: 0x8a6a55, roughness: 0.7 });
+  const RYTHME_G = [
+    ["Pas de flash, s'il vous plaît.", "Le directeur artistique ? Il cherche une alternance. Dites-lui que vous êtes passé.",
+     "Vous êtes le premier visiteur aujourd'hui. Ou le deuxième, je ne compte plus.", "Ne touchez pas les œuvres. Les regarder longtemps, c'est autorisé."],
+    ["Le banc est confortable, mais la suite est meilleure.", "La sortie est au fond. Le contact aussi, comme par hasard.",
+     "Il reste des cases à allumer, en haut. Je dis ça, je dis rien.", "J'ai vu passer un recruteur tout à l'heure. Il avait l'air convaincu."]
+  ];
+  const ARCHES = []; for (let k = 2; k < expos.length - 1; k += 3) ARCHES.push(DEBUT - (k + 0.5) * PAS);
+  [[ARCHES[0], 1], [ARCHES[Math.min(2, ARCHES.length - 1)], -1]].forEach(([za, c], n) => {
+    if (za === undefined) return;
+    const g = new THREE.Group();
+    const corps = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.75, 6, 14), matUni);
+    corps.position.y = 1.18; corps.scale.set(1, 1, 0.72); corps.castShadow = true; g.add(corps);
+    for (const dx of [-0.1, 0.1]) {
+      const jambe = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.62, 4, 10), matUni);
+      jambe.position.set(dx, 0.42, 0); jambe.castShadow = true; g.add(jambe);
+    }
+    for (const dx of [-0.29, 0.29]) {
+      const bras = new THREE.Mesh(new THREE.CapsuleGeometry(0.065, 0.55, 4, 10), matUni);
+      bras.position.set(dx, 1.2, 0); bras.castShadow = true; g.add(bras);
+    }
+    // la chemise sous la veste, et le brassard rouge de la salle
+    const chemise = new THREE.Mesh(new THREE.PlaneGeometry(0.12, 0.42), matChemise);
+    chemise.position.set(0, 1.4, 0.162); g.add(chemise);
+    const brassard = new THREE.Mesh(new THREE.CylinderGeometry(0.072, 0.072, 0.08, 12), matBrassard);
+    brassard.position.set(0.29, 1.32, 0); g.add(brassard);
+    const tete = new THREE.Group(); tete.position.y = 1.78; g.add(tete);
+    const crane = new THREE.Mesh(new THREE.SphereGeometry(0.12, 18, 14), matPeau); crane.scale.set(0.9, 1.1, 0.95); tete.add(crane);
+    const casquette = new THREE.Mesh(new THREE.CylinderGeometry(0.125, 0.13, 0.07, 18), matUni); casquette.position.y = 0.1; tete.add(casquette);
+    const visiere = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.015, 0.1), matUni); visiere.position.set(0, 0.075, 0.12); tete.add(visiere);
+    g.position.set(c * (DEMI_L - 1.35), 0, za + 0.9);
+    g.rotation.y = c > 0 ? -Math.PI / 2 : Math.PI / 2;   // face a l'allee
+    monde.add(g);
+    gardiens.push({ g, tete, repliques: RYTHME_G[n % 2], k: 0, proche: false });
+    bancs.push({ x: g.position.x, z: g.position.z, dx: 0.6, dz: 0.6 });
+  });
+
   // Quatre projecteurs reels seulement, deplaces vers les oeuvres les plus
   // proches : le nombre de lumieres ne change jamais, donc aucun shader a
   // recompiler en marchant (c'etait la cause des a-coups).
@@ -653,10 +698,10 @@ export async function demarrer() {
     projecteurs.push(sp);
   }
 
-  const Z_PIECES_FIN = -24 - (expos.length - 1) * PAS;
+  const Z_PIECES_FIN = DEBUT - (expos.length - 1) * PAS;
 
   // ═══════════ zone 03 — le parcours ═══════════
-  const Z_PARCOURS = Z_PIECES_FIN - 17;
+  const Z_PARCOURS = Z_PIECES_FIN - 12;
   const panneaux = [
     { cote: -1, l: [
       { t: 'lbl', v: 'Zone 03 · le parcours' },
@@ -705,7 +750,7 @@ export async function demarrer() {
   });
 
   // ═══════════ zone 04 — contact, le fond du hall ═══════════
-  const Z_FOND = Z_PARCOURS - 26;
+  const Z_FOND = Z_PARCOURS - 20;
   // le mur du fond a son propre enduit : celui des murs longs y serait etire
   const enduitFond = texEnduit.clone(); enduitFond.repeat.set(DEMI_L * 2 / 3, PLAFOND / 3); enduitFond.needsUpdate = true;
   const matFond = matParoi.clone(); matFond.bumpMap = enduitFond;
@@ -836,7 +881,7 @@ export async function demarrer() {
 
   const ZONES = [
     { n: '01', t: 'Entrée',      z: 8.5 },
-    { n: '02', t: 'Les pièces',  z: -24 },
+    { n: '02', t: 'Les pièces',  z: DEBUT },
     { n: '03', t: 'Le parcours', z: Z_PARCOURS + (ETROIT ? 14 : 9) },
     { n: '04', t: 'Contact',     z: Z_FOND + 7 }
   ];
@@ -1028,6 +1073,7 @@ export async function demarrer() {
   const _wp = new THREE.Vector3(), _q = new THREE.Quaternion(), _n = new THREE.Vector3();
 
   function ouvrir(tab) {
+    if (typeof vue === 'function') vue(tab.userData.i);
     if (ouverte === tab) return;
     ouverte = tab;
     bruitage('clac');
@@ -1083,6 +1129,76 @@ export async function demarrer() {
   }
   document.getElementById('ficheX').addEventListener('click', fermerFiche);
 
+  // ═══════════ la chasse aux oeuvres ═══════════
+  const elCases = document.getElementById('cases'), elCompte = document.getElementById('compte');
+  const elVisite = document.getElementById('visite'), elBulle = document.getElementById('bulle');
+  const elBillet = document.getElementById('billet');
+  const vues = new Set();
+  let billetMontre = false;
+  if (elCases) for (let i = 0; i < cibles.length; i++) elCases.appendChild(document.createElement('i'));
+  function majCompte() {
+    if (!elCompte) return;
+    elCompte.innerHTML = '&OElig;uvres vues <b>' + vues.size + '</b>/' + cibles.length;
+  }
+  majCompte();
+  function vue(i) {
+    if (vues.has(i)) return;
+    vues.add(i);
+    const c = elCases && elCases.children[i]; if (c) c.classList.add('vu');
+    majCompte();
+    bruitage('cran');
+    if (vues.size === cibles.length) setTimeout(() => montrerBillet(true), 1400);
+  }
+  function montrerBillet(complet) {
+    if (billetMontre || !elBillet) return;
+    billetMontre = true;
+    document.getElementById('billetN').textContent = String(1 + Math.floor(Math.random() * 9998)).padStart(4, '0');
+    if (!complet) {
+      elBillet.querySelector('h2').textContent = 'Fin de la visite.';
+      elBillet.querySelector('.tampon').textContent = vues.size + ' / ' + cibles.length + ' vues';
+    }
+    elBillet.classList.add('on'); elBillet.setAttribute('aria-hidden', 'false');
+    setTimeout(() => bruitage('tampon'), 520);
+    arreterVisite();
+  }
+  document.getElementById('billetX').addEventListener('click', () => { elBillet.classList.remove('on'); elBillet.setAttribute('aria-hidden', 'true'); });
+
+  // la bulle d'un gardien
+  let tBulle = 0;
+  function dire(qui, texte) {
+    if (!elBulle) return;
+    elBulle.innerHTML = '<small>' + qui + '</small>' + texte;
+    elBulle.classList.add('on');
+    clearTimeout(tBulle); tBulle = setTimeout(() => elBulle.classList.remove('on'), 4200);
+    bruitage('clic');
+  }
+
+  // la visite guidee : d'oeuvre en oeuvre, toute seule ; un geste la rend
+  let visite = null;
+  function arreterVisite() {
+    if (!visite) return;
+    clearTimeout(visite.t); visite = null;
+    if (elVisite) { elVisite.setAttribute('aria-pressed', 'false'); elVisite.innerHTML = '&#9654; Visite guid&eacute;e'; }
+  }
+  function etape() {
+    if (!visite) return;
+    if (visite.i >= cibles.length) { arreterVisite(); fermerFiche(); allerA(3); return; }
+    ouvrir(cibles[visite.i]); vue(visite.i);
+    visite.i++;
+    visite.t = setTimeout(etape, 5200);
+  }
+  if (elVisite) elVisite.addEventListener('click', () => {
+    if (visite) { arreterVisite(); return; }
+    // on reprend a la premiere oeuvre pas encore vue
+    let i = 0; while (i < cibles.length && vues.has(i)) i++;
+    if (i >= cibles.length) i = 0;
+    visite = { i, t: 0 };
+    elVisite.setAttribute('aria-pressed', 'true'); elVisite.innerHTML = '&#9632; Arr&ecirc;ter la visite';
+    compris(); etape();
+  });
+  addEventListener('keydown', e => { if (visite && ['z','q','s','d','w','a','arrowup','arrowdown','arrowleft','arrowright'].includes(e.key.toLowerCase())) arreterVisite(); });
+  cv.addEventListener('pointerdown', () => arreterVisite());
+
   // ═══════════ boucle ═══════════
   function dimensionner() {
     const w = innerWidth, h = innerHeight;
@@ -1136,13 +1252,15 @@ export async function demarrer() {
       for (const b of bancs) {
         const ox = pos.x - b.x, oz = pos.z - b.z;
         if (Math.abs(ox) < b.dx && Math.abs(oz) < b.dz) {
-          const px = b.dx - Math.abs(ox), pz = b.dz - Math.abs(oz);
-          if (px < pz) pos.x = b.x + Math.sign(ox || 1) * b.dx; else pos.z = b.z + Math.sign(oz || 1) * b.dz;
+          // on glisse sur le cote : marcher tout droit ne bloque jamais, on contourne
+          pos.x = b.x + Math.sign(ox || 1) * b.dx;
         }
       }
-      // le pas : une oscillation a peine sensible quand on marche
+      // le pas : une oscillation a peine sensible quand on marche, et le bruit des pas
       const allure = Math.min(1, vit.length() / 5);
+      const avantPas = Math.floor(foulee / Math.PI);
       foulee += dt * (4 + allure * 4) * allure;
+      if (allure > 0.25 && Math.floor(foulee / Math.PI) !== avantPas) bruitage('pas');
       pos.y = OEIL + Math.sin(foulee * 2) * 0.012 * allure;
     }
 
@@ -1157,6 +1275,20 @@ export async function demarrer() {
     cam.position.copy(pos);
     cam.rotation.set(0, 0, 0, 'YXZ');
     cam.rotation.y = lacet; cam.rotation.x = tangage;
+
+    // une oeuvre est « vue » quand on passe tout pres, face a elle
+    for (const o of oeuvres) if (Math.abs(o.z - pos.z) < 3.2 && !vues.has(o.tab.userData.i)) vue(o.tab.userData.i);
+    // au fond de la salle, le billet de fin, meme si tout n'a pas ete vu
+    if (pos.z < Z_FOND + 9 && !billetMontre) montrerBillet(vues.size === cibles.length);
+    // les gardiens suivent le visiteur des yeux, et lui parlent quand il approche
+    for (const gd of gardiens) {
+      const dx = pos.x - gd.g.position.x, dz = pos.z - gd.g.position.z, d = Math.hypot(dx, dz);
+      const vise = d < 9 ? Math.atan2(dx, dz) - gd.g.rotation.y : 0;
+      const cible = Math.max(-1.1, Math.min(1.1, Math.atan2(Math.sin(vise), Math.cos(vise))));
+      gd.tete.rotation.y += (cible - gd.tete.rotation.y) * Math.min(1, dt * 3);
+      if (dz > -1 && dz < 7 && d < 10 && !gd.proche) { gd.proche = true; dire('Le gardien', gd.repliques[gd.k++ % gd.repliques.length]); }
+      else if (Math.abs(dz) > 9) gd.proche = false;
+    }
 
     // les projecteurs suivent le visiteur : les quatre oeuvres les plus proches
     // (un peu devant soi de preference) recoivent la vraie lumiere

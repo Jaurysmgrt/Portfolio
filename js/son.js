@@ -300,6 +300,9 @@ export const son = {
   chute() { papier({ dur: 0.5, densite: 260, freq: 3000, vol: 0.06, forme: 'chute' }); passage({ de: 900, vers: 500, dur: 0.5, vol: 0.03, flottement: 9 }); },
   // une piece de l'arc passe au centre : un cran
   cran() { impact({ modes: [[3200, 0.005, 0.2]], bruitF: 5000, bruitDur: 0.003, bruitVol: 0.025 }); },
+  // un pas sur le beton cire : le talon, puis la semelle qui frotte
+  pas() { impact({ modes: [[85 + Math.random() * 20, 0.03, 0.45], [230, 0.018, 0.2]], bruitF: 1600 + Math.random() * 600, bruitQ: 0.7, bruitDur: 0.035, bruitVol: 0.05, vol: 0.8 });
+          papier({ dur: 0.06, densite: 400, freq: 4200, vol: 0.015, forme: 'chute', retard: 0.03 }); },
   // on passe devant une piece : un souffle a peine audible
   frole() { passage({ de: 600, vers: 900, dur: 0.7, vol: 0.015 }); }
 };

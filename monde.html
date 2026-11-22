@@ -268,6 +268,40 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
   .guide-t{font-size:.52rem;text-align:center;padding:0 2rem;line-height:1.9}
   .cartel{bottom:11.6rem}
 }
+
+/* ═══ La chasse aux oeuvres ═══ */
+.chasse{position:fixed;top:4.6rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.45rem;z-index:12;pointer-events:none}
+.cases{display:flex;gap:4px}
+.cases i{width:11px;height:11px;border:1px solid rgba(255,255,255,.28);background:rgba(0,0,0,.35);transition:background .4s,border-color .4s,transform .4s cubic-bezier(.3,1.6,.5,1)}
+.cases i.vu{background:var(--red2);border-color:var(--red2);transform:scale(1.15)}
+.compte{font-family:'IBM Plex Mono',monospace;font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;color:var(--chrome)}
+.compte b{color:#fff;font-weight:500}
+.visite{pointer-events:auto;font-family:'IBM Plex Mono',monospace;font-size:.52rem;letter-spacing:.2em;text-transform:uppercase;
+  color:#fff;background:rgba(10,12,16,.6);border:1px solid var(--edge);padding:.5rem .8rem;cursor:pointer;transition:border-color .25s,background .25s}
+.visite:hover,.visite[aria-pressed="true"]{border-color:var(--red2);background:rgba(212,42,27,.18)}
+/* la bulle des gardiens */
+.bulle{position:fixed;left:50%;bottom:22%;transform:translate(-50%,10px);max-width:min(440px,86vw);padding:.85rem 1.1rem;
+  background:rgba(12,13,16,.9);border:1px solid var(--edge);border-left:3px solid var(--red2);color:#fff;font-size:.86rem;line-height:1.45;
+  opacity:0;transition:opacity .35s,transform .45s cubic-bezier(.16,1,.3,1);pointer-events:none;z-index:14}
+.bulle.on{opacity:1;transform:translate(-50%,0)}
+.bulle small{display:block;font-family:'IBM Plex Mono',monospace;font-size:.5rem;letter-spacing:.22em;text-transform:uppercase;color:var(--red2);margin-bottom:.35rem}
+/* le billet de fin */
+.billet{position:fixed;inset:0;display:grid;place-items:center;z-index:40;background:rgba(3,4,6,.72);opacity:0;pointer-events:none;transition:opacity .5s}
+.billet.on{opacity:1;pointer-events:auto}
+.billet-in{position:relative;width:min(520px,90vw);background:#efeae0;color:#121214;padding:1.6rem 1.7rem 1.4rem;transform:translateY(30px) rotate(-2deg);
+  transition:transform .7s cubic-bezier(.3,1.4,.5,1);box-shadow:0 30px 70px -20px #000;
+  -webkit-mask:radial-gradient(circle 10px at 0 50%,#0000 98%,#000) left/51% 100% no-repeat,radial-gradient(circle 10px at 100% 50%,#0000 98%,#000) right/51% 100% no-repeat}
+.billet.on .billet-in{transform:none}
+.billet-in small{font-family:'IBM Plex Mono',monospace;font-size:.55rem;letter-spacing:.24em;text-transform:uppercase;color:#7a746a}
+.billet-in h2{font-family:'Anton',sans-serif;font-weight:400;font-size:2.4rem;line-height:.95;text-transform:uppercase;margin:.5rem 0 .6rem}
+.billet-in p{font-size:.9rem;line-height:1.5;color:#2b2b2f;margin:0 0 1.1rem}
+.billet-in .tampon{position:absolute;right:1.2rem;top:1rem;border:3px solid var(--red);color:var(--red);font-family:'Anton',sans-serif;
+  text-transform:uppercase;font-size:1.05rem;padding:.25rem .55rem;transform:rotate(-12deg) scale(2.2);opacity:0;transition:transform .35s cubic-bezier(.5,1.8,.6,1) .5s,opacity .2s .5s}
+.billet.on .tampon{transform:rotate(-12deg) scale(1);opacity:.9}
+.billet-act{display:flex;gap:.6rem;flex-wrap:wrap}
+.billet-act a,.billet-act button{font-family:'IBM Plex Mono',monospace;font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;padding:.7rem 1rem;border:1px solid #121214;background:none;color:#121214;cursor:pointer;text-decoration:none}
+.billet-act a.fort{background:var(--red);border-color:var(--red);color:#fff}
+@media(max-width:760px){.chasse{top:3.3rem}.cases i{width:8px;height:8px}.bulle{bottom:30%}}
 </style>
 </head>
 <body>
@@ -300,6 +334,14 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
     <span><b>R</b> revenir &agrave; l'entr&eacute;e</span>
   </div>
 
+
+  <!-- la chasse aux oeuvres : une case par oeuvre, la visite guidee -->
+  <div class="chasse" id="chasse">
+    <div class="cases" id="cases" aria-hidden="true"></div>
+    <span class="compte" id="compte">&OElig;uvres vues <b>0</b>/0</span>
+    <button class="visite" id="visite" aria-pressed="false">&#9654; Visite guid&eacute;e</button>
+  </div>
+  <div class="bulle" id="bulle" role="status"></div>
   <div class="mire"><i></i></div>
 
   <div class="cartel">
@@ -343,6 +385,21 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
   </div>
 </aside>
 
+
+<!-- le billet de fin de visite -->
+<div class="billet" id="billet" aria-hidden="true">
+  <div class="billet-in">
+    <span class="tampon">Visite compl&egrave;te</span>
+    <small>Soufflerie &middot; billet n&deg; <span id="billetN">0001</span></small>
+    <h2>Vous avez tout vu.</h2>
+    <p id="billetP">Merci de la visite. Le directeur artistique cherche son alternance, et il est disponible d&egrave;s maintenant.</p>
+    <div class="billet-act">
+      <a class="fort" href="mailto:maigretjaurys8@gmail.com">&Eacute;crire &agrave; Jaurys</a>
+      <a href="index.html">Revenir au portfolio</a>
+      <button id="billetX" type="button">Rester dans la salle</button>
+    </div>
+  </div>
+</div>
 <!-- le voile de transition, repris du trait de lumiere -->
 <div class="voile" id="voile" aria-hidden="true"><span></span></div>
 
@@ -385,7 +442,7 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
     intro.classList.add('parti');
     document.body.classList.add('dedans');
     setTimeout(function(){ intro.remove(); }, 1000);
-    import('./js/monde.js?v=5').then(function(m){ m.demarrer(); })
+    import('./js/monde.js?v=7').then(function(m){ m.demarrer(); })
       .catch(function(e){ console.error(e); document.getElementById('repli').classList.add('on'); });
   }
   document.getElementById('entrer').addEventListener('click', entrer);
