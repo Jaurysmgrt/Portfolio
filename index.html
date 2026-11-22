@@ -2348,6 +2348,32 @@ h2.c-big{margin:0 0 1.5rem;font-weight:400}
 .ig-points i.on{background:#0095f6;transform:scale(1.1)}
 .ig-leg{margin:0;padding:.25rem .85rem .95rem;font-size:.84rem;line-height:1.4;color:#f5f5f5}
 .ig-leg b{font-weight:600;margin-right:.3rem}
+
+/* ═══ Regle des tiers ═══
+   Ordinateur : les deux colonnes sont centrees sur les lignes verticales
+   des tiers (33 % et 67 %). L'annee se pose sur la ligne horizontale du
+   tiers superieur, et le haut du visuel s'aligne sur cette meme ligne.
+   Telephone : le visuel est centre sur l'intersection haut-gauche. */
+@media(min-width:861px){
+  .recit.vivant .ch{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;column-gap:2vw!important;
+    padding-left:17.67vw!important;padding-right:17.67vw!important;padding-top:0!important;padding-bottom:0!important;
+    align-items:start!important;align-content:start!important}
+  .recit.vivant .ch .ch-txt{margin-top:calc(33.333vh - 1.9rem - 6.6vh)!important;max-width:none!important}
+  .recit.vivant .ch[data-i="2"] .stv{align-self:start;margin-top:calc(33.333vh - 2vh)}
+  .recit.vivant .ch .ch-vis{margin-top:calc(33.333vh - 2vh)!important;min-height:0!important}
+  .recit.vivant .ch-an{font-size:clamp(4.5rem,9.5vw,9.6rem)!important}
+  /* la 991 reste dans sa colonne : elle ne roule plus sur le texte */
+  .recit.vivant .ch[data-i="4"] .ch-route{width:34vw}
+  .recit.vivant .ch[data-i="4"] .ch-vis{overflow:visible}
+}
+@media(max-width:860px) and (max-height:700px){
+  .recit.vivant .ch:not([data-i="4"]):not([data-i="5"]) .ch-vis{max-height:21vh}
+}
+@media(max-width:860px){
+  /* le visuel se centre sur la ligne verticale du tiers gauche */
+  .recit.vivant .ch:not([data-i="4"]):not([data-i="5"]) .ch-vis{width:54vw;justify-content:center!important;align-self:start}
+  .recit.vivant .ch[data-i="2"] .stv{justify-self:start;margin-left:5vw}
+}
 </style>
 </head>
 <body>
