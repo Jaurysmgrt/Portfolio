@@ -7,10 +7,11 @@
 // sa veilleuse braquée dessus. Le reste est noir.
 // ═══════════════════════════════════════════════════════════════════════
 import * as THREE from '../vendor/three.module.min.js';
+import { RoomEnvironment } from '../vendor/addons/environments/RoomEnvironment.js';
 
 const NOIR    = 0x040405;
 const SOL     = 0x17171a;
-const PAROI   = 0x34312f;
+const PAROI   = 0x3b3835;
 const ACIER   = 0x2c2c31;
 const ROUGE   = 0xd42a1b;
 
@@ -73,15 +74,23 @@ export async function demarrer() {
   renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.8));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.1;
-  // Pas de shadow map : dans un hall noir elle ne se voit pas et coute une
-  // passe de rendu par lumiere. Une nappe sombre sous chaque socle suffit.
-  renderer.shadowMap.enabled = false;
+  renderer.toneMappingExposure = 1.0;
+  // De vraies ombres portees : les cadres en jettent sur le mur, les bancs
+  // sur le sol. C'est ce qui fait qu'on croit a la salle. Sur telephone on
+  // s'en passe, pour garder la fluidite.
+  const PETIT = matchMedia('(pointer:coarse)').matches;
+  renderer.shadowMap.enabled = !PETIT;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const monde = new THREE.Scene();
   monde.background = new THREE.Color(NOIR);
-  monde.fog = new THREE.FogExp2(0x0c0b0b, 0.0105);
-  const cam = new THREE.PerspectiveCamera(64, 1, 0.1, 400);
+  monde.fog = new THREE.FogExp2(0x0a0a0a, 0.0095);
+  // un champ de vision humain : a 64 degres on se croyait dans un jeu
+  const cam = new THREE.PerspectiveCamera(56, 1, 0.1, 400);
+  // un environnement doux pour que les metaux et le sol aient de vrais reflets
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  monde.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+  monde.environmentIntensity = 0.16;
 
   // Toutes les pieces servent aux fiches ; seule la piece principale de
   // chaque projet est accrochee. Un projet = une oeuvre au mur.
@@ -117,95 +126,140 @@ export async function demarrer() {
     l.addColorStop(0, '#fff'); l.addColorStop(0.45, '#333'); l.addColorStop(1, '#000');
     g.fillStyle = l; g.fillRect(0, 0, w, h);
   }, true);
-  const texGrain = toile(64, 64, (g, w, h) => {
-    const r = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-    r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(1, 'rgba(255,255,255,0)');
-    g.fillStyle = r; g.fillRect(0, 0, w, h);
-  });
   const additif = (map, color, opacity) => new THREE.MeshBasicMaterial({
     map, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false });
 
-  // ═══════════ la galerie ═══════════
-  // Un sol de pierre polie : il est legerement transparent, et sous lui
-  // les oeuvres sont recopiees a l'envers. C'est ce qui fait le reflet.
+  // ═══════════ les matieres ═══════════
+  // Tout est peint ici, sur des toiles : pas de fichier a charger.
+  // Un bruit fractal sert a tout : beton du sol, enduit des murs.
+  function bruitFractal(w, h, octaves, graine) {
+    const out = new Float32Array(w * h);
+    let amp = 1, total = 0;
+    for (let o = 0; o < octaves; o++) {
+      const cell = Math.max(2, Math.floor(w / Math.pow(2, o + 2)));
+      const gw = Math.ceil(w / cell) + 2, gh = Math.ceil(h / cell) + 2;
+      const grille = new Float32Array(gw * gh);
+      for (let k = 0; k < grille.length; k++) { const x = Math.sin((k + 1) * (graine + o * 13.37) * 12.9898) * 43758.5453; grille[k] = x - Math.floor(x); }
+      for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+        const fx = x / cell, fy = y / cell, x0 = Math.floor(fx), y0 = Math.floor(fy);
+        const tx = fx - x0, ty = fy - y0, sx = tx * tx * (3 - 2 * tx), sy = ty * ty * (3 - 2 * ty);
+        const a = grille[y0 * gw + x0], b = grille[y0 * gw + x0 + 1], c = grille[(y0 + 1) * gw + x0], d = grille[(y0 + 1) * gw + x0 + 1];
+        out[y * w + x] += amp * (a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy);
+      }
+      total += amp; amp *= 0.55;
+    }
+    for (let k = 0; k < out.length; k++) out[k] /= total;
+    return out;
+  }
+  function texBruit(w, h, peindre, lin) {
+    const c = document.createElement('canvas'); c.width = w; c.height = h;
+    const g = c.getContext('2d'); const img = g.createImageData(w, h);
+    peindre(img.data, w, h); g.putImageData(img, 0, 0);
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
+    if (!lin) t.colorSpace = THREE.SRGBColorSpace;
+    return t;
+  }
+  // le beton cire : nuages sombres, grain fin, et les joints de sciage
+  const nBeton = bruitFractal(512, 512, 6, 3.1);
+  const texBeton = texBruit(512, 512, (d, w, h) => {
+    for (let k = 0; k < w * h; k++) {
+      const x = k % w, y = (k / w) | 0;
+      const grain = (Math.sin(k * 91.7) * 43758.5453) % 1;
+      let v = 20 + nBeton[k] * 22 + Math.abs(grain) * 5;
+      if (x < 1 || y < 1) v *= 0.7;                     // le joint, tous les quatre metres
+      d[k * 4] = v * 1.02; d[k * 4 + 1] = v; d[k * 4 + 2] = v * 0.97; d[k * 4 + 3] = 255;
+    }
+  });
+  const texBetonR = texBruit(512, 512, (d, w, h) => {
+    for (let k = 0; k < w * h; k++) {
+      const x = k % w, y = (k / w) | 0;
+      let v = 95 + nBeton[(k * 7) % (w * h)] * 55;      // un cire legerement inegal
+      if (x < 1 || y < 1) v = 200;
+      d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255;
+    }
+  }, true);
+  // l'enduit des murs : un relief a peine perceptible
+  const nEnduit = bruitFractal(256, 256, 5, 7.7);
+  const texEnduit = texBruit(256, 256, (d, w, h) => {
+    for (let k = 0; k < w * h; k++) { const v = 110 + nEnduit[k] * 90 + ((Math.sin(k * 12.7) * 43758.5) % 1) * 14;
+      d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255; }
+  }, true);
+  // l'ombre des angles : la ou deux surfaces se rencontrent, la lumiere entre moins
+  const texAngle = toile(4, 256, (g, w, h) => {
+    const l = g.createLinearGradient(0, 0, 0, h);
+    l.addColorStop(0, 'rgba(0,0,0,1)'); l.addColorStop(0.35, 'rgba(0,0,0,.45)'); l.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = l; g.fillRect(0, 0, w, h);
+  });
+  const matAngle = (op) => new THREE.MeshBasicMaterial({ map: texAngle, transparent: true, opacity: op, depthWrite: false, fog: true });
+  function angle(larg, haut, op) { const m = new THREE.Mesh(new THREE.PlaneGeometry(larg, haut), matAngle(op)); m.renderOrder = 3; return m; }
+
+  // ═══════════ la salle ═══════════
+  // Le sol est un beton cire, legerement transparent : sous lui, les oeuvres
+  // sont recopiees a l'envers, floues et sombres. C'est le reflet.
+  texBeton.repeat.set(DEMI_L * 2 / 4, ETENDUE / 4);
+  texBetonR.repeat.copy(texBeton.repeat);
   const sol = new THREE.Mesh(
     new THREE.PlaneGeometry(DEMI_L * 2, ETENDUE),
-    new THREE.MeshStandardMaterial({ color: SOL, roughness: 0.6, metalness: 0.12, transparent: true, opacity: 0.8 })
+    new THREE.MeshStandardMaterial({ map: texBeton, roughnessMap: texBetonR, roughness: 1, metalness: 0,
+      transparent: true, opacity: 0.9 })
   );
   sol.rotation.x = -Math.PI / 2;
   sol.position.z = MILIEU;
   sol.renderOrder = 2;
+  sol.receiveShadow = true;
   monde.add(sol);
 
-  const matParoi = new THREE.MeshStandardMaterial({ color: PAROI, roughness: 0.96, metalness: 0.02, side: THREE.DoubleSide });
+  texEnduit.repeat.set(ETENDUE / 3, PLAFOND / 3);
+  const matParoi = new THREE.MeshStandardMaterial({ color: PAROI, roughness: 0.94, metalness: 0,
+    bumpMap: texEnduit, bumpScale: 0.6 });
   for (const c of [-1, 1]) {
     const m = new THREE.Mesh(new THREE.PlaneGeometry(ETENDUE, PLAFOND), matParoi);
-    m.rotation.y = c * Math.PI / 2;
+    m.rotation.y = -c * Math.PI / 2;          // face tournee vers l'allee
     m.position.set(c * DEMI_L, PLAFOND / 2, MILIEU);
+    m.receiveShadow = true;
     monde.add(m);
 
-    // la corniche lumineuse : une ligne chaude sous le plafond, qui lave le mur
-    const corniche = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, ETENDUE),
-      new THREE.MeshBasicMaterial({ color: 0xffe2bf }));
-    corniche.position.set(c * (DEMI_L - 0.12), PLAFOND - 0.34, MILIEU);
-    monde.add(corniche);
-    const lavis = new THREE.Mesh(new THREE.PlaneGeometry(ETENDUE, 2.6), additif(texDegrade, 0xffd8ad, 0.42));
-    lavis.rotation.y = c * Math.PI / 2;
-    lavis.position.set(c * (DEMI_L - 0.015), PLAFOND - 0.34 - 1.3, MILIEU);
-    lavis.renderOrder = 3;
-    monde.add(lavis);
+    // les ombres des angles : pied de mur, haut de mur, bord du sol, bord du plafond
+    const a1 = angle(ETENDUE, 0.9, 0.5);  a1.rotation.y = -c * Math.PI / 2; a1.rotation.z = Math.PI;
+    a1.position.set(c * (DEMI_L - 0.01), 0.45, MILIEU); monde.add(a1);
+    const a2 = angle(ETENDUE, 1.2, 0.55); a2.rotation.y = -c * Math.PI / 2;
+    a2.position.set(c * (DEMI_L - 0.01), PLAFOND - 0.6, MILIEU); monde.add(a2);
+    const a3 = angle(1.3, ETENDUE, 0.55); a3.rotation.x = -Math.PI / 2; a3.rotation.z = -c * Math.PI / 2;
+    a3.position.set(c * (DEMI_L - 0.65), 0.004, MILIEU); monde.add(a3);
+    const a4 = angle(1.6, ETENDUE, 0.7);  a4.rotation.x = Math.PI / 2; a4.rotation.z = -c * Math.PI / 2;
+    a4.position.set(c * (DEMI_L - 0.8), PLAFOND - 0.005, MILIEU); monde.add(a4);
 
-    // la plinthe, et son fil rouge : le seul rouge de la salle
-    const plinthe = new THREE.Mesh(new THREE.BoxGeometry(0.04, 0.16, ETENDUE),
-      new THREE.MeshStandardMaterial({ color: 0x08080a, roughness: 0.5, metalness: 0.3 }));
-    plinthe.position.set(c * (DEMI_L - 0.02), 0.08, MILIEU);
+    // la plinthe, sombre et mate
+    const plinthe = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.12, ETENDUE),
+      new THREE.MeshStandardMaterial({ color: 0x0c0c0d, roughness: 0.55, metalness: 0.1 }));
+    plinthe.position.set(c * (DEMI_L - 0.015), 0.06, MILIEU);
     monde.add(plinthe);
-    const fil = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.012, ETENDUE),
-      new THREE.MeshBasicMaterial({ color: 0xff3a24 }));
-    fil.position.set(c * (DEMI_L - 0.045), 0.17, MILIEU);
-    monde.add(fil);
     // le rail des projecteurs
-    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.045, ETENDUE),
-      new THREE.MeshStandardMaterial({ color: 0x050506, roughness: 0.4, metalness: 0.6 }));
-    rail.position.set(c * (DEMI_L - 2.3), PLAFOND - 0.04, MILIEU);
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, ETENDUE),
+      new THREE.MeshStandardMaterial({ color: 0x050506, roughness: 0.35, metalness: 0.8 }));
+    rail.position.set(c * (DEMI_L - 2.3), PLAFOND - 0.03, MILIEU);
     monde.add(rail);
   }
   const pf = new THREE.Mesh(new THREE.PlaneGeometry(DEMI_L * 2, ETENDUE),
-    new THREE.MeshStandardMaterial({ color: 0x0a0a0c, roughness: 0.95, side: THREE.DoubleSide }));
+    new THREE.MeshStandardMaterial({ color: 0x0d0d0e, roughness: 0.96, side: THREE.DoubleSide }));
   pf.rotation.x = Math.PI / 2;
   pf.position.set(0, PLAFOND, MILIEU);
   monde.add(pf);
 
   // ═══════════ lumière ═══════════
-  // Une salle de musee : peu de lumiere d'ambiance, tout vient des projecteurs.
-  monde.add(new THREE.AmbientLight(0xc9beb0, 1.1));
-  monde.add(new THREE.HemisphereLight(0xeadcc8, 0x111114, 0.9));
+  // Peu d'ambiance : comme dans une vraie salle, ce sont les projecteurs qui
+  // eclairent. Trois lumieres douces accompagnent le visiteur pour qu'on
+  // devine toujours les murs.
+  monde.add(new THREE.AmbientLight(0xc8beb2, 0.55));
+  monde.add(new THREE.HemisphereLight(0xe8dccb, 0x0e0e10, 0.42));
   const lampes = [];
   for (let i = 0; i < 3; i++) {
-    const l = new THREE.PointLight(0xffe9d2, 20, 30, 2);
+    const l = new THREE.PointLight(0xffe6cc, 16, 26, 2);
     monde.add(l); lampes.push(l);
   }
   const braise = new THREE.PointLight(ROUGE, 9, 24, 2);
   monde.add(braise);
-
-  // la poussiere qui flotte dans la lumiere
-  const NB_GRAINS = 650;
-  const grainsPos = new Float32Array(NB_GRAINS * 3);
-  const grainsVit = new Float32Array(NB_GRAINS);
-  for (let i = 0; i < NB_GRAINS; i++) {
-    grainsPos[i * 3] = (Math.random() * 2 - 1) * (DEMI_L - 0.4);
-    grainsPos[i * 3 + 1] = 0.3 + Math.random() * (PLAFOND - 0.8);
-    grainsPos[i * 3 + 2] = 8 - Math.random() * 40;
-    grainsVit[i] = 0.02 + Math.random() * 0.05;
-  }
-  const geoGrains = new THREE.BufferGeometry();
-  geoGrains.setAttribute('position', new THREE.BufferAttribute(grainsPos, 3));
-  const grains = new THREE.Points(geoGrains, new THREE.PointsMaterial({
-    map: texGrain, color: 0xffe7c8, size: 0.03, transparent: true, opacity: 0.5,
-    blending: THREE.AdditiveBlending, depthWrite: false }));
-  grains.frustumCulled = false;
-  grains.renderOrder = 5;
-  monde.add(grains);
 
   // ═══════════ plaques peintes ═══════════
   function couper(g, texte, max) {
@@ -299,7 +353,7 @@ export async function demarrer() {
     const a = acier();
     const face = new THREE.MeshStandardMaterial({
       map: tex, roughness: 0.82, metalness: 0.06,
-      emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.62
+      emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.3
     });
     return new THREE.Mesh(new THREE.BoxGeometry(larg, haut, 0.09), [a, a, a, a, face, a]);
   }
@@ -424,26 +478,10 @@ export async function demarrer() {
   const HAUT_C = 2.7;               // hauteur du centre des oeuvres
   const BAS = new THREE.Vector3(0, -1, 0);
 
-  const matCadre = new THREE.MeshStandardMaterial({ color: 0x0b0b0d, roughness: 0.38, metalness: 0.45 });
+  const matCadre = new THREE.MeshStandardMaterial({ color: 0x111113, roughness: 0.32, metalness: 0.75 });
   const matPasse = new THREE.MeshStandardMaterial({ color: 0xebe6dc, roughness: 0.92, metalness: 0 });
   const matBoitier = new THREE.MeshStandardMaterial({ color: 0x0d0d0f, roughness: 0.35, metalness: 0.7 });
-  const matBouche = new THREE.MeshBasicMaterial({ color: 0xfff1de });
-
-  // Le faisceau : un cone dont les bords s'effacent (plus on le voit de
-  // profil, plus il est transparent) et qui s'eteint vers le mur. C'est ce
-  // qui donne l'impression d'un volume de lumiere, pas d'un triangle.
-  const matFaisceau = new THREE.ShaderMaterial({
-    uniforms: { teinte: { value: new THREE.Color(0xffdcb0) }, force: { value: 0.16 } },
-    vertexShader: `varying vec3 vN; varying vec3 vV; varying float vH;
-      void main(){ vH = uv.y; vec4 mv = modelViewMatrix * vec4(position,1.0);
-        vN = normalize(normalMatrix * normal); vV = normalize(-mv.xyz);
-        gl_Position = projectionMatrix * mv; }`,
-    fragmentShader: `uniform vec3 teinte; uniform float force; varying vec3 vN; varying vec3 vV; varying float vH;
-      void main(){ float face = pow(abs(dot(normalize(vN), normalize(vV))), 1.6);
-        float fondu = pow(vH, 1.4);
-        gl_FragColor = vec4(teinte * face * fondu * force, 1.0); }`,
-    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
-  });
+  const matBouche = new THREE.MeshBasicMaterial({ color: 0xfff4e6 });
 
   // le cartel : une petite carte blanche a cote de l'oeuvre, comme au musee
   function cartel(p, i) {
@@ -486,11 +524,13 @@ export async function demarrer() {
     g.rotation.y = -cote * Math.PI / 2;
     monde.add(g);
 
-    const cadre = new THREE.Mesh(new THREE.BoxGeometry(L + 2 * (M + C), H + 2 * (M + C), 0.08), matCadre);
-    cadre.position.set(0, HAUT_C, 0.04);
+    // le cadre se detache du mur de quelques centimetres : il porte son ombre
+    const cadre = new THREE.Mesh(new THREE.BoxGeometry(L + 2 * (M + C), H + 2 * (M + C), 0.05), matCadre);
+    cadre.position.set(0, HAUT_C, 0.055);
+    cadre.castShadow = true;
     g.add(cadre);
     const passe = new THREE.Mesh(new THREE.PlaneGeometry(L + 2 * M, H + 2 * M), matPasse);
-    passe.position.set(0, HAUT_C, 0.081);
+    passe.position.set(0, HAUT_C, 0.0805);
     g.add(passe);
 
     let reflet = null;
@@ -501,24 +541,24 @@ export async function demarrer() {
     const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.6, metalness: 0,
       emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.06 });
     const tab = new THREE.Mesh(new THREE.PlaneGeometry(L, H), mat);
-    tab.position.set(0, HAUT_C, 0.084);
+    tab.position.set(0, HAUT_C, 0.082);
     g.add(tab);
 
     // le halo du projecteur sur le mur, au-dessus et autour du cadre
     const halo = new THREE.Mesh(new THREE.PlaneGeometry((L + 1.2) * 1.75, (H + 1.2) * 1.6),
-      additif(texHalo, 0xffd6a6, 0.3));
+      additif(texHalo, 0xffd6a6, 0.12));
     halo.position.set(0, HAUT_C + 0.3, 0.01);
     halo.renderOrder = 3;
     g.add(halo);
 
     // son reflet dans la pierre polie
     const refl = new THREE.Mesh(new THREE.PlaneGeometry(L, H), new THREE.MeshBasicMaterial({
-      map: reflet, alphaMap: texFondu, transparent: true, opacity: 0.38, depthWrite: false }));
+      map: reflet, alphaMap: texFondu, transparent: true, opacity: 0.2, depthWrite: false }));
     refl.position.set(0, -HAUT_C, 0.084);
     refl.renderOrder = 1;
     g.add(refl);
     const reflHalo = new THREE.Mesh(new THREE.PlaneGeometry((L + 1.2) * 1.75, (H + 1.2) * 1.2),
-      additif(texHalo, 0xffd6a6, 0.08));
+      additif(texHalo, 0xffd6a6, 0.05));
     reflHalo.position.set(0, -HAUT_C, 0.01);
     reflHalo.renderOrder = 1;
     g.add(reflHalo);
@@ -530,7 +570,7 @@ export async function demarrer() {
     tab.userData = { p, i, k: 0, cible: 0, groupe: g, mat, halo };
     cibles.push(tab);
 
-    // le projecteur sur son rail, et le faisceau qu'on voit dans la poussiere
+    // le projecteur sur son rail
     const P = new THREE.Vector3(cote * (DEMI_L - 2.3), PLAFOND - 0.36, z + 0.25);
     const T = new THREE.Vector3(cote * (DEMI_L - 0.1), HAUT_C + 0.15, z);
     const dir = T.clone().sub(P).normalize();
@@ -547,52 +587,54 @@ export async function demarrer() {
     tige.position.set(P.x, PLAFOND - 0.17, P.z);
     monde.add(tige);
 
-    const lg = P.distanceTo(T) * 1.08;
-    const geoF = new THREE.ConeGeometry(Math.max(L, H) * 0.6, lg, 40, 1, true);
-    geoF.translate(0, -lg / 2, 0);
-    const faisceau = new THREE.Mesh(geoF, matFaisceau);
-    faisceau.position.copy(P);
-    faisceau.quaternion.copy(q);
-    faisceau.renderOrder = 4;
-    monde.add(faisceau);
-
     oeuvres.push({ P, T, z, tab });
   });
 
   // L'architecture : des passages tous les trois projets decoupent l'allee
-  // en salles, et des dalles diffusantes rythment le plafond.
-  const matArche = new THREE.MeshStandardMaterial({ color: 0x2a2826, roughness: 0.9, metalness: 0.05 });
-  const matArete = new THREE.MeshBasicMaterial({ color: 0xffe2bf });
+  // en salles, comme une enfilade de musee.
+  const matArche = new THREE.MeshStandardMaterial({ color: PAROI, roughness: 0.94, metalness: 0 });
   for (let k = 2; k < expos.length - 1; k += 3) {
     const za = -24 - (k + 0.5) * PAS;
     for (const c of [-1, 1]) {
       const pilier = new THREE.Mesh(new THREE.BoxGeometry(0.9, PLAFOND, 0.8), matArche);
       pilier.position.set(c * (DEMI_L - 0.45), PLAFOND / 2, za);
+      pilier.castShadow = true; pilier.receiveShadow = true;
       monde.add(pilier);
     }
     const linteau = new THREE.Mesh(new THREE.BoxGeometry(DEMI_L * 2, 0.7, 0.8), matArche);
     linteau.position.set(0, PLAFOND - 0.35, za);
     monde.add(linteau);
-    // un filet de lumiere sous le linteau : on passe d'une salle a l'autre
-    const arete = new THREE.Mesh(new THREE.BoxGeometry(DEMI_L * 2 - 1.8, 0.02, 0.05), matArete);
-    arete.position.set(0, PLAFOND - 0.71, za + 0.41);
-    monde.add(arete);
   }
-  // dalles diffusantes : un verre depoli tres doux, cerne d'un filet plus clair
-  const matDalle = new THREE.MeshBasicMaterial({ color: 0x2f2924 });
-  const matFilet = new THREE.MeshBasicMaterial({ color: 0x8a7a68 });
-  for (let z = 4; z > -LONG; z -= PAS) {
-    const zc = z - PAS / 2;
-    const dalle = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 3.2), matDalle);
-    dalle.rotation.x = Math.PI / 2;
-    dalle.position.set(0, PLAFOND - 0.01, zc);
-    monde.add(dalle);
-    for (const [w, h, x, dz] of [[2.24, 0.025, 0, 1.6], [2.24, 0.025, 0, -1.6], [0.025, 3.2, 1.1, 0], [0.025, 3.2, -1.1, 0]]) {
-      const f = new THREE.Mesh(new THREE.PlaneGeometry(w, h), matFilet);
-      f.rotation.x = Math.PI / 2;
-      f.position.set(x, PLAFOND - 0.012, zc + dz);
-      monde.add(f);
+  // Un banc au milieu de chaque salle : cuir sombre, pieds d'acier. On en
+  // fait le tour, on ne le traverse pas.
+  const bancs = [];
+  const matCuir = new THREE.MeshStandardMaterial({ color: 0x2a211b, roughness: 0.55, metalness: 0 });
+  const matPied = new THREE.MeshStandardMaterial({ color: 0x1a1a1c, roughness: 0.3, metalness: 0.85 });
+  for (let k = 1; k < expos.length - 1; k += 3) {
+    const zb = -24 - k * PAS - PAS / 2;
+    const b = new THREE.Group();
+    const assise = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.12, 2.4), matCuir);
+    assise.position.y = 0.44; assise.castShadow = true; assise.receiveShadow = true;
+    b.add(assise);
+    const coussin = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.04, 2.36), matCuir);
+    coussin.position.y = 0.52; coussin.castShadow = true;
+    b.add(coussin);
+    for (const dx of [-0.24, 0.24]) for (const dz of [-1.0, 1.0]) {
+      const pied = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.38, 0.035), matPied);
+      pied.position.set(dx, 0.19, dz); pied.castShadow = true;
+      b.add(pied);
     }
+    for (const dz of [-1.0, 1.0]) {
+      const traverse = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.03, 0.03), matPied);
+      traverse.position.set(0, 0.36, dz); b.add(traverse);
+    }
+    const ombre = angle(1.1, 2.9, 0.0);   // place pour une ombre douce meme sans projecteur
+    ombre.material = new THREE.MeshBasicMaterial({ map: texHalo, color: 0x000000, transparent: true, opacity: 0.55, depthWrite: false });
+    ombre.rotation.x = -Math.PI / 2; ombre.position.y = 0.005;
+    b.add(ombre);
+    b.position.set(0, 0, zb);
+    monde.add(b);
+    bancs.push({ x: 0, z: zb, dx: 0.31 + 0.45, dz: 1.2 + 0.45 });
   }
 
   // Quatre projecteurs reels seulement, deplaces vers les oeuvres les plus
@@ -600,7 +642,13 @@ export async function demarrer() {
   // recompiler en marchant (c'etait la cause des a-coups).
   const projecteurs = [];
   for (let i = 0; i < 4; i++) {
-    const sp = new THREE.SpotLight(0xffe4c2, 70, 14, 0.56, 0.6, 1.5);
+    const sp = new THREE.SpotLight(0xffe2bd, 95, 16, 0.5, 0.55, 2);
+    if (!PETIT) {
+      sp.castShadow = true;
+      sp.shadow.mapSize.set(1024, 1024);
+      sp.shadow.bias = -0.0004; sp.shadow.normalBias = 0.02;
+      sp.shadow.camera.near = 0.3; sp.shadow.camera.far = 14;
+    }
     monde.add(sp); monde.add(sp.target);
     projecteurs.push(sp);
   }
@@ -658,7 +706,11 @@ export async function demarrer() {
 
   // ═══════════ zone 04 — contact, le fond du hall ═══════════
   const Z_FOND = Z_PARCOURS - 26;
-  const fond = new THREE.Mesh(new THREE.PlaneGeometry(DEMI_L * 2, PLAFOND), matParoi);
+  // le mur du fond a son propre enduit : celui des murs longs y serait etire
+  const enduitFond = texEnduit.clone(); enduitFond.repeat.set(DEMI_L * 2 / 3, PLAFOND / 3); enduitFond.needsUpdate = true;
+  const matFond = matParoi.clone(); matFond.bumpMap = enduitFond;
+  const fond = new THREE.Mesh(new THREE.PlaneGeometry(DEMI_L * 2, PLAFOND), matFond);
+  fond.receiveShadow = true;
   fond.position.set(0, PLAFOND / 2, Z_FOND - 3);
   monde.add(fond);
 
@@ -777,7 +829,7 @@ export async function demarrer() {
   // ═══════════ déplacement : le flux ═══════════
   const pos = new THREE.Vector3(0, OEIL, 8.5);
   const vit = new THREE.Vector3();
-  let lacet = 0, tangage = 0;        // 0 = on regarde vers le fond du hall
+  let lacet = 0, tangage = 0, foulee = 0;        // 0 = on regarde vers le fond du hall
   const bas = new Set();
   let vol = null;
   const joy = { actif: false, x: 0, y: 0 };
@@ -1080,7 +1132,18 @@ export async function demarrer() {
       // on reste dans la veine
       pos.x = Math.max(-DEMI_L + 1.1, Math.min(DEMI_L - 1.1, pos.x));
       pos.z = Math.max(Z_FOND + 2.4, Math.min(11, pos.z));
-      pos.y = OEIL;
+      // on contourne les bancs
+      for (const b of bancs) {
+        const ox = pos.x - b.x, oz = pos.z - b.z;
+        if (Math.abs(ox) < b.dx && Math.abs(oz) < b.dz) {
+          const px = b.dx - Math.abs(ox), pz = b.dz - Math.abs(oz);
+          if (px < pz) pos.x = b.x + Math.sign(ox || 1) * b.dx; else pos.z = b.z + Math.sign(oz || 1) * b.dz;
+        }
+      }
+      // le pas : une oscillation a peine sensible quand on marche
+      const allure = Math.min(1, vit.length() / 5);
+      foulee += dt * (4 + allure * 4) * allure;
+      pos.y = OEIL + Math.sin(foulee * 2) * 0.012 * allure;
     }
 
     if (!verrou) {
@@ -1104,23 +1167,13 @@ export async function demarrer() {
       sp.position.copy(o.P); sp.target.position.copy(o.T);
     }
 
-    // la poussiere derive doucement et suit le visiteur
-    const gp = geoGrains.attributes.position.array;
-    for (let i = 0; i < NB_GRAINS; i++) {
-      gp[i * 3 + 1] += Math.sin(t * 0.0004 + i) * 0.0009 + grainsVit[i] * dt * 0.15;
-      gp[i * 3] += Math.cos(t * 0.0003 + i * 1.7) * 0.0006;
-      if (gp[i * 3 + 1] > PLAFOND - 0.3) gp[i * 3 + 1] = 0.3;
-      if (gp[i * 3 + 2] > pos.z + 8) gp[i * 3 + 2] -= 40;
-      else if (gp[i * 3 + 2] < pos.z - 32) gp[i * 3 + 2] += 40;
-    }
-    geoGrains.attributes.position.needsUpdate = true;
 
     // les lampes suivent
     // une lumiere douce qui accompagne le visiteur, a hauteur d'oeil : elle
     // eclaire les murs sans faire de tache au plafond ni au sol
-    lampes[0].position.set(pos.x * 0.4, 2.6, pos.z + 3);
-    lampes[1].position.set(pos.x * 0.4, 2.6, pos.z - 12);
-    lampes[2].position.set(pos.x * 0.4, 2.6, pos.z - 26);
+    lampes[0].position.set(pos.x * 0.4, 3.2, pos.z + 2);
+    lampes[1].position.set(pos.x * 0.4, 3.2, pos.z - 10);
+    lampes[2].position.set(pos.x * 0.4, 3.2, pos.z - 22);
 
     // visée
     rayon.setFromCamera(verrou ? centre : souris, cam);

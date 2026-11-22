@@ -385,7 +385,7 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
     intro.classList.add('parti');
     document.body.classList.add('dedans');
     setTimeout(function(){ intro.remove(); }, 1000);
-    import('./js/monde.js?v=3').then(function(m){ m.demarrer(); })
+    import('./js/monde.js?v=5').then(function(m){ m.demarrer(); })
       .catch(function(e){ console.error(e); document.getElementById('repli').classList.add('on'); });
   }
   document.getElementById('entrer').addEventListener('click', entrer);
