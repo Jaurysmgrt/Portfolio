@@ -379,8 +379,14 @@ void main(){float s=uV*0.0035;
   if (!TACTILE) addEventListener('pointermove', e => { mx = e.clientX / innerWidth * 2 - 1; my = e.clientY / innerHeight * 2 - 1; }, { passive: true });
 
   // un clic sur l'image au centre ouvre le projet, comme dans la galerie
-  canvas.addEventListener('click', () => {
+  const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+  canvas.addEventListener('click', (e) => {
     if (courant < 0) return;
+    const rc = canvas.getBoundingClientRect();
+    ptr.set((e.clientX - rc.left) / rc.width * 2 - 1, -((e.clientY - rc.top) / rc.height) * 2 + 1);
+    ray.setFromCamera(ptr, cam);
+    const hit = ray.intersectObjects(plans.map(p => p.m))[0];
+    if (hit) { const k = plans.findIndex(p => p.m === hit.object); if (k >= 0 && k !== courant) { allerA(plans[k]); return; } }
     const pr = projets[courant];
     if (pr.carte) { const pl = plans[courant + 1]; if (pl) allerA(pl); return; }
     pr.tuile.click();

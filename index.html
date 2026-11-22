@@ -868,7 +868,7 @@ body.loaded .hero-scroll{opacity:1;transform:none;transition-delay:.62s}
 .cmod-icon{width:40px;height:40px;background:rgba(200,40,26,.1);border:1px solid rgba(200,40,26,.2);border-radius:3px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:1.1rem}
 .cmod-info{display:flex;flex-direction:column;gap:.2rem;min-width:0}
 .cmod-label{font-size:.52rem;font-weight:700;letter-spacing:.22em;text-transform:uppercase;color:rgba(240,234,216,.35)}
-.cmod-val{font-size:.95rem;color:var(--cream);text-decoration:none;transition:color .2s;word-break:break-all}
+.cmod-val{font-size:.95rem;color:var(--cream);text-decoration:none;transition:color .2s;overflow-wrap:anywhere}
 a.cmod-val:hover{color:var(--red2)}
 .cmod-copy{margin-left:auto;background:none;border:1px solid var(--border);color:var(--muted);font-size:.55rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;padding:.35rem .7rem;cursor:pointer;transition:all .2s;flex-shrink:0}
 .cmod-copy:hover{border-color:var(--red2);color:var(--red2)}
@@ -2582,6 +2582,36 @@ body.avec-3d #histoire{margin-top:-172.8vh;z-index:1}
 .chg-in p{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:#8d9aa8;margin:0}
 
 @media(max-width:860px){.recit.vivant .ch[data-i="5"] .ch-vis{margin-bottom:1.4rem}.recit.vivant .ch[data-i="5"] .ch-tag{margin-top:.4rem}}
+
+/* ═══ Telephone, retour d'audit ═══ */
+@media(max-width:860px){
+  /* une sortie visible de l'histoire */
+  .rc-tete{display:flex;justify-content:space-between;align-items:center}
+  .rc-passer{display:inline-flex!important;align-items:center;min-height:36px;padding:0 .75rem;margin:0;background:rgba(6,7,10,.9);border:1px solid var(--red2);color:#fff;font-size:.52rem;letter-spacing:.14em;opacity:1;white-space:nowrap}
+  .rc-lbl{display:flex;justify-content:space-between;align-items:center;width:100%}
+  .recit.vivant:not(.arrive) .rc-passer{opacity:0;pointer-events:none}
+  /* l'aide de l'arc, aussi au doigt */
+  .sel-aide{display:block!important;font-size:.6rem;max-width:none;text-align:left}
+  .sel-aide::before{content:'Faites défiler · touchez une image';}
+  .sel-aide{font-size:0}.sel-aide::before{font-size:.6rem}
+  /* textes et cibles plus confortables */
+  .dispo-mob{font-size:.56rem;min-height:28px;padding:0 .7rem}
+  .hstat-l{font-size:.6rem}
+  .sel-fams button{min-height:36px;font-size:.56rem}
+  .pp-back,.pp-lb-x{min-height:44px;min-width:44px}
+  .ci a,.ci p,.c-mail{display:inline-flex;align-items:center;min-height:44px}
+  .c-paper{padding-left:1.4rem!important;padding-right:1.4rem!important}
+}
+/* petits ecrans : le texte des chapitres reste au-dessus de la barre du navigateur */
+@media(max-width:860px) and (max-height:700px){
+  .sel-aide{display:none!important}
+  .recit.vivant .ch{padding-top:calc(var(--nav-h,64px) + 2.4rem)!important;padding-bottom:calc(5rem + env(safe-area-inset-bottom,0px))!important}
+  .recit.vivant .ch-an{font-size:clamp(3rem,15vw,4.6rem)!important}
+  .recit.vivant .ch-p{font-size:.82rem;line-height:1.5}
+}
+
+@media(max-width:380px){.dispo-mob{left:68px!important;transform:none!important;font-size:.5rem;letter-spacing:.1em;padding:0 .5rem}}
+@media(max-width:860px) and (max-height:700px){.recit.vivant .stv{width:40vw}.recit.vivant .ch[data-i="2"] .stv-tred .badge{width:56%}}
 </style>
 </head>
 <body>
@@ -3999,7 +4029,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
   // visiteur (clic, touche, toucher), sauf s'il l'a deja coupe. Les
   // navigateurs n'autorisent pas le son avant un geste, et c'est tres bien.
   var voulu=true;
-  try{ voulu = localStorage.getItem('jm-son')!=='0'; }catch(e){}
+  try{ var choix=localStorage.getItem('jm-son'); voulu = choix==='1' || (choix===null && matchMedia('(hover:hover) and (pointer:fine)').matches); }catch(e){}
   // l'ambiance suit la vitesse de defilement
   var yS=window.scrollY, vS=0;
   setInterval(function(){ var y=window.scrollY; vS=Math.abs(y-yS)/120; yS=y; if(on&&S&&S.flux) S.flux(Math.min(1.2,vS*.6)); },100);
@@ -4071,6 +4101,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
       var el=document.querySelector(a.getAttribute('href'));
       // une cible cachee (la grille, remplacee par l'arc 3D) : on va aux projets visibles
       if(el && !el.offsetHeight){ var alt=document.getElementById('selection'); if(alt && alt.offsetHeight) el=alt; }
+      if(el && el.id==='histoire' && document.body.classList.contains('avec-3d')){ e.preventDefault(); var yh=el.getBoundingClientRect().top+window.scrollY+innerHeight*.6; window.scrollTo({top:yh,behavior:'smooth'}); return; }
       if(!el) return;
       e.preventDefault();
       // le menu mobile se referme avant le cut
@@ -4263,10 +4294,15 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
       [].slice.call(n.childNodes).forEach(function(c){
         if(c.nodeType===3){
           var f=document.createDocumentFragment();
-          c.textContent.split('').forEach(function(ch){
-            if(ch===' '){ f.appendChild(document.createTextNode(' ')); return; }
-            var s=document.createElement('span'); s.className='l'; s.setAttribute('aria-hidden','true');
-            s.style.setProperty('--i',i++); s.textContent=ch; f.appendChild(s);
+          c.textContent.split(/(\s+)/).forEach(function(mot){
+            if(!mot) return;
+            if(/^\s+$/.test(mot)){ f.appendChild(document.createTextNode(' ')); return; }
+            var w=document.createElement('span'); w.style.whiteSpace='nowrap'; w.style.display='inline-block';
+            mot.split('').forEach(function(ch){
+              var s=document.createElement('span'); s.className='l'; s.setAttribute('aria-hidden','true');
+              s.style.setProperty('--i',i++); s.textContent=ch; w.appendChild(s);
+            });
+            f.appendChild(w);
           });
           c.parentNode.replaceChild(f,c);
         } else if(c.nodeType===1) couper(c);
@@ -4686,6 +4722,6 @@ if(window.__jmSon) window.__jmSon('avion');
   if(son&&nl) nl.insertBefore(son,d||nl.firstChild);
 })();
 </script>
-<script type="module" src="js/experiences.js?v=30" onerror="window.__pret3d&&window.__pret3d()"></script>
+<script type="module" src="js/experiences.js?v=31" onerror="window.__pret3d&&window.__pret3d()"></script>
 </body>
 </html>
