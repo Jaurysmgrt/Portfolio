@@ -183,7 +183,7 @@ vec3 objectTangent=vec3(tangent.xyz);
     const dpx = mx - pmx, dpy = my - pmy; pmx = mx; pmy = my;
     pv += (Math.min(1, Math.hypot(dpx, dpy) * 14) - pv) * 0.08;
     const p4 = doux(clamp((p - 0.78) / 0.22));             // la traversee de l'anneau
-    const p1 = doux(clamp(p / 0.45)), p2 = doux(clamp((p - 0.25) / 0.45)), p3 = doux(clamp((p - 0.55) / 0.4));
+    const p1 = doux(clamp((p - (TACTILE ? 0.08 : 0.03)) / 0.45)), p2 = doux(clamp((p - 0.25) / 0.45)), p3 = doux(clamp((p - 0.55) / 0.4));
     U.uT.value = s; U.uAmp.value = 0.16 + p2 * 0.12 + Math.min(0.12, vit * 0.5) + p3 * 0.04 + eclat * 0.7 + pv * 0.22;
     U.uFreq.value = 1.1 + p2 * 0.8; U.uTore.value = p3;
     forme.rotation.y = s * 0.12 + p * 5.2; forme.rotation.x = p * 1.4 + my * 0.15;

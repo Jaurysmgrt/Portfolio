@@ -2632,6 +2632,21 @@ body.avec-3d #histoire{margin-top:-172.8vh;z-index:1}
 /* les deux stages se relaient mot par mot aussi */
 .recit.vivant .ch[data-i="2"]:not(.b2) .st2 .tw,.recit.vivant .ch[data-i="2"].b2 .st1 .tw{opacity:0;transform:translate3d(0,-.4em,0);transition-delay:0s}
 @media(prefers-reduced-motion:reduce){.recit.vivant .ch .tc,.recit.vivant .ch .tw{opacity:1!important;transform:none!important;transition:none!important}}
+
+/* ═══ Accueil iPhone : eclatement plus sage, rien sur les chiffres, pas de bande vide ═══ */
+@media(max-width:860px){
+  /* l'eclatement des lettres reste dans l'ecran et ne recouvre pas le reste */
+  body.avec-3d #ouverture .hn .lt{translate:calc(var(--o1,0) * var(--dx,0vw) * .45) calc(var(--o1,0) * var(--dy,0vh) * .45);rotate:calc(var(--o1,0) * var(--dr,0deg) * .6)}
+  body.avec-3d #ouverture .hn{scale:calc(1 + var(--o2,0) * .5)}
+  body.avec-3d #ouverture .hn2{transform:translate3d(calc(var(--o1,0) * 12vw),0,0)!important}
+  body.avec-3d #ouverture .hn1{transform:translate3d(calc(var(--o1,0) * -12vw),0,0)!important}
+  /* les chiffres et le texte s'effacent avant que les lettres ne partent */
+  body.avec-3d.loaded #ouverture .hero-col-r,body.avec-3d.loaded #ouverture .hero-bottom{opacity:calc(1 - var(--o1,0) * 3)!important}
+  body.avec-3d #ouverture .hero-col-r{margin-top:1.2rem}
+  /* l'accueil occupe tout l'ecran, barre de Safari repliee ou non : plus de bande vide */
+  body.avec-3d #ouverture .colle{height:100lvh!important}
+  body.avec-3d #ouverture .hero{padding-bottom:calc(1rem + env(safe-area-inset-bottom,0px) + (100lvh - 100svh))!important}
+}
 </style>
 </head>
 <body>
@@ -4775,6 +4790,6 @@ if(window.__jmSon) window.__jmSon('avion');
   });
 })();
 </script>
-<script type="module" src="js/experiences.js?v=31" onerror="window.__pret3d&&window.__pret3d()"></script>
+<script type="module" src="js/experiences.js?v=32" onerror="window.__pret3d&&window.__pret3d()"></script>
 </body>
 </html>
