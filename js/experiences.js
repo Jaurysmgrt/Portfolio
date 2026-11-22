@@ -345,6 +345,7 @@ void main(){float s=uV*0.0035;
     const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
     return tex;
   }
+  setTimeout(() => { if ('requestIdleCallback' in window) requestIdleCallback(() => charger(), { timeout: 4000 }); else charger(); }, 2500);
   function charger() {
     if (charge) return; charge = true;
     const polices = document.fonts ? Promise.all(['400 112px Anton', '500 30px "IBM Plex Mono"', '400 30px "IBM Plex Sans"'].map(f => document.fonts.load(f).catch(() => 0))) : Promise.resolve();
@@ -437,14 +438,16 @@ void main(){float s=uV*0.0035;
 }
 
 function demarrer() {
-  if (SOBRE || !webgl()) { document.body.classList.add('sans-3d'); return; }
+  if (SOBRE || !webgl()) { document.body.classList.add('sans-3d'); window.__pret3d && window.__pret3d(); return; }
   document.body.classList.add('avec-3d');
   const scenes = [ouverture(), selection()].filter(Boolean);
   let vivant = true;
   document.addEventListener('visibilitychange', () => { vivant = !document.hidden; if (vivant) requestAnimationFrame(boucle); });
-  let tPrec = 0, cumul = 0, n = 0, calme = 0;
+  let tPrec = 0, cumul = 0, n = 0, calme = 0, images = 0;
   function boucle(t) {
     if (!vivant) return;
+    // la 3D est prete quand quelques images ont ete dessinees (shaders compiles, textures envoyees)
+    if (++images === 6 && window.__pret3d) window.__pret3d();
     const dt = tPrec ? t - tPrec : 16; tPrec = t;
     const actif = scenes.map(f => f(t)).some(Boolean);
     if (actif && dt < 200 && t > 3000) {   // les premieres secondes (chargement) ne comptent pas
