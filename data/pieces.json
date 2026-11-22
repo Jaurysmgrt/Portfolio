@@ -22,6 +22,39 @@
   "secondaire": false
  },
  {
+  "src": "images/five-guys-produit.jpg",
+  "w": 1600,
+  "h": 2263,
+  "titre": "Five Guys, Pas besoin d'en faire trop",
+  "cat": "Campagne d'affichage · Burger",
+  "desc": "Key visual de la trilogie A4 (M1, ESP Paris) : le burger seul, détouré sur blanc pur, pour la qualité des ingrédients.",
+  "groupe": "fiveguys",
+  "marque": "Five Guys",
+  "secondaire": false
+ },
+ {
+  "src": "images/five-guys-hiver.jpg",
+  "w": 1600,
+  "h": 2263,
+  "titre": "Five Guys, L'hiver a du goût",
+  "cat": "Campagne d'affichage · Burger",
+  "desc": "Déclinaison promotionnelle : l'offre saisonnière, tenue par des gants d'hiver.",
+  "groupe": "fiveguys",
+  "marque": "Five Guys",
+  "secondaire": true
+ },
+ {
+  "src": "images/five-guys-partage.jpg",
+  "w": 1600,
+  "h": 2263,
+  "titre": "Five Guys, À deux, c'est meilleur",
+  "cat": "Campagne d'affichage · Burger",
+  "desc": "Déclinaison ambiance : deux mains qui trinquent, pour partager le moment.",
+  "groupe": "fiveguys",
+  "marque": "Five Guys",
+  "secondaire": true
+ },
+ {
   "src": "images/halloween-talon-pointe.jpg",
   "w": 675,
   "h": 1200,
