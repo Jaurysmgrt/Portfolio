@@ -2580,6 +2580,8 @@ body.avec-3d #histoire{margin-top:-172.8vh;z-index:1}
 .chg-barre{width:min(240px,60vw);height:2px;background:rgba(255,255,255,.12);overflow:hidden}
 .chg-barre i{display:block;height:100%;background:var(--red2);transform:scaleX(.05);transform-origin:0 50%;transition:transform .5s cubic-bezier(.16,1,.3,1)}
 .chg-in p{font-family:'IBM Plex Mono',monospace;font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;color:#8d9aa8;margin:0}
+
+@media(max-width:860px){.recit.vivant .ch[data-i="5"] .ch-vis{margin-bottom:1.4rem}.recit.vivant .ch[data-i="5"] .ch-tag{margin-top:.4rem}}
 </style>
 </head>
 <body>
@@ -3888,6 +3890,7 @@ function animateStats(){
     var hasPlus=txt.includes('+');
     var target=parseInt(txt);
     if(isNaN(target))return;
+    if(el.closest('.hstat.clin'))return;   // l'age ne defile pas : « 6 ans » le temps d'un instant, ca ne fait pas serieux
     var cur=0;
     var step=Math.max(1,Math.ceil(target/20));
     var t=setInterval(function(){
