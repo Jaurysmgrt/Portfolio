@@ -88,6 +88,72 @@
   "secondaire": true
  },
  {
+  "src": "images/voss-silhouette.jpg",
+  "w": 1600,
+  "h": 1067,
+  "titre": "VOSS, silhouette",
+  "cat": "Campagne · Eau premium",
+  "desc": "Packshot à contre-jour : le verre et le geste, rien d'autre.",
+  "groupe": "voss",
+  "marque": "VOSS",
+  "secondaire": false
+ },
+ {
+  "src": "images/voss-magazine.jpg",
+  "w": 1600,
+  "h": 1130,
+  "titre": "VOSS, double page",
+  "cat": "Campagne · Eau premium",
+  "desc": "Double page magazine : packshot à gauche, silhouette à droite.",
+  "groupe": "voss",
+  "marque": "VOSS",
+  "secondaire": true
+ },
+ {
+  "src": "images/voss-rue.jpg",
+  "w": 1080,
+  "h": 1440,
+  "titre": "VOSS, dans la rue",
+  "cat": "Campagne · Eau premium",
+  "desc": "La bouteille sort de la table dressée : trottoir, pose longue sur le passant.",
+  "groupe": "voss",
+  "marque": "VOSS",
+  "secondaire": true
+ },
+ {
+  "src": "images/voss-ciel.jpg",
+  "w": 1600,
+  "h": 1067,
+  "titre": "VOSS, contre-plongée",
+  "cat": "Campagne · Eau premium",
+  "desc": "Contre-plongée sur ciel bleu, le verre tenu à bout de bras.",
+  "groupe": "voss",
+  "marque": "VOSS",
+  "secondaire": true
+ },
+ {
+  "src": "images/voss-studio.jpg",
+  "w": 1600,
+  "h": 901,
+  "titre": "VOSS, packshot studio",
+  "cat": "Campagne · Eau premium",
+  "desc": "La bouteille seule, verre fumé sous un halo de lumière.",
+  "groupe": "voss",
+  "marque": "VOSS",
+  "secondaire": true
+ },
+ {
+  "src": "images/voss-passage.jpg",
+  "w": 1600,
+  "h": 901,
+  "titre": "VOSS, de main en main",
+  "cat": "Campagne · Eau premium",
+  "desc": "Le passage d'une main à l'autre, fond neutre.",
+  "groupe": "voss",
+  "marque": "VOSS",
+  "secondaire": true
+ },
+ {
   "src": "images/bmw-m-cockpit.jpg",
   "w": 1200,
   "h": 800,
