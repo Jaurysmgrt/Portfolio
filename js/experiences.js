@@ -259,7 +259,7 @@ function selection() {
     });
   });
   // la longueur de la piste suit le nombre de pieces
-  el.style.height = (100 + projets.length * 32) + 'vh';
+  el.style.height = (100 + projets.length * (TACTILE ? 48 : 32)) + 'vh';
   const tc = el.querySelector('.dc-tc');
   const elFam = el.querySelector('.sel-fam'), elNum = el.querySelector('.sel-num'), elT = el.querySelector('.sel-t'), elC = el.querySelector('.sel-c'),
         elX = el.querySelector('.sel-x'), elTot = el.querySelector('.sel-tot'), elB = el.querySelector('.sel-barre i');
