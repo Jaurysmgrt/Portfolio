@@ -1,40 +1,43 @@
 // ═══════════════════════════════════════════════════════════════════════
-// LA SOUFFLERIE — le monde de Jaurys Maigret
+// L'ATELIER — le lieu de travail de Jaurys Maigret, la nuit
 //
-// Un hall d'essai. On n'y marche pas : le flux vous porte, et ZQSD règle
-// le régime. Les pièces ne sont pas accrochées à un mur — elles sont
-// MONTÉES dans la veine, chacune sur son socle, son numéro peint au sol,
-// sa veilleuse braquée dessus. Le reste est noir.
+// On n'y marche pas : on fait defiler, et la camera glisse sur un rail,
+// comme un travelling de cinema. Elle s'arrete devant chaque piece, puis
+// repart. Six stations : l'entree, le mur d'affiches, le coin studio photo
+// avec ses tirages, la 991 sous son drap, le poste de montage, et le
+// bureau de Jaurys, ou la visite se termine.
 // ═══════════════════════════════════════════════════════════════════════
 import * as THREE from '../vendor/three.module.min.js';
 import { RoomEnvironment } from '../vendor/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from '../vendor/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from '../vendor/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from '../vendor/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from '../vendor/addons/postprocessing/OutputPass.js';
 
-const NOIR    = 0x040405;
-const SOL     = 0x17171a;
-const PAROI   = 0x3b3835;
-const ACIER   = 0x2c2c31;
-const ROUGE   = 0xd42a1b;
-
-const DEMI_L  = 7.4;
-const PLAFOND = 6.2;
-const OEIL    = 1.68;
-const PAS     = 8;        // les oeuvres se suivent de pres : on va jusqu'au bout
-const DEBUT   = -16;      // la premiere oeuvre, juste apres l'entree
+const ROUGE = 0xd42a1b;
+const DEMI = 9;          // demi-largeur de l'atelier
+const HAUT = 5.4;        // hauteur sous plafond
+const Z_ENTREE = 10, Z_FOND = -64;
+const MAIL = 'maigretjaurys8@gmail.com';
+const TEL = '06 09 97 74 01';
 
 // le son, s'il est demande : synthetise, jamais charge
 let SON = null;
-function bruitage(nom) { if (SON && SON.estActif()) SON.son[nom](); }
+function bruitage(nom) { if (SON && SON.estActif() && SON.son[nom]) SON.son[nom](); }
 
 export async function demarrer() {
   const cv = document.getElementById('veine');
+  const PETIT = matchMedia('(pointer:coarse)').matches || innerWidth < 760;
+  const TACTILE = matchMedia('(pointer:coarse)').matches;
 
+  // ── le son ──
   (function brancherSon() {
     const btn = document.getElementById('son');
     if (!btn) return;
     let on = false;
     const etat = v => { on = v; btn.setAttribute('aria-pressed', v ? 'true' : 'false');
       try { localStorage.setItem('jm-son', v ? '1' : '0'); } catch (e) {} };
-    const charger = () => import('./son.js?v=7').then(m => { SON = m; m.allumer(); etat(true); m.son.tension(); });
+    const charger = () => import('./son.js?v=8').then(m => { SON = m; m.allumer(); etat(true); m.son.tension(); });
     btn.addEventListener('click', () => {
       if (!SON) return charger();
       if (on) { SON.eteindre(); etat(false); } else { SON.allumer(); etat(true); SON.son.tic(); }
@@ -44,14 +47,13 @@ export async function demarrer() {
     if (voulu) {
       const reveil = () => { document.removeEventListener('pointerdown', reveil);
         document.removeEventListener('keydown', reveil);
-        import('./son.js?v=7').then(m => { SON = m; m.allumer(); etat(true); }); };
+        import('./son.js?v=8').then(m => { SON = m; m.allumer(); etat(true); }); };
       document.addEventListener('pointerdown', reveil, { once: true });
       document.addEventListener('keydown', reveil, { once: true });
     }
   })();
 
-  // ── la salle bat avec la musique ──
-  // les halos des projecteurs respirent sur chaque temps, un peu plus sur le premier
+  // ── l'atelier bat avec la musique : le neon et les ampoules respirent ──
   let pouls = 0;
   (function () {
     const racine = document.documentElement;
@@ -71,75 +73,61 @@ export async function demarrer() {
     setInterval(() => { if (Date.now() - dernier > 1600) racine.classList.remove('musique'); }, 800);
   })();
 
+  // ═══════════ le rendu ═══════════
   const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 1.8));
+  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, PETIT ? 1.5 : 1.8));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
-  // De vraies ombres portees : les cadres en jettent sur le mur, les bancs
-  // sur le sol. C'est ce qui fait qu'on croit a la salle. Sur telephone on
-  // s'en passe, pour garder la fluidite.
-  const PETIT = matchMedia('(pointer:coarse)').matches;
   renderer.shadowMap.enabled = !PETIT;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   const monde = new THREE.Scene();
-  monde.background = new THREE.Color(NOIR);
-  monde.fog = new THREE.FogExp2(0x0a0a0a, 0.0095);
-  // un champ de vision humain : a 64 degres on se croyait dans un jeu
-  const cam = new THREE.PerspectiveCamera(56, 1, 0.1, 400);
-  // un environnement doux pour que les metaux et le sol aient de vrais reflets
+  monde.background = new THREE.Color(0x030304);
+  monde.fog = new THREE.FogExp2(0x070707, 0.014);
+  const cam = new THREE.PerspectiveCamera(PETIT ? 62 : 52, 1, 0.05, 200);
   const pmrem = new THREE.PMREMGenerator(renderer);
   monde.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  monde.environmentIntensity = 0.16;
+  monde.environmentIntensity = 0.18;
 
-  // Toutes les pieces servent aux fiches ; seule la piece principale de
-  // chaque projet est accrochee. Un projet = une oeuvre au mur.
+  // les neons et les ampoules diffusent leur lumiere dans l'image (ordinateur)
+  let composer = null, bloom = null;
+  if (!PETIT) {
+    composer = new EffectComposer(renderer);
+    composer.addPass(new RenderPass(monde, cam));
+    bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.42, 0.45, 0.93);
+    composer.addPass(bloom);
+    composer.addPass(new OutputPass());
+  }
+
+  // ═══════════ les donnees ═══════════
   const pieces = await fetch('data/pieces.json').then(r => r.json());
-  const expos = pieces.filter(p => !p.secondaire);
-  const LONG = 60 + expos.length * PAS;
-  const MILIEU = -LONG / 2 + 20, ETENDUE = LONG + 80;
+  // les videos sont lues dans le site lui-meme : une seule source
+  let videos = [];
+  try {
+    const html = await fetch('index.html').then(r => r.text());
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    videos = [...doc.querySelectorAll('.gal-video')].map(v => ({
+      titre: v.dataset.title || '', cat: (v.dataset.cat || '').replace(/&middot;/g, '·'), desc: v.dataset.desc || '',
+      vsrc: v.dataset.vsrc || '', poster: v.dataset.poster || '' }));
+  } catch (e) {}
 
-  const acier = () => new THREE.MeshStandardMaterial({ color: ACIER, roughness: 0.42, metalness: 0.62 });
-
-  // petites toiles peintes une fois : halos, faisceaux, fondus
+  // ═══════════ les matieres, peintes ici ═══════════
   function toile(w, h, peindre, lin) {
     const c = document.createElement('canvas'); c.width = w; c.height = h;
     peindre(c.getContext('2d'), w, h);
     const t = new THREE.CanvasTexture(c);
     if (!lin) t.colorSpace = THREE.SRGBColorSpace;
+    t.anisotropy = 8;
     return t;
   }
-  const texHalo = toile(256, 256, (g, w, h) => {
-    const r = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
-    r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.3, 'rgba(255,255,255,.62)');
-    r.addColorStop(0.62, 'rgba(255,255,255,.16)'); r.addColorStop(1, 'rgba(255,255,255,0)');
-    g.fillStyle = r; g.fillRect(0, 0, w, h);
-  });
-  const texDegrade = toile(4, 256, (g, w, h) => {   // fort en haut, nul en bas
-    const l = g.createLinearGradient(0, 0, 0, h);
-    l.addColorStop(0, 'rgba(255,255,255,1)'); l.addColorStop(0.22, 'rgba(255,255,255,.42)');
-    l.addColorStop(1, 'rgba(255,255,255,0)');
-    g.fillStyle = l; g.fillRect(0, 0, w, h);
-  });
-  const texFondu = toile(4, 256, (g, w, h) => {     // masque des reflets (canal vert)
-    const l = g.createLinearGradient(0, 0, 0, h);
-    l.addColorStop(0, '#fff'); l.addColorStop(0.45, '#333'); l.addColorStop(1, '#000');
-    g.fillStyle = l; g.fillRect(0, 0, w, h);
-  }, true);
-  const additif = (map, color, opacity) => new THREE.MeshBasicMaterial({
-    map, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false });
-
-  // ═══════════ les matieres ═══════════
-  // Tout est peint ici, sur des toiles : pas de fichier a charger.
-  // Un bruit fractal sert a tout : beton du sol, enduit des murs.
   function bruitFractal(w, h, octaves, graine) {
     const out = new Float32Array(w * h);
     let amp = 1, total = 0;
     for (let o = 0; o < octaves; o++) {
       const cell = Math.max(2, Math.floor(w / Math.pow(2, o + 2)));
-      const gw = Math.ceil(w / cell) + 2, gh = Math.ceil(h / cell) + 2;
-      const grille = new Float32Array(gw * gh);
+      const gw = Math.ceil(w / cell) + 2;
+      const grille = new Float32Array(gw * (Math.ceil(h / cell) + 2));
       for (let k = 0; k < grille.length; k++) { const x = Math.sin((k + 1) * (graine + o * 13.37) * 12.9898) * 43758.5453; grille[k] = x - Math.floor(x); }
       for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
         const fx = x / cell, fy = y / cell, x0 = Math.floor(fx), y0 = Math.floor(fy);
@@ -152,7 +140,7 @@ export async function demarrer() {
     for (let k = 0; k < out.length; k++) out[k] /= total;
     return out;
   }
-  function texBruit(w, h, peindre, lin) {
+  function texPixels(w, h, peindre, lin) {
     const c = document.createElement('canvas'); c.width = w; c.height = h;
     const g = c.getContext('2d'); const img = g.createImageData(w, h);
     peindre(img.data, w, h); g.putImageData(img, 0, 0);
@@ -161,1205 +149,724 @@ export async function demarrer() {
     if (!lin) t.colorSpace = THREE.SRGBColorSpace;
     return t;
   }
-  // le beton cire : nuages sombres, grain fin, et les joints de sciage
-  const nBeton = bruitFractal(512, 512, 6, 3.1);
-  const texBeton = texBruit(512, 512, (d, w, h) => {
-    for (let k = 0; k < w * h; k++) {
+  // le beton cire du sol
+  const nB = bruitFractal(512, 512, 6, 3.1);
+  const texSol = texPixels(512, 512, (d, w) => {
+    for (let k = 0; k < w * w; k++) {
       const x = k % w, y = (k / w) | 0;
-      const grain = (Math.sin(k * 91.7) * 43758.5453) % 1;
-      let v = 20 + nBeton[k] * 22 + Math.abs(grain) * 5;
-      if (x < 1 || y < 1) v *= 0.7;                     // le joint, tous les quatre metres
-      d[k * 4] = v * 1.02; d[k * 4 + 1] = v; d[k * 4 + 2] = v * 0.97; d[k * 4 + 3] = 255;
+      let v = 22 + nB[k] * 24 + Math.abs((Math.sin(k * 91.7) * 43758.5) % 1) * 5;
+      if (x < 1 || y < 1) v *= 0.7;
+      d[k * 4] = v * 1.03; d[k * 4 + 1] = v; d[k * 4 + 2] = v * 0.96; d[k * 4 + 3] = 255;
     }
   });
-  const texBetonR = texBruit(512, 512, (d, w, h) => {
-    for (let k = 0; k < w * h; k++) {
+  const texSolR = texPixels(512, 512, (d, w) => {
+    for (let k = 0; k < w * w; k++) { const v = 90 + nB[(k * 7) % (w * w)] * 70; d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255; }
+  }, true);
+  // le beton brut des murs : banches, joints, trous de tiges
+  const nM = bruitFractal(512, 512, 6, 9.3);
+  const texMur = texPixels(512, 512, (d, w) => {
+    for (let k = 0; k < w * w; k++) {
       const x = k % w, y = (k / w) | 0;
-      let v = 95 + nBeton[(k * 7) % (w * h)] * 55;      // un cire legerement inegal
-      if (x < 1 || y < 1) v = 200;
-      d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255;
+      let v = 46 + nM[k] * 34 + ((Math.sin(k * 12.7) * 43758.5) % 1) * 6;
+      if (x < 2 || y < 2) v *= 0.62;                                       // joint de banche
+      const tx = (x % 128) - 64, ty = (y % 170) - 85;                       // trous de tiges
+      if (tx * tx + ty * ty < 18 && (x / 128 | 0) % 2 === 0) v *= 0.45;
+      d[k * 4] = v; d[k * 4 + 1] = v * 0.98; d[k * 4 + 2] = v * 0.95; d[k * 4 + 3] = 255;
     }
+  });
+  const texMurB = texPixels(256, 256, (d, w) => {
+    for (let k = 0; k < w * w; k++) { const v = 100 + nM[k * 2 % nM.length] * 120; d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255; }
   }, true);
-  // l'enduit des murs : un relief a peine perceptible
-  const nEnduit = bruitFractal(256, 256, 5, 7.7);
-  const texEnduit = texBruit(256, 256, (d, w, h) => {
-    for (let k = 0; k < w * h; k++) { const v = 110 + nEnduit[k] * 90 + ((Math.sin(k * 12.7) * 43758.5) % 1) * 14;
-      d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255; }
-  }, true);
-  // l'ombre des angles : la ou deux surfaces se rencontrent, la lumiere entre moins
+  // le liege du tableau
+  const texLiege = texPixels(256, 256, (d, w) => {
+    for (let k = 0; k < w * w; k++) { const r = Math.random(); const v = 0.55 + nM[k] * 0.3 + r * 0.25;
+      d[k * 4] = 150 * v; d[k * 4 + 1] = 104 * v; d[k * 4 + 2] = 64 * v; d[k * 4 + 3] = 255; }
+  });
+  // le bois du bureau
+  const texBois = texPixels(512, 128, (d, w, h) => {
+    for (let k = 0; k < w * h; k++) { const x = k % w, y = (k / w) | 0;
+      const veine = Math.sin(y * 0.35 + Math.sin(x * 0.012) * 5 + nB[(y * 4 % 512) * 512 + (x % 512)] * 6) * 0.5 + 0.5;
+      const v = 0.55 + veine * 0.25 + nB[k % nB.length] * 0.2;
+      d[k * 4] = 92 * v; d[k * 4 + 1] = 60 * v; d[k * 4 + 2] = 40 * v; d[k * 4 + 3] = 255; }
+  });
+  const texHalo = toile(256, 256, (g, w) => {
+    const r = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2);
+    r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.35, 'rgba(255,255,255,.5)'); r.addColorStop(1, 'rgba(255,255,255,0)');
+    g.fillStyle = r; g.fillRect(0, 0, w, w);
+  });
   const texAngle = toile(4, 256, (g, w, h) => {
     const l = g.createLinearGradient(0, 0, 0, h);
     l.addColorStop(0, 'rgba(0,0,0,1)'); l.addColorStop(0.35, 'rgba(0,0,0,.45)'); l.addColorStop(1, 'rgba(0,0,0,0)');
     g.fillStyle = l; g.fillRect(0, 0, w, h);
   });
-  const matAngle = (op) => new THREE.MeshBasicMaterial({ map: texAngle, transparent: true, opacity: op, depthWrite: false, fog: true });
-  function angle(larg, haut, op) { const m = new THREE.Mesh(new THREE.PlaneGeometry(larg, haut), matAngle(op)); m.renderOrder = 3; return m; }
+  const additif = (map, color, opacity) => new THREE.MeshBasicMaterial({ map, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false });
+  const mat = (color, roughness = 0.8, metalness = 0, extra = {}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness, metalness }, extra));
+  const acier = mat(0x1d1e21, 0.35, 0.85);
+  const noirMat = mat(0x0b0b0c, 0.6, 0.2);
+  function boite(w, h, d, m, x, y, z, parent) { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); b.position.set(x, y, z); b.castShadow = true; b.receiveShadow = true; (parent || monde).add(b); return b; }
 
-  // ═══════════ la salle ═══════════
-  // Le sol est un beton cire, legerement transparent : sous lui, les oeuvres
-  // sont recopiees a l'envers, floues et sombres. C'est le reflet.
-  texBeton.repeat.set(DEMI_L * 2 / 4, ETENDUE / 4);
-  texBetonR.repeat.copy(texBeton.repeat);
-  const sol = new THREE.Mesh(
-    new THREE.PlaneGeometry(DEMI_L * 2, ETENDUE),
-    new THREE.MeshStandardMaterial({ map: texBeton, roughnessMap: texBetonR, roughness: 1, metalness: 0,
-      transparent: true, opacity: 0.9 })
-  );
-  sol.rotation.x = -Math.PI / 2;
-  sol.position.z = MILIEU;
-  sol.renderOrder = 2;
-  sol.receiveShadow = true;
-  monde.add(sol);
+  // ═══════════ le lieu ═══════════
+  const LONG = Z_ENTREE - Z_FOND, MIL = (Z_ENTREE + Z_FOND) / 2;
+  texSol.repeat.set(DEMI * 2 / 4, LONG / 4); texSolR.repeat.copy(texSol.repeat);
+  const sol = new THREE.Mesh(new THREE.PlaneGeometry(DEMI * 2, LONG),
+    new THREE.MeshStandardMaterial({ map: texSol, roughnessMap: texSolR, roughness: 1, metalness: 0 }));
+  sol.rotation.x = -Math.PI / 2; sol.position.z = MIL; sol.receiveShadow = true; monde.add(sol);
 
-  texEnduit.repeat.set(ETENDUE / 3, PLAFOND / 3);
-  const matParoi = new THREE.MeshStandardMaterial({ color: PAROI, roughness: 0.94, metalness: 0,
-    bumpMap: texEnduit, bumpScale: 0.6 });
+  texMur.repeat.set(LONG / 5, HAUT / 5); texMurB.repeat.copy(texMur.repeat);
+  const matMur = new THREE.MeshStandardMaterial({ map: texMur, bumpMap: texMurB, bumpScale: 0.8, roughness: 0.95, metalness: 0 });
   for (const c of [-1, 1]) {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(ETENDUE, PLAFOND), matParoi);
-    m.rotation.y = -c * Math.PI / 2;          // face tournee vers l'allee
-    m.position.set(c * DEMI_L, PLAFOND / 2, MILIEU);
-    m.receiveShadow = true;
-    monde.add(m);
-
-    // les ombres des angles : pied de mur, haut de mur, bord du sol, bord du plafond
-    const a1 = angle(ETENDUE, 0.9, 0.5);  a1.rotation.y = -c * Math.PI / 2; a1.rotation.z = Math.PI;
-    a1.position.set(c * (DEMI_L - 0.01), 0.45, MILIEU); monde.add(a1);
-    const a2 = angle(ETENDUE, 1.2, 0.55); a2.rotation.y = -c * Math.PI / 2;
-    a2.position.set(c * (DEMI_L - 0.01), PLAFOND - 0.6, MILIEU); monde.add(a2);
-    const a3 = angle(1.3, ETENDUE, 0.55); a3.rotation.x = -Math.PI / 2; a3.rotation.z = -c * Math.PI / 2;
-    a3.position.set(c * (DEMI_L - 0.65), 0.004, MILIEU); monde.add(a3);
-    const a4 = angle(1.6, ETENDUE, 0.7);  a4.rotation.x = Math.PI / 2; a4.rotation.z = -c * Math.PI / 2;
-    a4.position.set(c * (DEMI_L - 0.8), PLAFOND - 0.005, MILIEU); monde.add(a4);
-
-    // la plinthe, sombre et mate
-    const plinthe = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.12, ETENDUE),
-      new THREE.MeshStandardMaterial({ color: 0x0c0c0d, roughness: 0.55, metalness: 0.1 }));
-    plinthe.position.set(c * (DEMI_L - 0.015), 0.06, MILIEU);
-    monde.add(plinthe);
-    // le rail des projecteurs
-    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.04, ETENDUE),
-      new THREE.MeshStandardMaterial({ color: 0x050506, roughness: 0.35, metalness: 0.8 }));
-    rail.position.set(c * (DEMI_L - 2.3), PLAFOND - 0.03, MILIEU);
-    monde.add(rail);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(LONG, HAUT), matMur);
+    m.rotation.y = -c * Math.PI / 2; m.position.set(c * DEMI, HAUT / 2, MIL); m.receiveShadow = true; monde.add(m);
+    // l'ombre des angles
+    const a1 = new THREE.Mesh(new THREE.PlaneGeometry(LONG, 0.8), new THREE.MeshBasicMaterial({ map: texAngle, transparent: true, opacity: 0.5, depthWrite: false }));
+    a1.rotation.y = -c * Math.PI / 2; a1.rotation.z = Math.PI; a1.position.set(c * (DEMI - 0.01), 0.4, MIL); monde.add(a1);
+    const a2 = new THREE.Mesh(new THREE.PlaneGeometry(1.2, LONG), new THREE.MeshBasicMaterial({ map: texAngle, transparent: true, opacity: 0.55, depthWrite: false }));
+    a2.rotation.x = -Math.PI / 2; a2.rotation.z = -c * Math.PI / 2; a2.position.set(c * (DEMI - 0.6), 0.004, MIL); monde.add(a2);
   }
-  const pf = new THREE.Mesh(new THREE.PlaneGeometry(DEMI_L * 2, ETENDUE),
-    new THREE.MeshStandardMaterial({ color: 0x0d0d0e, roughness: 0.96, side: THREE.DoubleSide }));
-  pf.rotation.x = Math.PI / 2;
-  pf.position.set(0, PLAFOND, MILIEU);
-  monde.add(pf);
-
-  // ═══════════ lumière ═══════════
-  // Peu d'ambiance : comme dans une vraie salle, ce sont les projecteurs qui
-  // eclairent. Trois lumieres douces accompagnent le visiteur pour qu'on
-  // devine toujours les murs.
-  monde.add(new THREE.AmbientLight(0xc8beb2, 0.55));
-  monde.add(new THREE.HemisphereLight(0xe8dccb, 0x0e0e10, 0.42));
-  const lampes = [];
-  for (let i = 0; i < 3; i++) {
-    const l = new THREE.PointLight(0xffe6cc, 16, 26, 2);
-    monde.add(l); lampes.push(l);
+  const texMurF = texMur.clone(); texMurF.repeat.set(DEMI * 2 / 5, HAUT / 5); texMurF.needsUpdate = true;
+  const matMurF = matMur.clone(); matMurF.map = texMurF;
+  for (const [z, ry] of [[Z_FOND, 0], [Z_ENTREE, Math.PI]]) {
+    const f = new THREE.Mesh(new THREE.PlaneGeometry(DEMI * 2, HAUT), matMurF);
+    f.position.set(0, HAUT / 2, z); f.rotation.y = ry; f.receiveShadow = true; monde.add(f);
   }
-  const braise = new THREE.PointLight(ROUGE, 9, 24, 2);
-  monde.add(braise);
-
-  // ═══════════ plaques peintes ═══════════
-  function couper(g, texte, max) {
-    const mots = String(texte).split(' '); const out = []; let l = '';
-    for (const m of mots) {
-      const e = l ? l + ' ' + m : m;
-      if (g.measureText(e).width > max) { out.push(l); l = m; } else l = e;
-    }
-    if (l) out.push(l);
-    return out;
+  const pf = new THREE.Mesh(new THREE.PlaneGeometry(DEMI * 2, LONG), mat(0x0a0a0b, 0.95));
+  pf.rotation.x = Math.PI / 2; pf.position.set(0, HAUT, MIL); monde.add(pf);
+  // les poutres metalliques, et les suspensions industrielles
+  const ampoules = [];
+  const matAmpoule = new THREE.MeshBasicMaterial({ color: 0xffd39a });
+  for (let z = Z_ENTREE - 4; z > Z_FOND; z -= 6) {
+    boite(DEMI * 2, 0.34, 0.2, acier, 0, HAUT - 0.17, z);
+    const cordon = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.008, 1.5, 6), noirMat);
+    cordon.position.set(0, HAUT - 0.75, z - 3); monde.add(cordon);
+    const abat = new THREE.Mesh(new THREE.ConeGeometry(0.26, 0.24, 24, 1, true), mat(0x111214, 0.4, 0.8, { side: THREE.DoubleSide }));
+    abat.position.set(0, HAUT - 1.6, z - 3); monde.add(abat);
+    const amp = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 10), matAmpoule.clone());
+    amp.position.set(0, HAUT - 1.72, z - 3); monde.add(amp); ampoules.push(amp);
+  }
+  // les verrieres de nuit, en haut du mur gauche
+  const matVitre = new THREE.MeshBasicMaterial({ color: 0x0e1b2e });
+  for (let z = 6; z > -22; z -= 3.2) {
+    const v = new THREE.Mesh(new THREE.PlaneGeometry(2.8, 1.6), matVitre);
+    v.rotation.y = Math.PI / 2; v.position.set(-DEMI + 0.02, 4.25, z); monde.add(v);
+    for (const dy of [-0.8, 0, 0.8]) boite(0.05, 0.05, 2.9, acier, -DEMI + 0.05, 4.25 + dy, z);
+    for (const dz of [-1.4, -0.47, 0.47, 1.4]) boite(0.05, 1.65, 0.05, acier, -DEMI + 0.05, 4.25, z + dz);
   }
 
-  // Le texte s'ajuste a la plaque : on mesure d'abord la hauteur qu'il prend a
-  // l'echelle 1, puis on choisit l'echelle pour qu'il occupe la plaque. Sans
-  // ca, une plaque large restait aux trois quarts vide.
-  // Le texte des plaques etait pose avec des avances codees en dur : 70 px
-  // apres un libelle, 94 apres un titre. Or un titre en Anton occupe environ
-  // 71 px de capitales pour 70 d'avance : huit pixels de marge sur mille.
-  // A la moindre variation de police, le libelle rouge et le titre se
-  // telescopaient. On mesure maintenant chaque ligne pour de vrai.
-  function reglage(t, e) {
-    // ls est un ratio de la taille : l'interlettrage suit la reduction.
-    if (t === 'lbl')   return { px: 28*e, fam: '"IBM Plex Mono", monospace', poids: '500 ',
-                                c: '#ff4433',               ls: 0.286, maj: true,  ap: 30*e };
-    if (t === 'titre') return { px: 86*e, fam: 'Anton, sans-serif',         poids: '',
-                                c: '#ffffff',               ls: 0.012, maj: false, ap: 22*e };
-    if (t === 'sous')  return { px: 30*e, fam: '"IBM Plex Mono", monospace', poids: '500 ',
-                                c: '#a9b7c6',               ls: 0.2,   maj: true,  ap: 24*e };
-    return             { px: 34*e, fam: '"IBM Plex Sans", sans-serif', poids: '300 ',
-                                c: 'rgba(226,236,246,.70)', ls: 0,     maj: false, ap: 16*e };
-  }
-  function appliquer(g, r, px) {
-    g.font = r.poids + px.toFixed(1) + 'px ' + r.fam;
-    g.letterSpacing = (px * r.ls).toFixed(2) + 'px';
-  }
+  // ═══════════ lumiere ═══════════
+  monde.add(new THREE.AmbientLight(0xc8beb2, 0.34));
+  monde.add(new THREE.HemisphereLight(0xe8dccb, 0x0e0e10, 0.32));
+  const lune = new THREE.DirectionalLight(0x8fb2e8, 0.35); lune.position.set(-12, 9, -6); monde.add(lune);
+  const suit = new THREE.PointLight(0xffe6cc, 10, 16, 2); monde.add(suit);
 
-  // Un seul parcours sert a deux choses : mesurer la hauteur reelle du bloc,
-  // puis le dessiner. Les deux ne peuvent donc pas diverger.
-  // Et aucune ligne ne sort de la plaque : les paragraphes se coupent, les
-  // titres et les intitules se reduisent jusqu'a tenir. Avant, un intitule
-  // trop long comme "2026 · MASTER DIRECTION ARTISTIQUE" etait simplement
-  // tranche par le bord de la texture.
-  function poser(g, lignes, e, largeurUtile, dessiner, marge) {
-    let y = 44 * e;
-    for (const l of lignes) {
-      if (l.t === 'vide') { y += (l.v || 30) * e; continue; }
-      const r = reglage(l.t, e);
-      appliquer(g, r, r.px);
-      const txt = r.maj ? String(l.v).toUpperCase() : l.v;
-      const morceaux = (l.t === 'p') ? couper(g, txt, largeurUtile) : [txt];
-      for (const m of morceaux) {
-        let px = r.px;
-        appliquer(g, r, px);
-        const w = g.measureText(m).width;
-        if (w > largeurUtile) { px = r.px * (largeurUtile / w); appliquer(g, r, px); }
-        const me = g.measureText(m);
-        const haut = me.actualBoundingBoxAscent  || px * 0.74;
-        const bas  = me.actualBoundingBoxDescent || px * 0.2;
-        y += haut;
-        if (dessiner) { g.fillStyle = r.c; g.fillText(m, marge, y); }
-        y += bas + r.ap * (px / r.px);
-      }
-    }
-    return y;
-  }
+  // ═══════════ les objets cliquables ═══════════
+  const cliquables = [];      // { mesh, nom, cat, faire }
+  function cliquable(mesh, nom, cat, faire) { mesh.userData.clic = { nom, cat, faire }; cliquables.push(mesh); }
 
-  function plaque(lignes, larg, haut, ech) {
-    const S = 1100;
-    const c = document.createElement('canvas');
-    c.height = S; c.width = Math.round(S * (larg / haut));
-    const g = c.getContext('2d');
-    g.textBaseline = 'alphabetic';
-    const marge = 64, utile = c.width - marge * 2;
+  // ═══════════ le neon de l'entree ═══════════
+  const texNeon = toile(1024, 300, (g, w, h) => {
+    g.clearRect(0, 0, w, h);
+    g.font = '170px Anton, Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.shadowColor = '#ff3322'; g.shadowBlur = 30; g.fillStyle = '#ff5a44'; g.fillText("L'ATELIER", w / 2, h / 2 - 20);
+    g.shadowBlur = 0; g.fillStyle = '#ffd9d2'; g.fillText("L'ATELIER", w / 2, h / 2 - 20);
+    g.font = '500 26px "IBM Plex Mono", monospace'; g.letterSpacing = '7px'; g.fillStyle = '#ff8a7a';
+    g.fillText('JAURYS MAIGRET · DIRECTION ARTISTIQUE', w / 2, h - 40);
+  });
+  const neon = new THREE.Mesh(new THREE.PlaneGeometry(4.6, 1.35), new THREE.MeshBasicMaterial({ map: texNeon, transparent: true, depthWrite: false, toneMapped: false }));
+  neon.position.set(0, 3.5, -1.5); monde.add(neon);
+  for (const dx of [-1.6, 1.6]) { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, HAUT - 4.2, 4), noirMat); c.position.set(dx, (HAUT + 4.2) / 2, -1.52); monde.add(c); }
+  const halNeon = new THREE.Mesh(new THREE.PlaneGeometry(6, 2.6), additif(texHalo, 0xff3a22, 0.05)); halNeon.position.set(0, 3.5, -1.56); monde.add(halNeon);
+  const lumNeon = new THREE.PointLight(0xff3a22, 6, 9, 2); lumNeon.position.set(0, 3.2, -1.2); monde.add(lumNeon);
 
-    if (!ech) {
-      // deux passes : la coupure des paragraphes depend de l'echelle, donc
-      // une seule mesure se trompe des que le texte se reorganise.
-      ech = Math.max(0.6, Math.min(3.2, (S * 0.88) / Math.max(1, poser(g, lignes, 1, utile, false, marge))));
-      const h2 = poser(g, lignes, ech, utile, false, marge);
-      if (h2 > S * 0.94) ech *= (S * 0.9) / h2;
-    }
-
-    g.fillStyle = '#0d1219'; g.fillRect(0, 0, c.width, c.height);
-    g.strokeStyle = 'rgba(190,210,230,.20)'; g.lineWidth = 3;
-    g.strokeRect(1.5, 1.5, c.width - 3, c.height - 3);
-    g.fillStyle = '#d42a1b'; g.fillRect(0, 0, c.width, 8);
-    poser(g, lignes, ech, utile, true, marge);
-
-    const tex = new THREE.CanvasTexture(c);
-    tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
-    const a = acier();
-    const face = new THREE.MeshStandardMaterial({
-      map: tex, roughness: 0.82, metalness: 0.06,
-      emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.3
-    });
-    return new THREE.Mesh(new THREE.BoxGeometry(larg, haut, 0.09), [a, a, a, a, face, a]);
-  }
-
-  // Au fond du hall, le texte n'est pas sur une pancarte : il est peint sur
-  // la paroi. Pas de cadre, pas de fond, pas de filet rouge — on arrive au
-  // bout d'une veine d'essai, pas devant un panneau de plus.
-  function lettrage(lignes, larg, haut) {
-    const S = 900;
-    const c = document.createElement('canvas');
-    c.height = S; c.width = Math.round(S * (larg / haut));
-    const g = c.getContext('2d');
-    g.textBaseline = 'alphabetic';
-    let y = 92;
-    for (const l of lignes) {
-      if (l.t === 'lbl') {
-        g.font = '500 30px "IBM Plex Mono", monospace'; g.fillStyle = '#ff4433';
-        g.letterSpacing = '10px'; g.fillText(String(l.v).toUpperCase(), 0, y); y += 86;
-      } else if (l.t === 'titre') {
-        g.font = '150px Anton, sans-serif'; g.fillStyle = '#ffffff';
-        g.letterSpacing = '2px'; g.fillText(l.v, 0, y + 110); y += 158;
-      } else {
-        g.font = '500 34px "IBM Plex Mono", monospace'; g.fillStyle = '#a9b7c6';
-        g.letterSpacing = '7px'; g.fillText(String(l.v).toUpperCase(), 0, y + 34); y += 62;
-      }
-    }
-    const tex = new THREE.CanvasTexture(c);
-    tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
-    return new THREE.Mesh(new THREE.PlaneGeometry(larg, haut),
-      new THREE.MeshStandardMaterial({
-        map: tex, transparent: true, depthWrite: false, roughness: 0.9, metalness: 0,
-        emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.5
-      }));
-  }
-
-  // Une plaque sur laquelle on peut AGIR. Jusqu'ici la fin du hall affichait
-  // une adresse e-mail gravee dans une texture : illisible de loin, et
-  // impossible a copier. Celles-ci repondent au clic et se redessinent.
-  const actions = [];
-  function plaqueAction(lbl, val, indice, larg, haut, faire) {
-    const S = 512;
-    const c = document.createElement('canvas');
-    c.height = S; c.width = Math.round(S * (larg / haut));
-    const g = c.getContext('2d');
-    const tex = new THREE.CanvasTexture(c);
-    tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
-
-    function peindre(valeur, bas, chaud) {
-      g.fillStyle = chaud ? '#1b242f' : '#0d1219';
-      g.fillRect(0, 0, c.width, c.height);
-      g.strokeStyle = chaud ? 'rgba(255,68,51,.9)' : 'rgba(190,210,230,.22)';
-      g.lineWidth = 5; g.strokeRect(2.5, 2.5, c.width - 5, c.height - 5);
-      g.fillStyle = '#d42a1b'; g.fillRect(0, 0, c.width, 7);
-      g.textBaseline = 'alphabetic';
-      g.font = '500 30px "IBM Plex Mono", monospace';
-      g.fillStyle = '#ff4433'; g.letterSpacing = '8px';
-      g.fillText(String(lbl).toUpperCase(), 46, 112);
-      // la valeur prend toute la largeur disponible : c'est elle qu'on vient lire
-      let t = 62; g.letterSpacing = '1px';
-      g.font = `600 ${t}px "IBM Plex Mono", monospace`;
-      while (g.measureText(valeur).width > c.width - 92 && t > 20) {
-        t -= 2; g.font = `600 ${t}px "IBM Plex Mono", monospace`;
-      }
-      g.fillStyle = chaud ? '#ffffff' : '#e8f0f8';
-      g.fillText(valeur, 46, 250);
-      g.font = '500 26px "IBM Plex Mono", monospace';
-      g.fillStyle = chaud ? 'rgba(255,68,51,.95)' : 'rgba(169,183,198,.65)';
-      g.letterSpacing = '6px';
-      g.fillText(String(bas).toUpperCase(), 46, 420);
-      tex.needsUpdate = true;
-    }
-    peindre(val, indice, false);
-
-    const a = acier();
-    const face = new THREE.MeshStandardMaterial({
-      map: tex, roughness: 0.82, metalness: 0.06,
-      emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.62
-    });
-    const m = new THREE.Mesh(new THREE.BoxGeometry(larg, haut, 0.09), [a, a, a, a, face, a]);
-    m.userData = {
-      act: faire, lbl: lbl, val: val, indice: indice, k: 0, cible: 0,
-      chaud: function (v) { peindre(m.userData.val, m.userData.indice, v); },
-      dire: function (valeur, bas) {
-        m.userData.val = valeur; m.userData.indice = bas; peindre(valeur, bas, true);
-      }
-    };
-    actions.push(m);
-    return m;
-  }
-
-  // En portrait, le champ horizontal est trois fois plus etroit qu'en
-  // paysage : ce qui tient a l'ecran d'un cote ne tient pas de l'autre.
-  const ETROIT = innerWidth < innerHeight;
-
-  // ═══════════ zone 01 — l'entrée ═══════════
-  const entree = plaque([
-    { t: 'lbl',   v: 'Soufflerie · zone 01' },
-    { t: 'titre', v: 'JAURYS' },
-    { t: 'titre', v: 'MAIGRET' },
-    { t: 'sous',  v: 'Direction artistique · Paris' },
-    { t: 'vide',  v: 24 },
-    { t: 'p',     v: "Bienvenue dans la galerie. Chaque projet est accroché sous sa lumière, avec son cartel. Avancez, approchez-vous, cliquez pour l'ouvrir." }
-  ], 7.2, 4.3);
-  entree.position.set(0, 2.45, -7);
-  monde.add(entree);
-  // les deux pieds du totem
-  for (const c of [-1, 1]) {
-    const pied = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.1, 0.6, 12), acier());
-    pied.position.set(c * 2.6, 0.3, -7);
-    monde.add(pied);
-  }
-  const sEntree = new THREE.SpotLight(0xe8f1fb, 60, 24, 0.7, 0.6, 1.5);
-  sEntree.position.set(0, PLAFOND - 0.7, -2.2);
-  sEntree.target.position.set(0, 2.45, -7);
-  monde.add(sEntree); monde.add(sEntree.target);
-
-  // ═══════════ zone 02 — l'accrochage ═══════════
+  // ═══════════ les pieces ═══════════
   const chargeur = new THREE.TextureLoader();
   const aniso = Math.min(renderer.capabilities.getMaxAnisotropy(), 8);
-  const cibles = [];
-  const oeuvres = [];               // pour les projecteurs : ou braquer la lumiere
-  const HAUT_C = 2.7;               // hauteur du centre des oeuvres
-  const BAS = new THREE.Vector3(0, -1, 0);
+  function texture(src) { const t = chargeur.load(src); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = aniso; return t; }
+  const oeuvres = [];   // tout ce qui compte pour la chasse
+  function oeuvre(p, mesh) { const id = oeuvres.length; oeuvres.push({ p, mesh }); mesh.userData.oeuvre = id;
+    cliquable(mesh, p.titre, p.cat, () => ouvrirFiche(id)); return id; }
 
-  const matCadre = new THREE.MeshStandardMaterial({ color: 0x111113, roughness: 0.32, metalness: 0.75 });
-  const matPasse = new THREE.MeshStandardMaterial({ color: 0xebe6dc, roughness: 0.92, metalness: 0 });
-  const matBoitier = new THREE.MeshStandardMaterial({ color: 0x0d0d0f, roughness: 0.35, metalness: 0.7 });
-  const matBouche = new THREE.MeshBasicMaterial({ color: 0xfff4e6 });
-
-  // le cartel : une petite carte blanche a cote de l'oeuvre, comme au musee
-  function cartel(p, i) {
-    const W = 760, H = 460;
-    const c = document.createElement('canvas'); c.width = W; c.height = H;
-    const g = c.getContext('2d');
-    g.fillStyle = '#ece7dd'; g.fillRect(0, 0, W, H);
-    g.textBaseline = 'alphabetic';
-    g.font = '500 30px "IBM Plex Mono", monospace'; g.letterSpacing = '6px';
-    g.fillStyle = '#d42a1b'; g.fillText(String(i + 1).padStart(2, '0'), 52, 84);
-    g.fillStyle = '#8a857c'; g.fillText((p.marque || 'Jaurys Maigret').toUpperCase(), 140, 84);
-    g.letterSpacing = '0px';
-    let t = 50; g.font = `600 ${t}px "IBM Plex Sans", sans-serif`;
-    const titre = String(p.titre || '');
-    const mots = titre.split(' '); const lignes = []; let l = '';
-    for (const m of mots) { const e = l ? l + ' ' + m : m; if (g.measureText(e).width > W - 104) { lignes.push(l); l = m; } else l = e; }
-    if (l) lignes.push(l);
-    g.fillStyle = '#141417';
-    lignes.slice(0, 3).forEach((ln, k) => g.fillText(ln, 52, 166 + k * 60));
-    g.font = '500 24px "IBM Plex Mono", monospace'; g.letterSpacing = '4px';
-    g.fillStyle = '#6f6a62';
-    g.fillText(String(p.cat || '').toUpperCase().slice(0, 44), 52, H - 52);
-    g.fillStyle = '#d42a1b'; g.fillRect(52, H - 30, 64, 4);
-    const tex = new THREE.CanvasTexture(c);
-    tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
-    return new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.484), new THREE.MeshStandardMaterial({
-      map: tex, roughness: 0.9, metalness: 0, emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.28 }));
+  // ── station 1 : le mur d'affiches (mur gauche) ──
+  const DA = ['hermes', 'atol', 'fiveguys', 'halloween', 'uber', 'voss'];
+  const matScotch = new THREE.MeshStandardMaterial({ color: 0xb9b09a, roughness: 0.7, transparent: true, opacity: 0.55 });
+  const matPunaise = mat(ROUGE, 0.35, 0.3);
+  const affiches = [];
+  function scotcher(parent, w, h, z0) {
+    for (const [sx, sy] of [[-1, 1], [1, 1], [-1, -1], [1, -1]]) {
+      const s = new THREE.Mesh(new THREE.PlaneGeometry(0.16, 0.05), matScotch);
+      s.position.set(sx * (w / 2 - 0.02), sy * (h / 2 - 0.01), z0 + 0.003); s.rotation.z = sx * sy * 0.7; parent.add(s);
+    }
   }
-
-  expos.forEach((p, i) => {
-    const cote = i % 2 ? 1 : -1;
-    const z = DEBUT - i * PAS;
-    const H = p.h > p.w ? 3.05 : 2.3;
-    const L = H * (p.w / p.h);
-    const M = 0.13, C = 0.06;       // passe-partout, baguette
-
-    // l'oeuvre est accrochee au mur, face a l'allee
-    const g = new THREE.Group();
-    g.position.set(cote * (DEMI_L - 0.02), 0, z);
-    g.rotation.y = -cote * Math.PI / 2;
-    monde.add(g);
-
-    // le cadre se detache du mur de quelques centimetres : il porte son ombre
-    const cadre = new THREE.Mesh(new THREE.BoxGeometry(L + 2 * (M + C), H + 2 * (M + C), 0.05), matCadre);
-    cadre.position.set(0, HAUT_C, 0.055);
-    cadre.castShadow = true;
-    g.add(cadre);
-    const passe = new THREE.Mesh(new THREE.PlaneGeometry(L + 2 * M, H + 2 * M), matPasse);
-    passe.position.set(0, HAUT_C, 0.0805);
-    g.add(passe);
-
-    let reflet = null;
-    const tex = chargeur.load(p.src, () => { if (reflet) reflet.needsUpdate = true; });
-    tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = aniso;
-    reflet = tex.clone(); reflet.repeat.set(1, -1); reflet.offset.set(0, 1);
-
-    const mat = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.6, metalness: 0,
-      emissive: 0xffffff, emissiveMap: tex, emissiveIntensity: 0.06 });
-    const tab = new THREE.Mesh(new THREE.PlaneGeometry(L, H), mat);
-    tab.position.set(0, HAUT_C, 0.082);
-    g.add(tab);
-
-    // le halo du projecteur sur le mur, au-dessus et autour du cadre
-    const halo = new THREE.Mesh(new THREE.PlaneGeometry((L + 1.2) * 1.75, (H + 1.2) * 1.6),
-      additif(texHalo, 0xffd6a6, 0.12));
-    halo.position.set(0, HAUT_C + 0.3, 0.01);
-    halo.renderOrder = 3;
-    g.add(halo);
-
-    // son reflet dans la pierre polie
-    const refl = new THREE.Mesh(new THREE.PlaneGeometry(L, H), new THREE.MeshBasicMaterial({
-      map: reflet, alphaMap: texFondu, transparent: true, opacity: 0.2, depthWrite: false }));
-    refl.position.set(0, -HAUT_C, 0.084);
-    refl.renderOrder = 1;
-    g.add(refl);
-    const reflHalo = new THREE.Mesh(new THREE.PlaneGeometry((L + 1.2) * 1.75, (H + 1.2) * 1.2),
-      additif(texHalo, 0xffd6a6, 0.05));
-    reflHalo.position.set(0, -HAUT_C, 0.01);
-    reflHalo.renderOrder = 1;
-    g.add(reflHalo);
-
-    const ct = cartel(p, i);
-    ct.position.set(L / 2 + M + C + 0.72, 1.58, 0.012);
-    g.add(ct);
-
-    tab.userData = { p, i, k: 0, cible: 0, groupe: g, mat, halo };
-    cibles.push(tab);
-
-    // le projecteur sur son rail
-    const P = new THREE.Vector3(cote * (DEMI_L - 2.3), PLAFOND - 0.36, z + 0.25);
-    const T = new THREE.Vector3(cote * (DEMI_L - 0.1), HAUT_C + 0.15, z);
-    const dir = T.clone().sub(P).normalize();
-    const q = new THREE.Quaternion().setFromUnitVectors(BAS, dir);
-    const boitier = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.13, 0.34, 18), matBoitier);
-    boitier.position.copy(P).addScaledVector(dir, -0.1);
-    boitier.quaternion.copy(q);
-    monde.add(boitier);
-    const bouche = new THREE.Mesh(new THREE.CircleGeometry(0.11, 18), matBouche);
-    bouche.position.copy(P).addScaledVector(dir, 0.075);
-    bouche.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), dir);
-    monde.add(bouche);
-    const tige = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.3, 8), matBoitier);
-    tige.position.set(P.x, PLAFOND - 0.17, P.z);
-    monde.add(tige);
-
-    oeuvres.push({ P, T, z, tab });
+  const stationsAffiches = [];
+  let zA = -1.4;
+  DA.forEach(g => {
+    const prim = pieces.find(p => p.groupe === g && !p.secondaire); if (!prim) return;
+    const H = prim.h > prim.w ? 1.75 : 1.25, W = H * prim.w / prim.h;
+    const zc = zA - W / 2;
+    const grp = new THREE.Group(); grp.position.set(-DEMI + 0.03, 0, zc); grp.rotation.y = Math.PI / 2; monde.add(grp);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshStandardMaterial({ map: texture(prim.src), roughness: 0.75 }));
+    m.position.set(0, 1.95, 0.01); m.receiveShadow = true; grp.add(m); scotcher(m, W, H, 0);
+    const id = oeuvre(prim, m);
+    // les epreuves du meme projet, punaisees en dessus, plus petites
+    const secs = pieces.filter(p => p.groupe === g && p.secondaire).slice(0, 3);
+    secs.forEach((s, k) => {
+      const h2 = 0.62, w2 = h2 * s.w / s.h;
+      const e = new THREE.Mesh(new THREE.PlaneGeometry(w2, h2), new THREE.MeshStandardMaterial({ map: texture(s.src), roughness: 0.75, side: THREE.DoubleSide }));
+      const ex = (k - (secs.length - 1) / 2) * Math.max(0.78, w2 + 0.12);
+      e.position.set(ex, 3.32 + (k % 2) * 0.06, 0.012); e.rotation.z = (k % 2 ? 1 : -1) * 0.03; grp.add(e);
+      const pu = new THREE.Mesh(new THREE.SphereGeometry(0.018, 10, 8), matPunaise); pu.position.set(0, h2 / 2 - 0.05, 0.012); e.add(pu);
+      e.userData.repos = { pos: e.position.clone(), rot: e.rotation.clone() };
+      cliquable(e, s.titre, 'Épreuve · cliquez', () => decoller(e));
+      affiches.push(e);
+    });
+    stationsAffiches.push({ cam: new THREE.Vector3(-4.4, 1.7, zc + 0.6), vise: new THREE.Vector3(-DEMI, 2.15, zc), ids: [id], nom: "Le mur d'affiches" });
+    zA -= W + 1.45;
   });
-
-  // L'architecture : des passages tous les trois projets decoupent l'allee
-  // en salles, comme une enfilade de musee.
-  const matArche = new THREE.MeshStandardMaterial({ color: PAROI, roughness: 0.94, metalness: 0 });
-  for (let k = 2; k < expos.length - 1; k += 3) {
-    const za = DEBUT - (k + 0.5) * PAS;
-    for (const c of [-1, 1]) {
-      const pilier = new THREE.Mesh(new THREE.BoxGeometry(0.9, PLAFOND, 0.8), matArche);
-      pilier.position.set(c * (DEMI_L - 0.45), PLAFOND / 2, za);
-      pilier.castShadow = true; pilier.receiveShadow = true;
-      monde.add(pilier);
-    }
-    const linteau = new THREE.Mesh(new THREE.BoxGeometry(DEMI_L * 2, 0.7, 0.8), matArche);
-    linteau.position.set(0, PLAFOND - 0.35, za);
-    monde.add(linteau);
-  }
-  // Un banc au milieu de chaque salle : cuir sombre, pieds d'acier. On en
-  // fait le tour, on ne le traverse pas.
-  const bancs = [];
-  const matCuir = new THREE.MeshStandardMaterial({ color: 0x2a211b, roughness: 0.55, metalness: 0 });
-  const matPied = new THREE.MeshStandardMaterial({ color: 0x1a1a1c, roughness: 0.3, metalness: 0.85 });
-  for (let k = 1; k < expos.length - 1; k += 3) {
-    const zb = DEBUT - k * PAS - PAS / 2;
-    const b = new THREE.Group();
-    const assise = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.12, 2.4), matCuir);
-    assise.position.y = 0.44; assise.castShadow = true; assise.receiveShadow = true;
-    b.add(assise);
-    const coussin = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.04, 2.36), matCuir);
-    coussin.position.y = 0.52; coussin.castShadow = true;
-    b.add(coussin);
-    for (const dx of [-0.24, 0.24]) for (const dz of [-1.0, 1.0]) {
-      const pied = new THREE.Mesh(new THREE.BoxGeometry(0.035, 0.38, 0.035), matPied);
-      pied.position.set(dx, 0.19, dz); pied.castShadow = true;
-      b.add(pied);
-    }
-    for (const dz of [-1.0, 1.0]) {
-      const traverse = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.03, 0.03), matPied);
-      traverse.position.set(0, 0.36, dz); b.add(traverse);
-    }
-    const ombre = angle(1.1, 2.9, 0.0);   // place pour une ombre douce meme sans projecteur
-    ombre.material = new THREE.MeshBasicMaterial({ map: texHalo, color: 0x000000, transparent: true, opacity: 0.55, depthWrite: false });
-    ombre.rotation.x = -Math.PI / 2; ombre.position.y = 0.005;
-    b.add(ombre);
-    b.position.set(0, 0, zb);
-    monde.add(b);
-    bancs.push({ x: 0, z: zb, dx: 0.31 + 0.45, dz: 1.2 + 0.45 });
+  // une epreuve se decolle et tombe, puis on la repunaise
+  const chutes = [];
+  function decoller(e) {
+    if (e.userData.tombe) return;
+    e.userData.tombe = { t: 0, vr: (Math.random() - 0.5) * 3 };
+    bruitage('chute'); chutes.push(e);
   }
 
-  // ═══════════ les gardiens ═══════════
-  // Deux silhouettes en uniforme, adossees a un pilier. Elles tournent la
-  // tete vers le visiteur et lui glissent un mot quand il passe.
-  const gardiens = [];
-  const matUni = new THREE.MeshStandardMaterial({ color: 0x343842, roughness: 0.7, metalness: 0.05 });
-  const matChemise = new THREE.MeshStandardMaterial({ color: 0xd9d6cf, roughness: 0.8 });
-  const matBrassard = new THREE.MeshStandardMaterial({ color: 0xc8281a, roughness: 0.6, emissive: 0x3a0804 });
-  const matPeau = new THREE.MeshStandardMaterial({ color: 0x8a6a55, roughness: 0.7 });
-  const RYTHME_G = [
-    ["Pas de flash, s'il vous plaît.", "Le directeur artistique ? Il cherche une alternance. Dites-lui que vous êtes passé.",
-     "Vous êtes le premier visiteur aujourd'hui. Ou le deuxième, je ne compte plus.", "Ne touchez pas les œuvres. Les regarder longtemps, c'est autorisé."],
-    ["Le banc est confortable, mais la suite est meilleure.", "La sortie est au fond. Le contact aussi, comme par hasard.",
-     "Il reste des cases à allumer, en haut. Je dis ça, je dis rien.", "J'ai vu passer un recruteur tout à l'heure. Il avait l'air convaincu."]
-  ];
-  const ARCHES = []; for (let k = 2; k < expos.length - 1; k += 3) ARCHES.push(DEBUT - (k + 0.5) * PAS);
-  [[ARCHES[0], 1], [ARCHES[Math.min(2, ARCHES.length - 1)], -1]].forEach(([za, c], n) => {
-    if (za === undefined) return;
-    const g = new THREE.Group();
-    const corps = new THREE.Mesh(new THREE.CapsuleGeometry(0.22, 0.75, 6, 14), matUni);
-    corps.position.y = 1.18; corps.scale.set(1, 1, 0.72); corps.castShadow = true; g.add(corps);
-    for (const dx of [-0.1, 0.1]) {
-      const jambe = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.62, 4, 10), matUni);
-      jambe.position.set(dx, 0.42, 0); jambe.castShadow = true; g.add(jambe);
-    }
-    for (const dx of [-0.29, 0.29]) {
-      const bras = new THREE.Mesh(new THREE.CapsuleGeometry(0.065, 0.55, 4, 10), matUni);
-      bras.position.set(dx, 1.2, 0); bras.castShadow = true; g.add(bras);
-    }
-    // la chemise sous la veste, et le brassard rouge de la salle
-    const chemise = new THREE.Mesh(new THREE.PlaneGeometry(0.12, 0.42), matChemise);
-    chemise.position.set(0, 1.4, 0.162); g.add(chemise);
-    const brassard = new THREE.Mesh(new THREE.CylinderGeometry(0.072, 0.072, 0.08, 12), matBrassard);
-    brassard.position.set(0.29, 1.32, 0); g.add(brassard);
-    const tete = new THREE.Group(); tete.position.y = 1.78; g.add(tete);
-    const crane = new THREE.Mesh(new THREE.SphereGeometry(0.12, 18, 14), matPeau); crane.scale.set(0.9, 1.1, 0.95); tete.add(crane);
-    const casquette = new THREE.Mesh(new THREE.CylinderGeometry(0.125, 0.13, 0.07, 18), matUni); casquette.position.y = 0.1; tete.add(casquette);
-    const visiere = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.015, 0.1), matUni); visiere.position.set(0, 0.075, 0.12); tete.add(visiere);
-    g.position.set(c * (DEMI_L - 1.35), 0, za + 0.9);
-    g.rotation.y = c > 0 ? -Math.PI / 2 : Math.PI / 2;   // face a l'allee
-    monde.add(g);
-    gardiens.push({ g, tete, repliques: RYTHME_G[n % 2], k: 0, proche: false });
-    bancs.push({ x: g.position.x, z: g.position.z, dx: 0.6, dz: 0.6 });
+  // ── station 2 : le coin studio photo (tirages a droite, fond papier a gauche) ──
+  const photos = pieces.filter(p => !p.groupe && !/nuit-/.test(p.src));
+  const nuits = pieces.filter(p => /nuit-/.test(p.src));
+  // une tablette pour poser les tirages contre le mur droit
+  const zT0 = -21;
+  boite(0.32, 0.05, 15, mat(0x16110d, 0.7), DEMI - 0.17, 0.92, zT0 - 7);
+  const stationsPhotos = [];
+  let zP = zT0;
+  const matCadreP = mat(0x0e0e10, 0.4, 0.6);
+  photos.forEach((p, k) => {
+    const H = p.h > p.w ? 1.25 : 0.95, W = H * p.w / p.h;
+    const zc = zP - W / 2;
+    const grp = new THREE.Group(); grp.position.set(DEMI - 0.22, 0.95, zc); grp.rotation.y = -Math.PI / 2; grp.rotation.x = -0.12; monde.add(grp);
+    boite(W + 0.06, H + 0.06, 0.03, matCadreP, 0, H / 2, -0.02, grp);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshStandardMaterial({ map: texture(p.src), roughness: 0.5 }));
+    m.position.set(0, H / 2, 0.0); grp.add(m);
+    const id = oeuvre(p, m);
+    if (k % 2 === 0) stationsPhotos.push({ cam: null, vise: null, ids: [id], z: [zc] });
+    else { const s = stationsPhotos[stationsPhotos.length - 1]; s.ids.push(id); s.z.push(zc); }
+    zP -= W + 0.45;
   });
+  stationsPhotos.forEach(s => {
+    const zm = s.z.reduce((a, b) => a + b, 0) / s.z.length;
+    s.cam = new THREE.Vector3(4.1, 1.6, zm + 0.5); s.vise = new THREE.Vector3(DEMI, 1.45, zm); s.nom = 'Le studio photo';
+  });
+  // la serie de nuit : quatre tirages en grille, au mur
+  const zN = zP - 2.2;
+  const idsNuit = [];
+  nuits.forEach((p, k) => {
+    const W = 1.5, H = W * p.h / p.w;
+    const grp = new THREE.Group(); grp.position.set(DEMI - 0.04, 0, zN - (k % 2) * 1.75); grp.rotation.y = -Math.PI / 2; monde.add(grp);
+    const y = k < 2 ? 2.75 : 1.55;
+    boite(W + 0.08, H + 0.08, 0.04, matCadreP, 0, y, 0.01, grp);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshStandardMaterial({ map: texture(p.src), roughness: 0.45 }));
+    m.position.set(0, y, 0.035); grp.add(m);
+    idsNuit.push(oeuvre(p, m));
+  });
+  const stationNuit = { cam: new THREE.Vector3(3.6, 1.8, zN - 0.4), vise: new THREE.Vector3(DEMI, 2.15, zN - 0.88), ids: idsNuit, nom: 'Le studio photo' };
 
-  // Quatre projecteurs reels seulement, deplaces vers les oeuvres les plus
-  // proches : le nombre de lumieres ne change jamais, donc aucun shader a
-  // recompiler en marchant (c'etait la cause des a-coups).
+  // le plateau photo : un fond papier qui descend du mur et s'arrondit sur le
+  // sol, deux flashs de part et d'autre, l'appareil sur pied, et sur le
+  // papier une bouteille VOSS, comme en pleine prise de vue
+  const zS = -28.5;
+  const profil = new THREE.Shape();
+  profil.moveTo(0, 3.6); profil.lineTo(0, 0.9); profil.absarc(0.9, 0.9, 0.9, Math.PI, Math.PI * 1.5, false); profil.lineTo(2.6, 0);
+  profil.lineTo(2.6, 0.015); profil.lineTo(0.9, 0.015); profil.absarc(0.9, 0.9, 0.885, Math.PI * 1.5, Math.PI, true); profil.lineTo(0.015, 3.6); profil.closePath();
+  const geoFond = new THREE.ExtrudeGeometry(profil, { depth: 4.4, bevelEnabled: false, curveSegments: 24 }); geoFond.translate(0, 0, -2.2);
+  const fond = new THREE.Mesh(geoFond, mat(0xbdbcb7, 0.93)); fond.position.set(-DEMI + 0.25, 0.004, zS); fond.receiveShadow = true; monde.add(fond);
+  for (const dz of [-2.25, 2.25]) boite(0.03, 3.7, 0.03, acier, -DEMI + 0.25, 1.85, zS + dz);
+  const rouleau = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 4.6, 16), mat(0xa9a8a3, 0.9)); rouleau.rotation.x = Math.PI / 2; rouleau.position.set(-DEMI + 0.3, 3.68, zS); monde.add(rouleau);
+  // la bouteille
+  const bouteille = new THREE.Group(); bouteille.position.set(-DEMI + 1.9, 0.02, zS); monde.add(bouteille);
+  const verre = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.3, 32), new THREE.MeshPhysicalMaterial({ color: 0xdfe6ea, metalness: 0, roughness: 0.04, transparent: true, opacity: 0.38, clearcoat: 1 }));
+  verre.position.y = 0.15; bouteille.add(verre);
+  const eau = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.26, 24), new THREE.MeshPhysicalMaterial({ color: 0xbfd0da, roughness: 0.1, transparent: true, opacity: 0.3 })); eau.position.y = 0.135; bouteille.add(eau);
+  const bouchon = new THREE.Mesh(new THREE.CylinderGeometry(0.056, 0.056, 0.06, 32), mat(0x6c7076, 0.35, 0.8)); bouchon.position.y = 0.33; bouteille.add(bouchon);
+  const texVoss = toile(256, 64, (g, w, h) => { g.clearRect(0, 0, w, h); g.font = '300 40px Helvetica, Arial, sans-serif'; g.letterSpacing = '14px'; g.fillStyle = '#f4f6f8'; g.textAlign = 'center'; g.fillText('VOSS', w / 2 + 7, 46); });
+  const etiq = new THREE.Mesh(new THREE.CylinderGeometry(0.0565, 0.0565, 0.05, 32, 1, true, -0.9, 1.8), new THREE.MeshBasicMaterial({ map: texVoss, transparent: true })); etiq.position.y = 0.17; etiq.rotation.y = Math.PI / 2; bouteille.add(etiq);
+  const flashs = [];
+  [-1, 1].forEach(c => {
+    const pied = new THREE.Group(); pied.position.set(-4.9, 0, zS + c * 2.7); monde.add(pied);
+    for (let i = 0; i < 3; i++) { const l = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 1.1, 6), acier); l.position.set(Math.cos(i * 2.1) * 0.25, 0.48, Math.sin(i * 2.1) * 0.25); l.rotation.set(Math.sin(i * 2.1) * 0.45, 0, -Math.cos(i * 2.1) * 0.45); pied.add(l); }
+    const mat2 = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 1.6, 8), acier); mat2.position.y = 1.7; pied.add(mat2);
+    // la boite a lumiere vise le centre du plateau
+    const boitier = new THREE.Group(); boitier.position.y = 2.4; pied.add(boitier);
+    boitier.lookAt(new THREE.Vector3(-DEMI + 1.9, 0.6, zS).sub(pied.position).add(new THREE.Vector3(0, 0, 0)));
+    const sb = new THREE.Mesh(new THREE.ConeGeometry(0.62, 0.55, 4, 1, true), mat(0x0c0c0d, 0.8, 0, { side: THREE.DoubleSide })); sb.rotation.x = -Math.PI / 2; sb.rotation.y = Math.PI / 4; sb.position.z = 0.2; boitier.add(sb);
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(0.84, 0.84), new THREE.MeshBasicMaterial({ color: 0x2a2826, toneMapped: false })); face.position.z = 0.47; boitier.add(face);
+    const lum = new THREE.PointLight(0xf4f6ff, 0, 12, 2); lum.position.set(0, 0, 0.9); boitier.add(lum);
+    flashs.push({ face, lum, k: 0 });
+    cliquable(face, 'Flash de studio', 'Cliquez pour déclencher', () => declencher());
+    cliquable(sb, 'Flash de studio', 'Cliquez pour déclencher', () => declencher());
+  });
+  function declencher() { bruitage('obturateur'); flashs.forEach((f, i) => setTimeout(() => { f.k = 1; }, i * 35)); }
+  // l'appareil photo sur son trepied, face a la bouteille
+  const trepied = new THREE.Group(); trepied.position.set(-4.3, 0, zS - 0.2); trepied.rotation.y = -Math.PI / 2 + 0.05; monde.add(trepied);
+  for (let i = 0; i < 3; i++) { const l = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 1.2, 6), acier); l.position.set(Math.cos(i * 2.1) * 0.2, 0.55, Math.sin(i * 2.1) * 0.2); l.rotation.set(Math.sin(i * 2.1) * 0.32, 0, -Math.cos(i * 2.1) * 0.32); trepied.add(l); }
+  const boitierP = boite(0.15, 0.1, 0.09, noirMat, 0, 1.2, 0, trepied);
+  const objectif = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.045, 0.11, 18), mat(0x111111, 0.3, 0.6)); objectif.rotation.x = Math.PI / 2; objectif.position.set(0, 1.19, 0.09); trepied.add(objectif);
+  cliquable(boitierP, "L'appareil photo", 'Cliquez pour déclencher', () => declencher());
+  cliquable(verre, 'VOSS, sur le plateau', 'Cliquez pour déclencher', () => declencher());
+  const stationStudio = { cam: new THREE.Vector3(-0.6, 1.55, zS + 0.4), vise: new THREE.Vector3(-DEMI + 1.6, 0.9, zS), ids: [], nom: 'Le studio photo', studio: true };
+
+  // ── station 3 : la 991 sous son drap ──
+  const zC = Math.min(zN - 7.5, -45);
+  const voiture = construire991();
+  voiture.groupe.position.set(0.4, 0.09, zC); voiture.groupe.rotation.y = -0.32; monde.add(voiture.groupe);
+  const estrade = new THREE.Mesh(new THREE.CylinderGeometry(3.3, 3.4, 0.09, 64), mat(0x0d0d0f, 0.35, 0.5));
+  estrade.position.set(0.4, 0.045, zC); estrade.receiveShadow = true; monde.add(estrade);
+  const anneau = new THREE.Mesh(new THREE.TorusGeometry(3.36, 0.012, 6, 96), new THREE.MeshBasicMaterial({ color: 0xff2a14, toneMapped: false }));
+  anneau.rotation.x = Math.PI / 2; anneau.position.set(0.4, 0.07, zC); monde.add(anneau);
+  const tpOeuvre = pieces.find(p => p.groupe === 'halloween') || { titre: 'Talon Pointe', cat: 'Automobile', desc: '' };
+  const idVoiture = oeuvre({ titre: 'La 991 de Talon Pointe', cat: 'Alternance · concession de véhicules de luxe',
+    desc: "Chargé de communication en alternance chez Talon Pointe : photo, vidéo, réseaux sociaux et storytelling pour une concession de véhicules de luxe. Cliquez sur la voiture pour l'entendre.",
+    groupe: 'halloween', src: tpOeuvre.src }, voiture.corps);
+  cliquables.splice(cliquables.indexOf(voiture.corps), 1);
+  [voiture.corps, voiture.drap].forEach(m => cliquable(m, 'La 991 de Talon Pointe', 'Cliquez : moteur', () => { if (!voiture.devoile) devoiler(); else demarrage(); }));
+  const stationVoiture = { cam: new THREE.Vector3(-1.9, 1.3, zC + 6.2), vise: new THREE.Vector3(0.3, 0.7, zC), ids: [idVoiture], nom: 'La 991', voiture: true };
+  function devoiler() {
+    if (voiture.devoile) return; voiture.devoile = true; voiture.tDrap = 0;
+    bruitage('rideau');
+  }
+  let demarre = 0;
+  function demarrage() {
+    if (!SON || !SON.estActif() || !SON.moteur) { bruitage('klaxon'); return; }
+    if (demarre) return; const t0 = performance.now(); demarre = 1;
+    (function pas() {
+      const t = (performance.now() - t0) / 1000;
+      let r = 900; if (t < 0.25) r = 900 + t * 2400; else if (t < 0.9) r = 1500 + Math.sin((t - 0.25) / 0.65 * Math.PI) * 5200; else if (t < 1.4) r = 1500 + Math.sin((t - 0.9) / 0.5 * Math.PI) * 3600; else r = 900;
+      SON.moteur({ regime: r, charge: t < 1.4 ? 0.8 : 0.15, volume: t < 2.6 ? 1 : Math.max(0, 1 - (t - 2.6) / 0.8), pan: 0, pop: t > 0.85 && t < 1.6 && Math.random() < 0.12 });
+      if (t < 3.4) requestAnimationFrame(pas); else { if (SON.moteurCoupe) SON.moteurCoupe(); demarre = 0; }
+    })();
+  }
+
+  // ── station 4 : le poste de montage (mur gauche) ──
+  const zM = zC - 8;
+  boite(2.8, 0.05, 0.85, mat(0x241a12, 0.6, 0, { map: texBois }), -DEMI + 0.6, 0.76, zM).rotation.y = Math.PI / 2;
+  for (const dz of [-1.3, 1.3]) for (const dx of [-0.35, 0.35]) boite(0.04, 0.74, 0.04, acier, -DEMI + 0.6 + dx, 0.37, zM + dz);
+  const idsVideos = [];
+  const posEcrans = [[-DEMI + 0.85, 1.2, zM + 0.95, 0.78], [-DEMI + 0.75, 1.24, zM, 0.95], [-DEMI + 0.85, 1.2, zM - 0.95, 0.78], [-DEMI + 0.06, 2.45, zM + 0.8, 1.25], [-DEMI + 0.06, 2.45, zM - 0.8, 1.25]];
+  const ecrans = [];
+  videos.slice(0, 5).forEach((v, k) => {
+    const [x, y, z, w] = posEcrans[k]; const h = w * 9 / 16;
+    const grp = new THREE.Group(); grp.position.set(x, y, z); grp.rotation.y = Math.PI / 2 + (k < 3 ? (k - 1) * -0.25 : 0); monde.add(grp);
+    boite(w + 0.04, h + 0.04, 0.03, noirMat, 0, 0, -0.02, grp);
+    if (k < 3) { boite(0.04, 0.32, 0.04, acier, 0, -h / 2 - 0.14, -0.03, grp); boite(0.22, 0.012, 0.16, acier, 0, -h / 2 - 0.3, -0.03, grp); }
+    const id = (v.vsrc.match(/(?:youtu\.be\/|v=)([\w-]{11})/) || [])[1];
+    const titreCarte = toile(640, 360, (g, W, H) => { g.fillStyle = '#0b0d11'; g.fillRect(0, 0, W, H); g.fillStyle = '#d42a1b'; g.fillRect(0, 0, W, 8);
+      g.font = '42px Anton, sans-serif'; g.fillStyle = '#fff'; g.fillText(v.titre.slice(0, 26), 30, 200); g.font = '500 18px "IBM Plex Mono", monospace'; g.fillStyle = '#a9b7c6'; g.fillText(v.cat.toUpperCase().slice(0, 42), 30, 240); });
+    const ecranMat = new THREE.MeshBasicMaterial({ map: titreCarte, toneMapped: false });
+    ecranMat.color.setScalar(0.78);
+    const src = v.poster || (id ? 'https://i.ytimg.com/vi/' + id + '/hqdefault.jpg' : '');
+    if (src) chargeur.load(src, t => { t.colorSpace = THREE.SRGBColorSpace; ecranMat.map = t; ecranMat.needsUpdate = true; }, undefined, () => {});
+    const ecran = new THREE.Mesh(new THREE.PlaneGeometry(w, h), ecranMat); ecran.position.z = 0.0; grp.add(ecran);
+    const lecture = new THREE.Mesh(new THREE.CircleGeometry(h * 0.13, 3), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, toneMapped: false }));
+    lecture.position.z = 0.004; lecture.rotation.z = 0; grp.add(lecture);
+    const halo = new THREE.Mesh(new THREE.PlaneGeometry(w * 2.2, h * 2.4), additif(texHalo, 0x9fc0ff, 0.06)); halo.position.z = -0.04; grp.add(halo);
+    ecrans.push(ecranMat);
+    idsVideos.push(oeuvre({ titre: v.titre, cat: v.cat, desc: v.desc, video: v.vsrc }, ecran));
+  });
+  // le clavier, le casque
+  boite(0.44, 0.02, 0.15, noirMat, -DEMI + 0.4, 0.79, zM).rotation.y = Math.PI / 2;
+  const casque = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.018, 8, 24, Math.PI), noirMat); casque.position.set(-DEMI + 0.5, 0.86, zM - 1.15); casque.rotation.set(-Math.PI / 2, 0, 0.4); monde.add(casque);
+  const stationMontage = { cam: new THREE.Vector3(-3.4, 1.6, zM + 0.3), vise: new THREE.Vector3(-DEMI + 0.5, 1.55, zM), ids: idsVideos, nom: 'Le poste de montage' };
+
+  // ── station 5 : le bureau de Jaurys, au fond ──
+  const zD = Z_FOND + 2.4;
+  boite(2.2, 0.06, 0.95, mat(0x2a1d14, 0.55, 0, { map: texBois }), 0, 0.76, zD);
+  for (const dx of [-1, 1]) for (const dz of [-0.4, 0.4]) boite(0.05, 0.74, 0.05, acier, dx, 0.37, zD + dz);
+  // le CV pose sur le bureau
+  const cvPapier = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.48), new THREE.MeshStandardMaterial({ map: texture('images/cv-apercu.jpg'), roughness: 0.85 }));
+  cvPapier.rotation.x = -Math.PI / 2; cvPapier.rotation.z = 0.08; cvPapier.position.set(-0.35, 0.795, zD + 0.12); cvPapier.castShadow = true; monde.add(cvPapier);
+  cliquable(cvPapier, 'Mon CV', 'Clic · ouvrir le PDF', () => window.open('CV-Jaurys-Maigret.pdf', '_blank'));
+  // le telephone
+  const texTel = toile(256, 512, (g, w, h) => { g.fillStyle = '#05070a'; g.fillRect(0, 0, w, h); g.fillStyle = '#d42a1b'; g.beginPath(); g.arc(w / 2, 200, 46, 0, 7); g.fill();
+    g.font = '600 30px "IBM Plex Mono", monospace'; g.fillStyle = '#fff'; g.textAlign = 'center'; g.fillText('Jaurys', w / 2, 300); g.font = '500 22px "IBM Plex Mono", monospace'; g.fillStyle = '#a9b7c6'; g.fillText(TEL, w / 2, 340); g.fillText('Appeler', w / 2, 420); });
+  const tel = boite(0.085, 0.01, 0.17, noirMat, 0.25, 0.795, zD + 0.22); tel.rotation.y = -0.3;
+  const telEcran = new THREE.Mesh(new THREE.PlaneGeometry(0.075, 0.155), new THREE.MeshBasicMaterial({ map: texTel, toneMapped: false }));
+  telEcran.rotation.x = -Math.PI / 2; telEcran.position.y = 0.006; tel.add(telEcran);
+  cliquable(tel, TEL, 'Clic · appeler', () => { location.href = 'tel:+33609977401'; });
+  cliquable(telEcran, TEL, 'Clic · appeler', () => { location.href = 'tel:+33609977401'; });
+  // l'ordinateur portable, ouvert sur un mail
+  const texMail = toile(800, 500, (g, w, h) => { g.fillStyle = '#f2efe9'; g.fillRect(0, 0, w, h); g.fillStyle = '#d42a1b'; g.fillRect(0, 0, w, 10);
+    g.fillStyle = '#121214'; g.font = '600 34px "IBM Plex Sans", sans-serif'; g.fillText('Nouveau message', 40, 80);
+    g.font = '500 26px "IBM Plex Mono", monospace'; g.fillStyle = '#555'; g.fillText('À : ' + MAIL, 40, 150);
+    g.fillText('Objet : Alternance en direction artistique', 40, 195); g.fillStyle = '#121214'; g.font = '400 28px "IBM Plex Sans", sans-serif';
+    g.fillText('Bonjour Jaurys,', 40, 270); g.fillText('nous aimerions vous rencontrer…', 40, 315);
+    g.fillStyle = '#d42a1b'; g.fillRect(40, 380, 220, 64); g.fillStyle = '#fff'; g.font = '600 26px "IBM Plex Mono", monospace'; g.fillText('Envoyer ↗', 70, 422); });
+  const portable = new THREE.Group(); portable.position.set(0.55, 0.79, zD - 0.12); portable.rotation.y = -0.35; monde.add(portable);
+  boite(0.44, 0.018, 0.3, acier, 0, 0.009, 0, portable);
+  const capot = new THREE.Group(); capot.position.set(0, 0.018, -0.15); capot.rotation.x = -0.28; portable.add(capot);
+  boite(0.44, 0.3, 0.012, acier, 0, 0.15, 0, capot);
+  const ecranMail = new THREE.Mesh(new THREE.PlaneGeometry(0.41, 0.26), new THREE.MeshBasicMaterial({ map: texMail, toneMapped: false })); ecranMail.position.set(0, 0.15, 0.007); capot.add(ecranMail);
+  ecranMail.material.color.setScalar(0.85);
+  cliquable(ecranMail, MAIL, 'Clic · écrire', () => { location.href = 'mailto:' + MAIL + '?subject=' + encodeURIComponent('Alternance en direction artistique'); });
+  // la lampe de bureau
+  const lampe = new THREE.Group(); lampe.position.set(-0.85, 0.79, zD - 0.25); monde.add(lampe);
+  const pl = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.1, 0.025, 24), noirMat); lampe.add(pl);
+  const bras1 = boite(0.018, 0.42, 0.018, noirMat, 0, 0.21, 0, lampe); bras1.rotation.z = 0.25;
+  const tetel = new THREE.Mesh(new THREE.ConeGeometry(0.1, 0.16, 24, 1, true), mat(0x101012, 0.4, 0.7, { side: THREE.DoubleSide }));
+  tetel.position.set(0.16, 0.44, 0.05); tetel.rotation.z = -1.0; lampe.add(tetel);
+  const ampL = new THREE.Mesh(new THREE.SphereGeometry(0.03, 10, 8), new THREE.MeshBasicMaterial({ color: 0xffdba8, toneMapped: false })); ampL.position.set(0.2, 0.41, 0.05); lampe.add(ampL);
+  const lumLampe = new THREE.SpotLight(0xffd3a0, 8, 4, 0.8, 0.6, 2); lumLampe.position.set(-0.65, 1.2, zD - 0.2); lumLampe.target.position.set(-0.2, 0.78, zD + 0.1);
+  if (!PETIT) { lumLampe.castShadow = true; lumLampe.shadow.mapSize.set(512, 512); }
+  monde.add(lumLampe); monde.add(lumLampe.target);
+  let lampeOn = true;
+  const basculer = () => { lampeOn = !lampeOn; lumLampe.intensity = lampeOn ? 8 : 0; ampL.material.color.set(lampeOn ? 0xffdba8 : 0x222222); bruitage('clic'); };
+  cliquable(tetel, 'La lampe', 'Clic · allumer, éteindre', basculer);
+  cliquable(pl, 'La lampe', 'Clic · allumer, éteindre', basculer);
+  // la tasse, aux initiales
+  const tasse = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.038, 0.1, 24), mat(0xefebe3, 0.4)); tasse.position.set(0.05, 0.84, zD - 0.3); monde.add(tasse);
+  // le mur du fond : le titre peint, le tableau de liege du parcours, la porte
+  const texTitre = toile(1400, 520, (g, w, h) => { g.font = '500 32px "IBM Plex Mono", monospace'; g.letterSpacing = '12px'; g.fillStyle = '#ff4433'; g.fillText('LE BUREAU · ALTERNANCE DÈS MAINTENANT', 10, 60);
+    g.letterSpacing = '2px'; g.font = '190px Anton, sans-serif'; g.fillStyle = '#ece8e1'; g.fillText('Parlons de', 0, 260); g.fillText('votre projet.', 0, 450); });
+  const titre = new THREE.Mesh(new THREE.PlaneGeometry(3.7, 1.37), new THREE.MeshStandardMaterial({ map: texTitre, transparent: true, roughness: 0.9, emissive: 0xffffff, emissiveMap: texTitre, emissiveIntensity: 0.22 }));
+  titre.position.set(-0.4, 2.45, Z_FOND + 0.02); monde.add(titre);
+  // le parcours, sur le liege
+  const liege = boite(2.1, 1.25, 0.03, new THREE.MeshStandardMaterial({ map: texLiege, roughness: 0.95 }), -5.2, 1.85, Z_FOND + 0.03);
+  function feuille(lignes, x, y, rz) {
+    const t = toile(600, 760, (g, w, h) => { g.fillStyle = '#f3efe6'; g.fillRect(0, 0, w, h); let yy = 70;
+      for (const [type, txt] of lignes) {
+        if (type === 'h') { g.font = '60px Anton, sans-serif'; g.fillStyle = '#121214'; g.fillText(txt, 40, yy + 30); yy += 80; }
+        else if (type === 's') { g.font = '500 22px "IBM Plex Mono", monospace'; g.fillStyle = '#d42a1b'; g.fillText(txt.toUpperCase(), 40, yy + 20); yy += 40; }
+        else { g.font = '400 25px "IBM Plex Sans", sans-serif'; g.fillStyle = '#33343a'; const mots = txt.split(' '); let l = '';
+          for (const m of mots) { if (g.measureText(l + m).width > w - 80) { g.fillText(l, 40, yy + 20); yy += 34; l = ''; } l += m + ' '; } g.fillText(l, 40, yy + 20); yy += 50; }
+      } });
+    const f = new THREE.Mesh(new THREE.PlaneGeometry(0.82, 1.04), new THREE.MeshStandardMaterial({ map: t, roughness: 0.9 }));
+    f.position.set(x, y, Z_FOND + 0.06); f.rotation.z = rz; monde.add(f);
+    const pu = new THREE.Mesh(new THREE.SphereGeometry(0.018, 10, 8), matPunaise); pu.position.set(0, 0.47, 0.01); f.add(pu);
+  }
+  feuille([['h', 'Expériences'], ['s', 'Talon Pointe · 2025-2026'], ['p', 'Chargé de communication en alternance : photo, vidéo, réseaux sociaux.'],
+           ['s', 'AGCO · 2024'], ['p', 'Social media, newsletters, retouche.'], ['s', 'Tredelec · 2024'], ['p', 'Contenu publicitaire, idées créatives.']], -5.65, 1.85, -0.03);
+  feuille([['h', 'Formation'], ['s', '2026 · Master DA (M1)'], ['p', 'ESP Paris, en cours.'], ['s', '2025 · Bachelor (B3)'], ['p', 'Création publicitaire, ESP Paris.'],
+           ['s', '2023 · BTS Communication'], ['p', 'Amiens.']], -4.75, 1.82, 0.04);
+  // la porte : on revient au portfolio
+  const porte = boite(1.1, 2.3, 0.06, mat(0x141416, 0.5, 0.6), 5.4, 1.15, Z_FOND + 0.04);
+  const texPorte = toile(400, 160, (g, w, h) => { g.fillStyle = '#d42a1b'; g.fillRect(0, 0, w, h); g.font = '600 34px "IBM Plex Mono", monospace'; g.fillStyle = '#fff'; g.fillText('SORTIE', 30, 70); g.font = '500 22px "IBM Plex Mono", monospace'; g.fillText('← le portfolio', 30, 120); });
+  const plaque = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.2), new THREE.MeshBasicMaterial({ map: texPorte, toneMapped: false })); plaque.position.set(5.4, 1.75, Z_FOND + 0.08); monde.add(plaque);
+  cliquable(porte, 'Sortie', 'Clic · revenir au portfolio', () => { location.href = 'index.html#portfolio'; });
+  cliquable(plaque, 'Sortie', 'Clic · revenir au portfolio', () => { location.href = 'index.html#portfolio'; });
+  const stationBureau = { cam: new THREE.Vector3(0.15, 1.5, zD + 2.05), vise: new THREE.Vector3(0, 0.95, zD - 0.2), ids: [], nom: 'Le bureau', fin: true };
+
+  // ═══════════ le rail : les arrets de la camera ═══════════
+  const arrets = [{ cam: new THREE.Vector3(0, 1.7, 7.6), vise: new THREE.Vector3(0, 2.6, -6), ids: [], nom: "L'entrée" }]
+    .concat(stationsAffiches, stationsPhotos.slice(0, 2), [stationStudio], stationsPhotos.slice(2), [stationNuit, stationVoiture, stationMontage, stationBureau]);
+  // les stations du menu : le premier arret de chaque lieu
+  const STATIONS = [];
+  arrets.forEach((a, i) => { if (!STATIONS.length || STATIONS[STATIONS.length - 1].nom !== a.nom) STATIONS.push({ nom: a.nom, i }); });
+  const rail = new THREE.CatmullRomCurve3(arrets.map(a => a.cam), false, 'centripetal', 0.5);
+  const N = arrets.length;
+
+  // ═══════════ la 991, d'apres son profil ═══════════
+  function construire991() {
+    const k = 4.5 / 605, sol0 = 209.7;
+    const P = (x, y) => new THREE.Vector2((x - 320) * k, (sol0 - y) * k);
+    function forme(d) {
+      const s = new THREE.Shape(); const t = d.match(/[MLCAZ]|-?\d*\.?\d+/g); let i = 0, cx = 0, cy = 0;
+      const n = () => parseFloat(t[i++]);
+      while (i < t.length) {
+        const c = t[i++];
+        if (c === 'M') { cx = n(); cy = n(); const p = P(cx, cy); s.moveTo(p.x, p.y); }
+        else if (c === 'L') { cx = n(); cy = n(); const p = P(cx, cy); s.lineTo(p.x, p.y); }
+        else if (c === 'C') { const a = P(n(), n()), b = P(n(), n()); cx = n(); cy = n(); const e = P(cx, cy); s.bezierCurveTo(a.x, a.y, b.x, b.y, e.x, e.y); }
+        else if (c === 'A') { // arc en cercle : on le decoupe en segments
+          const r = n(); n(); n(); const grand = n(), sens = n(), x2 = n(), y2 = n();
+          const mx = (cx - x2) / 2, my = (cy - y2) / 2; const d2 = mx * mx + my * my;
+          const f = Math.sqrt(Math.max(0, (r * r - d2) / d2)) * (grand === sens ? -1 : 1);
+          const ox = f * my + (cx + x2) / 2, oy = -f * mx + (cy + y2) / 2;
+          let a0 = Math.atan2(cy - oy, cx - ox), a1 = Math.atan2(y2 - oy, x2 - ox);
+          let da = a1 - a0; if (sens && da < 0) da += Math.PI * 2; if (!sens && da > 0) da -= Math.PI * 2;
+          for (let j = 1; j <= 16; j++) { const a = a0 + da * j / 16; const p = P(ox + r * Math.cos(a), oy + r * Math.sin(a)); s.lineTo(p.x, p.y); }
+          cx = x2; cy = y2;
+        } else if (c === 'Z') s.closePath();
+      }
+      return s;
+    }
+    const CAISSE = 'M34 188 L104 183 A50 50 0 1 1 197.5 183 L429.5 183 A51 51 0 1 1 525 183 L590 180 C606 180 614 176 617 168 L621 140 C622 122 620 108 612 98 C606 94 600 92 592 90 C560 80 520 60 474 48 C434 38 396 33 364 34 C348 35 338 39 328 45 L252 86 C210 90 150 96 108 101 C80 104 52 112 36 122 C24 130 17 142 16 156 C15 170 20 184 34 188 Z';
+    const V1 = 'M264 88 L330 49 C342 42 354 39 368 39 L404 40 L406 88 Z';
+    const V2 = 'M414 41 C440 44 466 52 488 66 C496 72 496 82 488 86 L414 88 Z';
+    const g = new THREE.Group();
+    const LARG = 1.5;
+    const geo = new THREE.ExtrudeGeometry(forme(CAISSE), { depth: LARG, bevelEnabled: true, bevelThickness: 0.2, bevelSize: 0.09, bevelSegments: 6, curveSegments: 28 });
+    geo.translate(0, 0, -LARG / 2);
+    const peinture = new THREE.MeshPhysicalMaterial({ color: 0x0b0c0f, metalness: 0.55, roughness: 0.28, clearcoat: 1, clearcoatRoughness: 0.06 });
+    const corps = new THREE.Mesh(geo, peinture); corps.castShadow = true; corps.receiveShadow = true; g.add(corps);
+    const verre = new THREE.MeshPhysicalMaterial({ color: 0x2a3644, metalness: 0.85, roughness: 0.05, clearcoat: 1 });
+    const joint = mat(0x9aa3ad, 0.3, 0.9);
+    for (const v of [V1, V2]) {
+      const gv = new THREE.ExtrudeGeometry(forme(v), { depth: LARG + 0.44, bevelEnabled: false, curveSegments: 16 }); gv.translate(0, 0, -(LARG + 0.44) / 2); g.add(new THREE.Mesh(gv, verre));
+      const gj = new THREE.ExtrudeGeometry(forme(v), { depth: LARG + 0.43, bevelEnabled: true, bevelThickness: 0.004, bevelSize: 0.012, bevelSegments: 1, curveSegments: 16 }); gj.translate(0, 0, -(LARG + 0.43) / 2);
+      const mj = new THREE.Mesh(gj, joint); mj.scale.set(1, 1, 0.999); g.add(mj);
+    }
+    // les roues
+    const pneu = mat(0x0a0a0b, 0.85), etrier = mat(ROUGE, 0.4, 0.2);
+    // la jante a cinq branches, dessinee une fois
+    const texJante = toile(256, 256, (c, w) => {
+      c.fillStyle = '#16181b'; c.beginPath(); c.arc(w / 2, w / 2, w / 2, 0, 7); c.fill();
+      c.strokeStyle = '#c9ced4'; c.lineWidth = 14; c.beginPath(); c.arc(w / 2, w / 2, w / 2 - 9, 0, 7); c.stroke();
+      c.fillStyle = '#c3c8cf';
+      for (let k = 0; k < 5; k++) { c.save(); c.translate(w / 2, w / 2); c.rotate(k * Math.PI * 2 / 5);
+        c.beginPath(); c.moveTo(-13, -20); c.lineTo(-22, -w / 2 + 14); c.lineTo(22, -w / 2 + 14); c.lineTo(13, -20); c.fill(); c.restore(); }
+      c.fillStyle = '#2a2e33'; c.beginPath(); c.arc(w / 2, w / 2, 26, 0, 7); c.fill();
+      c.fillStyle = '#c3c8cf'; c.beginPath(); c.arc(w / 2, w / 2, 12, 0, 7); c.fill();
+    });
+    const jante = new THREE.MeshStandardMaterial({ map: texJante, metalness: 0.85, roughness: 0.28 });
+    for (const x of [151, 477]) for (const c of [-1, 1]) {
+      const p = P(x, 165);
+      const r = new THREE.Mesh(new THREE.CylinderGeometry(0.333, 0.333, 0.27, 40), pneu); r.rotation.x = Math.PI / 2; r.position.set(p.x, p.y, c * 0.78); r.castShadow = true; g.add(r);
+      const j = new THREE.Mesh(new THREE.CircleGeometry(0.25, 40), jante); j.position.set(p.x, p.y, c * 0.916); if (c < 0) j.rotation.y = Math.PI; g.add(j);
+      const e = boite(0.09, 0.12, 0.03, etrier, p.x - 0.12 * (x < 300 ? -1 : 1), p.y + 0.08, c * 0.9, g);
+    }
+    // les feux : le bandeau arriere rouge, les phares ronds
+    const feu = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.035, LARG + 0.2), new THREE.MeshBasicMaterial({ color: 0xff2414, toneMapped: false }));
+    const pf2 = P(616, 100); feu.position.set(pf2.x + 0.02, pf2.y, 0); g.add(feu);
+    for (const c of [-1, 1]) { const ph = new THREE.Mesh(new THREE.SphereGeometry(0.085, 18, 12), new THREE.MeshBasicMaterial({ color: 0xeaf2ff, toneMapped: false }));
+      const pp = P(40, 120); ph.position.set(pp.x + 0.08, pp.y, c * 0.58); ph.scale.set(0.6, 1, 1); g.add(ph); }
+    // le drap : la forme de la voiture, elargie, tombant jusqu'au sol, plissee
+    const gd = geo.clone(); const pos = gd.attributes.position;
+    for (let i = 0; i < pos.count; i++) {
+      let x = pos.getX(i) * 1.05, y = pos.getY(i), z = pos.getZ(i) * 1.18;
+      if (y < 0.42) y = 0.01 + Math.max(0, y - 0.3) * 0.2;
+      y = y * 1.06 + 0.02;
+      const pli = Math.sin(x * 9 + z * 3) * 0.018 + Math.sin(x * 23 - z * 7) * 0.008;
+      pos.setXYZ(i, x, y + pli, z + pli);
+    }
+    gd.computeVertexNormals();
+    const drap = new THREE.Mesh(gd, new THREE.MeshStandardMaterial({ color: 0x5f5b56, roughness: 0.97, side: THREE.DoubleSide, transparent: true, opacity: 1 }));
+    drap.castShadow = true; drap.receiveShadow = true; g.add(drap);
+    return { groupe: g, corps, drap, devoile: false, tDrap: -1 };
+  }
+
+  // ═══════════ les projecteurs qui suivent la visite ═══════════
   const projecteurs = [];
   for (let i = 0; i < 4; i++) {
-    const sp = new THREE.SpotLight(0xffe2bd, 95, 16, 0.5, 0.55, 2);
-    if (!PETIT) {
-      sp.castShadow = true;
-      sp.shadow.mapSize.set(1024, 1024);
-      sp.shadow.bias = -0.0004; sp.shadow.normalBias = 0.02;
-      sp.shadow.camera.near = 0.3; sp.shadow.camera.far = 14;
+    const sp = new THREE.SpotLight(0xffe2bd, 30, 14, 0.46, 0.55, 2);
+    if (!PETIT) { sp.castShadow = true; sp.shadow.mapSize.set(1024, 1024); sp.shadow.bias = -0.0004; sp.shadow.normalBias = 0.02; sp.shadow.camera.near = 0.3; sp.shadow.camera.far = 16; }
+    monde.add(sp); monde.add(sp.target); projecteurs.push(sp);
+  }
+  function placerProjecteurs(s) {
+    const base = Math.round(s);
+    for (let i = 0; i < projecteurs.length; i++) {
+      const a = arrets[Math.max(0, Math.min(N - 1, base - 1 + i))];
+      const sp = projecteurs[i];
+      const dir = a.cam.clone().sub(a.vise).setY(0).normalize();
+      sp.position.copy(a.vise).addScaledVector(dir, 1.8).setY(HAUT - 0.4);
+      sp.target.position.copy(a.vise);
+      sp.intensity = a.voiture ? 60 : a.fin ? 34 : a.studio ? 18 : 30;
     }
-    monde.add(sp); monde.add(sp.target);
-    projecteurs.push(sp);
   }
 
-  const Z_PIECES_FIN = DEBUT - (expos.length - 1) * PAS;
-
-  // ═══════════ zone 03 — le parcours ═══════════
-  const Z_PARCOURS = Z_PIECES_FIN - 12;
-  const panneaux = [
-    { cote: -1, l: [
-      { t: 'lbl', v: 'Zone 03 · le parcours' },
-      { t: 'titre', v: 'Expériences' },
-      { t: 'vide', v: 18 },
-      { t: 'sous', v: 'Talon Pointe · 2025 — 2026' },
-      { t: 'p', v: "Chargé de communication, en alternance. Contenu photo et vidéo pour une concession de véhicules de luxe, montage et post-production, réseaux sociaux, storytelling de marque." },
-      { t: 'sous', v: 'AGCO · 2024' },
-      { t: 'p', v: "Contenu social media pour un groupe à dimension mondiale. Newsletters, retouche, analyse de performance." },
-      { t: 'sous', v: 'Tredelec · 2024' },
-      { t: 'p', v: "Contenu publicitaire, animation des comptes, développement d'idées créatives." }
-    ]},
-    { cote: 1, l: [
-      { t: 'lbl', v: 'Zone 03 · le parcours' },
-      { t: 'titre', v: 'Formation' },
-      { t: 'vide', v: 18 },
-      { t: 'sous', v: '2026 · Master Direction Artistique' },
-      { t: 'p', v: "ESP Paris, en alternance. Direction artistique, stratégie créative, brand design, typographie." },
-      { t: 'sous', v: '2025 · Bachelor Création Publicitaire' },
-      { t: 'p', v: "ESP Paris. Création publicitaire, graphisme, suite Adobe." },
-      { t: 'sous', v: '2023 · BTS Communication' },
-      { t: 'p', v: "Amiens. Communication, stratégie digitale, production de contenu." },
-      { t: 'vide', v: 10 },
-      { t: 'sous', v: 'Photoshop · Illustrator · InDesign' },
-      { t: 'sous', v: 'Premiere · After Effects · Lightroom' }
-    ]}
-  ];
-  const P_X = ETROIT ? 2.5 : 4.4;    // ecart a l'axe : la voie reste libre
-  const P_L = ETROIT ? 3.4 : 5.4;    // largeur du panneau
-  const P_H = ETROIT ? 4.2 : 3.7;    // en portrait, un panneau debout
-  panneaux.forEach((pn, i) => {
-    const z = Z_PARCOURS - i * 8;
-    const x = pn.cote * P_X;
-    const m = plaque(pn.l, P_L, P_H);
-    m.position.set(x, 2.45, z);
-    m.rotation.y = -pn.cote * 0.26;   // juste tourne vers l'axe, pas de profil
-    monde.add(m);
-    const sp = new THREE.SpotLight(0xdfeaf7, 30, 16, 0.7, 0.6, 1.6);
-    sp.position.set(x * 0.5, PLAFOND - 0.8, z + 2.6);
-    sp.target.position.set(x, 2.45, z);
-    monde.add(sp); monde.add(sp.target);
-    // un pied, comme le totem d'entree : le panneau est pose, pas accroche
-    const pied = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 0.62, 12), acier());
-    pied.position.set(x, 0.31, z);
-    monde.add(pied);
-  });
-
-  // ═══════════ zone 04 — contact, le fond du hall ═══════════
-  const Z_FOND = Z_PARCOURS - 20;
-  // le mur du fond a son propre enduit : celui des murs longs y serait etire
-  const enduitFond = texEnduit.clone(); enduitFond.repeat.set(DEMI_L * 2 / 3, PLAFOND / 3); enduitFond.needsUpdate = true;
-  const matFond = matParoi.clone(); matFond.bumpMap = enduitFond;
-  const fond = new THREE.Mesh(new THREE.PlaneGeometry(DEMI_L * 2, PLAFOND), matFond);
-  fond.receiveShadow = true;
-  fond.position.set(0, PLAFOND / 2, Z_FOND - 3);
-  monde.add(fond);
-
-  // On arrive au bout apres pres de 200 metres. Ce qui attendait ici, c'etait
-  // une adresse e-mail gravee dans une texture : trop petite pour etre lue,
-  // impossible a copier, et aucun moyen de repartir. Maintenant le titre est
-  // peint a meme la paroi, et les trois plaques en dessous FONT quelque chose.
-  // En portrait, trois plaques cote a cote debordent de l'ecran : on les
-  // empile. Le telephone lit une colonne, pas une frise.
-  const titreFin = lettrage([
-    { t: 'lbl',   v: 'Zone 04 · la sortie' },
-    { t: 'titre', v: 'Parlons de' },
-    { t: 'titre', v: 'votre projet.' },
-    { t: 'sous',  v: 'Alternance · dès maintenant · Paris & IDF' }
-  ], ETROIT ? 5.2 : 6.6, ETROIT ? 2.3 : 2.9);
-  titreFin.position.set(0, ETROIT ? 4.85 : 3.75, Z_FOND - 2.94);
-  monde.add(titreFin);
-
-  const PL_L = ETROIT ? 5.0 : 3.5;          // largeur d'une plaque
-  const PL_H = ETROIT ? 1.05 : 1.3;
-  // ou se pose chacune des trois : en colonne, ou en ligne
-  const PLACES = ETROIT
-    ? [[0, 3.25], [0, 2.02], [0, 0.79]]
-    : [[-3.65, 1.62], [0, 1.62], [3.65, 1.62]];
-
-  const MAIL = 'maigretjaurys8@gmail.com';
-  const TEL  = '06 09 97 74 01';
-
-  function flash(m, texte, indice) {
-    const v0 = m.userData.val, i0 = m.userData.indice;
-    m.userData.dire(texte, indice);
-    setTimeout(function () { m.userData.dire(v0, i0); m.userData.chaud(vise === m); }, 2200);
-  }
-
-  const pMail = plaqueAction('E-mail', MAIL, 'Clic · copier', PL_L, PL_H, function (m) {
-    bruitage('clac');
-    const fini = function () { flash(m, 'Copié dans le presse-papier', 'Clic · copier'); };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(MAIL).then(fini, function () {
-        window.location.href = 'mailto:' + MAIL;
-      });
-    } else {
-      window.location.href = 'mailto:' + MAIL;
-    }
-  });
-  pMail.position.set(PLACES[0][0], PLACES[0][1], Z_FOND - 2.86);
-  monde.add(pMail);
-
-  const pTel = plaqueAction('Téléphone', TEL, 'Clic · appeler', PL_L, PL_H, function (m) {
-    bruitage('clac');
-    window.location.href = 'tel:+33609977401';
-  });
-  pTel.position.set(PLACES[1][0], PLACES[1][1], Z_FOND - 2.86);
-  monde.add(pTel);
-
-  // la sortie : on ne laisse personne au fond d'un couloir sans porte
-  const pSortie = plaqueAction('Le site', 'Revenir au portfolio', 'Clic · quitter la soufflerie', PL_L, PL_H, function () {
-    bruitage('balai');
-    window.location.href = 'index.html#portfolio';
-  });
-  pSortie.position.set(PLACES[2][0], PLACES[2][1], Z_FOND - 2.86);
-  monde.add(pSortie);
-
-  // un socle sous chaque plaque : elles sont posees, pas collees au mur
-  PLACES.forEach(function (q) {
-    const s = new THREE.Mesh(new THREE.BoxGeometry(PL_L + 0.2, 0.1, 0.5), acier());
-    s.position.set(q[0], q[1] - PL_H / 2 - 0.05, Z_FOND - 2.72);
-    monde.add(s);
-  });
-
-  const sFond = new THREE.SpotLight(0xf2f7ff, 55, 26, 0.72, 0.55, 1.4);
-  sFond.position.set(0, PLAFOND - 0.5, Z_FOND + 5.5);
-  sFond.target.position.set(0, 2.6, Z_FOND - 2.85);
-  monde.add(sFond); monde.add(sFond.target);
-
-  // la lueur rouge du fond : on sait qu'on arrive au bout
-  const cl = document.createElement('canvas'); cl.width = 512; cl.height = 32;
-  const gl = cl.getContext('2d');
-  const dg = gl.createLinearGradient(0, 0, 512, 0);
-  dg.addColorStop(0, 'rgba(212,42,27,0)');
-  dg.addColorStop(0.5, 'rgba(255,68,51,1)');
-  dg.addColorStop(1, 'rgba(212,42,27,0)');
-  gl.fillStyle = dg; gl.fillRect(0, 0, 512, 32);
-  const tl = new THREE.CanvasTexture(cl); tl.colorSpace = THREE.SRGBColorSpace;
-  const lueur = new THREE.Mesh(
-    new THREE.PlaneGeometry(DEMI_L * 2, 0.16),
-    new THREE.MeshBasicMaterial({ map: tl, transparent: true, depthWrite: false })
-  );
-  lueur.position.set(0, 0.07, Z_FOND - 2.72);
-  monde.add(lueur);
-  // son reflet sur le sol, couche a plat : c'est ca qui fait la braise
-  const reflet = new THREE.Mesh(
-    new THREE.PlaneGeometry(DEMI_L * 2, 3.2),
-    new THREE.MeshBasicMaterial({ map: tl, transparent: true, opacity: 0.17, depthWrite: false })
-  );
-  reflet.rotation.x = -Math.PI / 2;
-  reflet.position.set(0, 0.012, Z_FOND - 1.3);
-  monde.add(reflet);
-  braise.position.set(0, 0.9, Z_FOND - 1.4);
-  braise.intensity = 16;
-
-  // Tout ce qui repond au pointeur. Les pieces ouvrent une fiche, les
-  // plaques du fond declenchent une action : un seul lancer de rayon.
-  const cliquables = cibles.concat(actions);
-  let dernierAct = 0;
-  function activer(obj) {
-    if (obj && obj.userData && typeof obj.userData.act === 'function') {
-      const t = performance.now();
-      if (t - dernierAct < 350) return true;   // pointerup puis click : une seule fois
-      dernierAct = t;
-      obj.userData.act(obj); return true;
-    }
-    return false;
-  }
-
-  // ═══════════ déplacement : le flux ═══════════
-  const pos = new THREE.Vector3(0, OEIL, 8.5);
-  const vit = new THREE.Vector3();
-  let lacet = 0, tangage = 0, foulee = 0;        // 0 = on regarde vers le fond du hall
-  const bas = new Set();
-  let vol = null;
-  const joy = { actif: false, x: 0, y: 0 };
-
-  const ZONES = [
-    { n: '01', t: 'Entrée',      z: 8.5 },
-    { n: '02', t: 'Les pièces',  z: DEBUT },
-    { n: '03', t: 'Le parcours', z: Z_PARCOURS + (ETROIT ? 14 : 9) },
-    { n: '04', t: 'Contact',     z: Z_FOND + 7 }
-  ];
-
-  const elZN = document.getElementById('zoneN');
-  const elZT = document.getElementById('zoneT');
-  const elX  = document.getElementById('coordX');
-  const elZ  = document.getElementById('coordZ');
-  const elCT = document.getElementById('cartelT');
-  const elCC = document.getElementById('cartelC');
-  const railC = document.getElementById('railCurseur');
-  const railEl = document.getElementById('rail');
+  // ═══════════ l'interface ═══════════
+  const $ = id => document.getElementById(id);
+  const elZN = $('zoneN'), elZT = $('zoneT'), elX = $('coordX'), elZ = $('coordZ');
+  const elCT = $('cartelT'), elCC = $('cartelC'), elCA = $('cartelA');
+  const railC = $('railCurseur'), railEl = $('rail'), elGuide = $('guide');
+  const elFiche = $('fiche');
   let railH = railEl ? railEl.getBoundingClientRect().height : 200;
-  const elCA = document.getElementById('cartelA');
-  const elFiche = document.getElementById('fiche');
-  const elGuide = document.getElementById('guide');
-
-  // ── souris : regard ──
-  let verrou = false;
-  cv.addEventListener('click', () => {
-    if (vise) { if (!activer(vise)) ouvrir(vise); return; }
-    if (!verrou && cv.requestPointerLock) cv.requestPointerLock();
-  });
-  document.addEventListener('pointerlockchange', () => { verrou = document.pointerLockElement === cv; });
-  document.addEventListener('mousemove', e => {
-    if (!verrou) return;
-    lacet   -= e.movementX * 0.0022;
-    tangage -= e.movementY * 0.0019;
-    tangage = Math.max(-1.1, Math.min(1.1, tangage));
-  });
-  // sans verrou : le regard suit doucement le curseur, on n'est jamais bloqué
-  let sx = 0, sy = 0;
-  const souris = new THREE.Vector2(0, 0);
-  addEventListener('pointermove', e => {
-    souris.set((e.clientX / innerWidth) * 2 - 1, -((e.clientY / innerHeight) * 2 - 1));
-    if (verrou) return;
-    // Zone morte : au centre, le curseur DESIGNE. Ce n'est qu'en s'approchant
-    // des bords qu'il fait tourner la tete. Sans ca, viser et tourner se battent.
-    const MORT = 0.46;
-    const bx = (e.clientX / innerWidth) * 2 - 1;
-    const by = (e.clientY / innerHeight) * 2 - 1;
-    sx = Math.abs(bx) > MORT ? (bx - Math.sign(bx) * MORT) / (1 - MORT) : 0;
-    sy = Math.abs(by) > MORT ? (by - Math.sign(by) * MORT) / (1 - MORT) : 0;
-  }, { passive: true });
-
-  // ── clavier ──
-  addEventListener('keydown', e => {
-    const k = e.key.toLowerCase();
-    bas.add(k);
-    if (k === 'r') allerA(0);
-    if (k === 'escape') { if (ouverte) fermerFiche(); else if (document.exitPointerLock) document.exitPointerLock(); }
-    if (['z','q','s','d','w','a','arrowup','arrowdown','arrowleft','arrowright',' '].includes(k)) { compris(); e.preventDefault(); }
-  });
-  addEventListener('keyup', e => bas.delete(e.key.toLowerCase()));
-  addEventListener('blur', () => bas.clear());
-
-  // ── au doigt ──
-  // Un joystick pour parcourir un couloir, c'etait une mauvaise idee : sur un
-  // telephone on glisse pour regarder et on TAPE une piece pour s'y rendre.
-  // La manette reste, en appoint, pour qui veut se deplacer librement.
-  var TACTILE = matchMedia('(pointer:coarse)').matches;
-  var doigt = new THREE.Vector2();
-  if(typeof compris!=='function'){ /* defini plus bas, fonction hissee */ }
-  var depart=null, aGlisse=false;
-
-  cv.addEventListener('pointerdown', function(e){
-    if(e.pointerType==='mouse' && !TACTILE) return;
-    compris();
-    depart={x:e.clientX, y:e.clientY, t:performance.now()};
-    aGlisse=false;
-  });
-  cv.addEventListener('pointermove', function(e){
-    if(!depart) return;
-    var dx=e.clientX-depart.x, dy=e.clientY-depart.y;
-    if(!aGlisse && Math.hypot(dx,dy)>12) aGlisse=true;
-    if(aGlisse){
-      lacet   -= dx*0.0055;
-      tangage -= dy*0.0035;
-      tangage = Math.max(-0.95, Math.min(0.95, tangage));
-      depart.x=e.clientX; depart.y=e.clientY;
-    }
-  });
-  cv.addEventListener('pointerup', function(e){
-    if(!depart) return;
-    var fugace = performance.now()-depart.t < 600;
-    depart=null;
-    if(aGlisse || !fugace) return;
-    // une tape : on pointe la ou le doigt s'est pose
-    var r=cv.getBoundingClientRect();
-    doigt.set(((e.clientX-r.left)/r.width)*2-1, -(((e.clientY-r.top)/r.height)*2-1));
-    rayon.setFromCamera(doigt, cam);
-    var t=rayon.intersectObjects(cliquables, false);
-    if(t.length){ var o=t[0].object; if(!activer(o)) ouvrir(o); return; }
-    // Au doigt, une piece lointaine fait quelques dizaines de pixels : exiger
-    // de la toucher au pixel pres serait cruel. On prend la plus proche dans
-    // un rayon raisonnable autour du point touche.
-    var meilleure=null, dMin=1e9;
-    var v=new THREE.Vector3();
-    for(var i=0;i<cliquables.length;i++){
-      cliquables[i].getWorldPosition(v);
-      var d=v.clone().project(cam);
-      if(d.z>1) continue;
-      var sx=(d.x*0.5+0.5)*r.width, sy=(-d.y*0.5+0.5)*r.height;
-      var dist=Math.hypot(sx-(e.clientX-r.left), sy-(e.clientY-r.top));
-      if(dist<dMin){ dMin=dist; meilleure=cliquables[i]; }
-    }
-    if(meilleure && dMin < Math.min(r.width,r.height)*0.17){
-      if(!activer(meilleure)) ouvrir(meilleure);
-    }
-    else if(ouverte) fermerFiche();
-  });
-  cv.addEventListener('pointercancel', function(){ depart=null; });
-
-  // la manette, pour se deplacer librement
-  var man = document.getElementById('manette');
-  var manP = document.getElementById('manetteP');
-  if (man) {
-    var RAYON = 48, idDoigt = null;
-    function prendre(e){
-      var r = man.getBoundingClientRect();
-      var dx = e.clientX - (r.left + r.width / 2);
-      var dy = e.clientY - (r.top + r.height / 2);
-      var d = Math.hypot(dx, dy) || 1;
-      var k = Math.min(1, d / RAYON);
-      joy.x = (dx / d) * k; joy.y = (dy / d) * k; joy.actif = true;
-      manP.style.transform = 'translate(' + (joy.x*RAYON) + 'px,' + (joy.y*RAYON) + 'px)';
-      compris();
-    }
-    man.addEventListener('pointerdown', function(e){
-      e.preventDefault(); e.stopPropagation();
-      idDoigt = e.pointerId; man.setPointerCapture(e.pointerId); prendre(e);
-    });
-    man.addEventListener('pointermove', function(e){
-      if (idDoigt !== e.pointerId) return;
-      e.preventDefault(); e.stopPropagation(); prendre(e);
-    });
-    function lacher(e){
-      if (idDoigt !== e.pointerId) return;
-      idDoigt = null; joy.actif = false; joy.x = joy.y = 0;
-      manP.style.transform = '';
-    }
-    man.addEventListener('pointerup', lacher);
-    man.addEventListener('pointercancel', lacher);
+  // le rail et le menu affichent les six lieux
+  if (railEl) {
+    railEl.querySelectorAll('.rail-pt').forEach(b => b.remove());
+    STATIONS.forEach((st, k) => { const b = document.createElement('button'); b.className = 'rail-pt'; b.dataset.zone = k;
+      b.innerHTML = '<b>' + String(k + 1).padStart(2, '0') + '</b><i>' + st.nom + '</i>'; railEl.appendChild(b); });
   }
+  const menu = $('menu');
+  if (menu) menu.querySelectorAll('button[data-zone]').forEach(b => b.remove());   // le rail de droite suffit
+  document.querySelectorAll('[data-zone]').forEach(b => b.addEventListener('click', () => { allerA(STATIONS[+b.dataset.zone].i); b.blur(); }));
 
-  // ── menu : approche automatique ──
-  let apresVol = null;
-  function allerA(i) {
-    fermerFiche();
-    bruitage('balai');
-    const z = ZONES[i].z;
-    vol = { t: 0, duree: 1.6, de: pos.clone(), vers: new THREE.Vector3(0, OEIL, z),
-            lacetDe: lacet, lacetVers: 0, tangageDe: tangage, tangageVers: 0 };
-    majHash(i);
-  }
-  function majHash(i) {
-    const h = ['entree', 'pieces', 'parcours', 'contact'][i];
-    if (location.hash !== '#' + h) history.replaceState(null, '', '#' + h);
-  }
-  document.querySelectorAll('[data-zone]').forEach(b => {
-    b.addEventListener('click', () => { allerA(+b.dataset.zone); b.blur(); });
-  });
-
-  // le guidage parle la langue de l'appareil
-  if (matchMedia('(pointer:coarse)').matches) {
-    const t = elGuide && elGuide.querySelector('.guide-t');
-    if (t) t.innerHTML = 'Touchez une pi&egrave;ce pour l\'ouvrir &middot; glissez pour regarder';
-  }
-
-  // le guidage disparait des qu'on a compris
-  let aBouge = false;
-  function compris() {
-    if (aBouge) return; aBouge = true;
-    elGuide.classList.add('parti');
-    setTimeout(() => elGuide.remove(), 800);
-  }
-
-  // on peut arriver directement sur une zone
-  const zoneDepart = ['#entree', '#pieces', '#parcours', '#contact'].indexOf(location.hash);
-  if (zoneDepart > 0) { pos.z = ZONES[zoneDepart].z; compris(); }
-
-  // ── viser une pièce ──
-  const rayon = new THREE.Raycaster();
-  const centre = new THREE.Vector2(0, 0);
-  let vise = null;
-
-  let ouverte = null;
-
-  const _wp = new THREE.Vector3(), _q = new THREE.Quaternion(), _n = new THREE.Vector3();
-
-  function ouvrir(tab) {
-    if (typeof vue === 'function') vue(tab.userData.i);
-    if (ouverte === tab) return;
-    ouverte = tab;
-    bruitage('clac');
-    const p = tab.userData.p;
-
-    tab.getWorldPosition(_wp);
-    tab.getWorldQuaternion(_q);
-    _n.set(0, 0, 1).applyQuaternion(_q);
-
-    const vers = _wp.clone().addScaledVector(_n, 5.2);
-    vers.y = OEIL;
-    vers.x = Math.max(-DEMI_L + 1.2, Math.min(DEMI_L - 1.2, vers.x));
-
-    const dx = _wp.x - vers.x, dz = _wp.z - vers.z;
-    // sur grand ecran la fiche occupe la droite : on tourne un peu la tete
-    // pour que l'oeuvre se pose dans la partie libre, a gauche
-    const lv = Math.atan2(-dx, -dz) - (innerWidth > 900 ? 0.36 : 0);
-    const tv = Math.atan2(_wp.y - OEIL, Math.hypot(dx, dz)) * 0.8;
-
-    if (document.exitPointerLock) document.exitPointerLock();
-    vol = { t: 0, duree: 1.15, de: pos.clone(), vers,
-            lacetDe: lacet, lacetVers: lv, tangageDe: tangage, tangageVers: tv };
-    apresVol = () => { sx = 0; sy = 0; };
-
-    document.getElementById('ficheN').textContent = String(tab.userData.i + 1).padStart(2, '0');
-    document.getElementById('ficheT').textContent = p.titre || '';
-    document.getElementById('ficheC').textContent = p.cat || '';
-    document.getElementById('ficheD').textContent = p.desc || '';
-    const vis = document.getElementById('ficheVis');
-    vis.innerHTML = '';
-    if (p.groupe) {
-      pieces.filter(q => q.groupe === p.groupe && q.src !== p.src).slice(0, 4).forEach(q => {
-        const im = document.createElement('img');
-        im.src = q.src; im.alt = q.titre || ''; im.loading = 'lazy';
-        vis.appendChild(im);
-      });
-    }
-    document.getElementById('ficheGo').href =
-      p.groupe ? 'index.html#p-' + p.groupe : 'index.html#portfolio';
-
-    elFiche.classList.add('on');
-    elFiche.setAttribute('aria-hidden', 'false');
-    document.body.classList.add('fiche-ouverte');
-  }
-
-  function fermerFiche() {
-    if (!ouverte) return;
-    ouverte = null;
-    bruitage('clic');
-    elFiche.classList.remove('on');
-    elFiche.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('fiche-ouverte');
-  }
-  document.getElementById('ficheX').addEventListener('click', fermerFiche);
-
-  // ═══════════ la chasse aux oeuvres ═══════════
-  const elCases = document.getElementById('cases'), elCompte = document.getElementById('compte');
-  const elVisite = document.getElementById('visite'), elBulle = document.getElementById('bulle');
-  const elBillet = document.getElementById('billet');
-  const vues = new Set();
-  let billetMontre = false;
-  if (elCases) for (let i = 0; i < cibles.length; i++) elCases.appendChild(document.createElement('i'));
-  function majCompte() {
-    if (!elCompte) return;
-    elCompte.innerHTML = '&OElig;uvres vues <b>' + vues.size + '</b>/' + cibles.length;
-  }
+  // ── la chasse ──
+  const elCases = $('cases'), elCompte = $('compte'), elVisite = $('visite'), elBillet = $('billet');
+  const vues = new Set(); let billetMontre = false;
+  if (elCases) for (let i = 0; i < oeuvres.length; i++) elCases.appendChild(document.createElement('i'));
+  const majCompte = () => { if (elCompte) elCompte.innerHTML = '&OElig;uvres vues <b>' + vues.size + '</b>/' + oeuvres.length; };
   majCompte();
-  function vue(i) {
-    if (vues.has(i)) return;
-    vues.add(i);
-    const c = elCases && elCases.children[i]; if (c) c.classList.add('vu');
-    majCompte();
-    bruitage('cran');
-    if (vues.size === cibles.length) setTimeout(() => montrerBillet(true), 1400);
+  function vue(id) {
+    if (vues.has(id)) return; vues.add(id);
+    const c = elCases && elCases.children[id]; if (c) c.classList.add('vu');
+    majCompte(); bruitage('cran');
   }
-  function montrerBillet(complet) {
-    if (billetMontre || !elBillet) return;
-    billetMontre = true;
-    document.getElementById('billetN').textContent = String(1 + Math.floor(Math.random() * 9998)).padStart(4, '0');
-    if (!complet) {
-      elBillet.querySelector('h2').textContent = 'Fin de la visite.';
-      elBillet.querySelector('.tampon').textContent = vues.size + ' / ' + cibles.length + ' vues';
-    }
+  function montrerBillet() {
+    if (billetMontre || !elBillet) return; billetMontre = true;
+    $('billetN').textContent = String(1 + Math.floor(Math.random() * 9998)).padStart(4, '0');
+    const complet = vues.size >= oeuvres.length;
+    elBillet.querySelector('h2').textContent = complet ? 'Vous avez tout vu.' : 'Fin de la visite.';
+    elBillet.querySelector('.tampon').textContent = complet ? 'Visite complète' : vues.size + ' / ' + oeuvres.length + ' vues';
     elBillet.classList.add('on'); elBillet.setAttribute('aria-hidden', 'false');
     setTimeout(() => bruitage('tampon'), 520);
     arreterVisite();
   }
-  document.getElementById('billetX').addEventListener('click', () => { elBillet.classList.remove('on'); elBillet.setAttribute('aria-hidden', 'true'); });
+  $('billetX').addEventListener('click', () => { elBillet.classList.remove('on'); elBillet.setAttribute('aria-hidden', 'true'); });
 
-  // la bulle d'un gardien
-  let tBulle = 0;
-  function dire(qui, texte) {
-    if (!elBulle) return;
-    elBulle.innerHTML = '<small>' + qui + '</small>' + texte;
-    elBulle.classList.add('on');
-    clearTimeout(tBulle); tBulle = setTimeout(() => elBulle.classList.remove('on'), 4200);
-    bruitage('clic');
+  // ── la fiche ──
+  let ouverte = null;
+  function ouvrirFiche(id) {
+    const o = oeuvres[id]; if (!o) return; vue(id);
+    ouverte = id; bruitage('clac');
+    const p = o.p;
+    $('ficheN').textContent = String(id + 1).padStart(2, '0');
+    $('ficheT').textContent = p.titre || ''; $('ficheC').textContent = p.cat || ''; $('ficheD').textContent = p.desc || '';
+    const vis = $('ficheVis'); vis.innerHTML = '';
+    if (p.groupe) pieces.filter(q => q.groupe === p.groupe && q.src !== p.src).slice(0, 4).forEach(q => {
+      const im = document.createElement('img'); im.src = q.src; im.alt = q.titre || ''; im.loading = 'lazy'; vis.appendChild(im); });
+    const go = $('ficheGo');
+    if (p.video) { go.href = p.video; go.target = '_blank'; go.rel = 'noopener'; go.textContent = 'Voir la vidéo ↗'; }
+    else { go.href = p.groupe ? 'index.html#p-' + p.groupe : 'index.html#portfolio'; go.removeAttribute('target'); go.textContent = 'Voir la fiche complète →'; }
+    elFiche.classList.add('on'); elFiche.setAttribute('aria-hidden', 'false'); document.body.classList.add('fiche-ouverte');
   }
+  function fermerFiche() {
+    if (ouverte === null) return; ouverte = null; bruitage('clic');
+    elFiche.classList.remove('on'); elFiche.setAttribute('aria-hidden', 'true'); document.body.classList.remove('fiche-ouverte');
+  }
+  $('ficheX').addEventListener('click', fermerFiche);
 
-  // la visite guidee : d'oeuvre en oeuvre, toute seule ; un geste la rend
-  let visite = null;
-  function arreterVisite() {
-    if (!visite) return;
-    clearTimeout(visite.t); visite = null;
-    if (elVisite) { elVisite.setAttribute('aria-pressed', 'false'); elVisite.innerHTML = '&#9654; Visite guid&eacute;e'; }
-  }
-  function etape() {
-    if (!visite) return;
-    if (visite.i >= cibles.length) { arreterVisite(); fermerFiche(); allerA(3); return; }
-    ouvrir(cibles[visite.i]); vue(visite.i);
-    visite.i++;
-    visite.t = setTimeout(etape, 5200);
-  }
-  if (elVisite) elVisite.addEventListener('click', () => {
-    if (visite) { arreterVisite(); return; }
-    // on reprend a la premiere oeuvre pas encore vue
-    let i = 0; while (i < cibles.length && vues.has(i)) i++;
-    if (i >= cibles.length) i = 0;
-    visite = { i, t: 0 };
-    elVisite.setAttribute('aria-pressed', 'true'); elVisite.innerHTML = '&#9632; Arr&ecirc;ter la visite';
-    compris(); etape();
+  // ═══════════ le defilement pilote la camera ═══════════
+  let s = 0, sCible = 0, dernierGeste = 0, aBouge = false;
+  const zoneDepart = location.hash === '#fin' || location.hash === '#contact' ? N - 1 : 0;
+  s = sCible = zoneDepart;
+  function compris() { if (aBouge) return; aBouge = true; if (elGuide) { elGuide.classList.add('parti'); setTimeout(() => elGuide.remove(), 800); } }
+  function pousser(d) { sCible = Math.max(0, Math.min(N - 1, sCible + d)); dernierGeste = performance.now(); compris(); if (ouverte !== null) fermerFiche(); }
+  function allerA(i) { sCible = Math.max(0, Math.min(N - 1, i)); dernierGeste = 0; compris(); fermerFiche(); bruitage('balai'); }
+  addEventListener('wheel', e => {
+    if (elBillet && elBillet.classList.contains('on')) return;
+    e.preventDefault(); arreterVisite();
+    const d = e.deltaY * (e.deltaMode === 1 ? 33 : 1);
+    pousser(Math.max(-0.9, Math.min(0.9, d / 260)));
+  }, { passive: false });
+  addEventListener('keydown', e => {
+    const k = e.key;
+    if (['ArrowDown', 'ArrowRight', 'PageDown', ' ', 's', 'd'].includes(k)) { e.preventDefault(); arreterVisite(); allerA(Math.round(sCible) + 1); }
+    else if (['ArrowUp', 'ArrowLeft', 'PageUp', 'z', 'q'].includes(k)) { e.preventDefault(); arreterVisite(); allerA(Math.round(sCible) - 1); }
+    else if (k === 'Home' || k === 'r') allerA(0);
+    else if (k === 'End') allerA(N - 1);
+    else if (k === 'Escape') fermerFiche();
   });
-  addEventListener('keydown', e => { if (visite && ['z','q','s','d','w','a','arrowup','arrowdown','arrowleft','arrowright'].includes(e.key.toLowerCase())) arreterVisite(); });
-  cv.addEventListener('pointerdown', () => arreterVisite());
+  // au doigt : on glisse pour avancer, on tape pour ouvrir
+  let doigt = null;
+  cv.addEventListener('pointerdown', e => { doigt = { x: e.clientX, y: e.clientY, t: performance.now(), glisse: false }; arreterVisite(); });
+  addEventListener('pointermove', e => {
+    souris.set((e.clientX / innerWidth) * 2 - 1, -((e.clientY / innerHeight) * 2 - 1));
+    if (!doigt || e.pointerType === 'mouse') return;
+    const dx = e.clientX - doigt.x, dy = e.clientY - doigt.y;
+    if (!doigt.glisse && Math.hypot(dx, dy) > 10) doigt.glisse = true;
+    if (doigt.glisse) { pousser(-(dy + dx * 0.6) / 260); doigt.x = e.clientX; doigt.y = e.clientY; }
+  }, { passive: true });
+  addEventListener('pointerup', e => {
+    const d = doigt; doigt = null;
+    if (!d || d.glisse || performance.now() - d.t > 600 || e.target !== cv) return;
+    const r = cv.getBoundingClientRect();
+    pointeur.set(((e.clientX - r.left) / r.width) * 2 - 1, -(((e.clientY - r.top) / r.height) * 2 - 1));
+    rayon.setFromCamera(pointeur, cam);
+    const t = rayon.intersectObjects(cliquables, false);
+    if (t.length && t[0].object.userData.clic) t[0].object.userData.clic.faire();
+    else if (ouverte !== null) fermerFiche();
+  });
+  if (matchMedia('(pointer:coarse)').matches && elGuide) { const t = elGuide.querySelector('.guide-t'); if (t) t.innerHTML = 'Glissez pour avancer &middot; touchez pour ouvrir'; }
 
-  // ═══════════ boucle ═══════════
+  // ── la visite automatique ──
+  let visite = null;
+  function arreterVisite() { if (!visite) return; clearTimeout(visite); visite = null;
+    if (elVisite) { elVisite.setAttribute('aria-pressed', 'false'); elVisite.innerHTML = '&#9654; Visite auto'; } }
+  function etape() { if (Math.round(sCible) >= N - 1) { arreterVisite(); return; } allerA(Math.round(sCible) + 1); visite = setTimeout(etape, 4200); }
+  if (elVisite) {
+    elVisite.innerHTML = '&#9654; Visite auto';
+    elVisite.addEventListener('click', e => { e.stopPropagation(); if (visite) { arreterVisite(); return; }
+      elVisite.setAttribute('aria-pressed', 'true'); elVisite.innerHTML = '&#9632; Arr&ecirc;ter'; visite = setTimeout(etape, 300); });
+  }
+
+  // ═══════════ la boucle ═══════════
+  const rayon = new THREE.Raycaster(), souris = new THREE.Vector2(), pointeur = new THREE.Vector2();
+  let survole = null;
   function dimensionner() {
     const w = innerWidth, h = innerHeight;
-    renderer.setSize(w, h, false);
+    renderer.setSize(w, h, false); if (composer) { composer.setSize(w, h); bloom.setSize(w, h); }
     cam.aspect = w / h; cam.updateProjectionMatrix();
   }
   addEventListener('resize', () => { dimensionner(); if (railEl) railH = railEl.getBoundingClientRect().height; });
   dimensionner();
+  // le clic de souris
+  cv.addEventListener('click', e => {
+    if (e.pointerType && e.pointerType !== 'mouse') return;
+    if (survole && survole.userData.clic) survole.userData.clic.faire();
+    else if (ouverte !== null) fermerFiche();
+  });
 
-  const AV = new THREE.Vector3(), LAT = new THREE.Vector3();
-  let dernier = performance.now();
-
+  const pCam = new THREE.Vector3(), pVise = new THREE.Vector3(), vTmp = new THREE.Vector3();
+  let dernier = performance.now(), arretPrec = -1, lieuPrec = '';
   function boucle(t) {
     requestAnimationFrame(boucle);
     const dt = Math.min((t - dernier) / 1000, 0.05); dernier = t;
 
-    // approche automatique
-    if (vol) {
-      vol.t = Math.min(1, vol.t + dt / (vol.duree || 1.5));
-      const e = vol.t < 0.5 ? 4 * vol.t ** 3 : 1 - Math.pow(-2 * vol.t + 2, 3) / 2;
-      pos.lerpVectors(vol.de, vol.vers, e);
-      lacet   = vol.lacetDe   + (vol.lacetVers   - vol.lacetDe)   * e;
-      tangage = vol.tangageDe + ((vol.tangageVers || 0) - vol.tangageDe) * e;
-      vit.set(0, 0, 0);
-      if (vol.t >= 1) { vol = null; if (apresVol) { apresVol(); apresVol = null; } }
-    } else {
-      // le flux : ZQSD règle le régime, l'inertie fait le reste
-      let av = 0, lat = 0;
-      if (bas.has('z') || bas.has('w') || bas.has('arrowup')) av += 1;
-      if (bas.has('s') || bas.has('arrowdown')) av -= 1;
-      if (bas.has('q') || bas.has('a') || bas.has('arrowleft')) lat -= 1;
-      if (bas.has('d') || bas.has('arrowright')) lat += 1;
-      if (joy.actif) { av -= joy.y; lat += joy.x; }
-      if (ouverte && (av || lat)) fermerFiche();
+    // quand on ne fait plus defiler, la camera se pose sur l'arret le plus proche
+    if (performance.now() - dernierGeste > 260) sCible += (Math.round(sCible) - sCible) * Math.min(1, dt * 6);
+    s += (sCible - s) * (1 - Math.exp(-dt * 3.2));
+    const i0 = Math.min(N - 2, Math.floor(s)), f = s - i0;
+    const e = f * f * (3 - 2 * f);                     // on ralentit pres de chaque arret
+    rail.getPoint((i0 + e) / (N - 1), pCam);
+    pVise.copy(arrets[i0].vise).lerp(arrets[i0 + 1].vise, e);
+    // un leger mouvement de tete : la camera respire, et suit un peu la souris
+    pCam.x += Math.sin(t * 0.00031) * 0.03; pCam.y += Math.sin(t * 0.00047) * 0.02;
+    vTmp.copy(pVise).sub(pCam).normalize();
+    const lat = new THREE.Vector3(-vTmp.z, 0, vTmp.x);
+    pVise.addScaledVector(lat, souris.x * 0.35).y += souris.y * 0.22;
+    cam.position.copy(pCam); cam.lookAt(pVise);
+    suit.position.set(pCam.x, 3.2, pCam.z - 1);
 
-      AV.set(-Math.sin(lacet), 0, -Math.cos(lacet));
-      LAT.set(Math.cos(lacet), 0, -Math.sin(lacet));
-      const pousse = bas.has('shift') ? 42 : 26;
-      vit.addScaledVector(AV, av * pousse * dt);
-      vit.addScaledVector(LAT, lat * pousse * dt);
-      // Pas de derive automatique : on reste ou on s'arrete. L'idee du flux
-      // qui porte etait jolie, mais on se retrouvait au bout du hall sans
-      // avoir rien touche — surtout au doigt, ou l'on ne maintient rien.
-      vit.multiplyScalar(Math.pow(0.0016, dt));   // traînée
-      pos.addScaledVector(vit, dt);
-
-      // on reste dans la veine
-      pos.x = Math.max(-DEMI_L + 1.1, Math.min(DEMI_L - 1.1, pos.x));
-      pos.z = Math.max(Z_FOND + 2.4, Math.min(11, pos.z));
-      // on contourne les bancs
-      for (const b of bancs) {
-        const ox = pos.x - b.x, oz = pos.z - b.z;
-        if (Math.abs(ox) < b.dx && Math.abs(oz) < b.dz) {
-          // on glisse sur le cote : marcher tout droit ne bloque jamais, on contourne
-          pos.x = b.x + Math.sign(ox || 1) * b.dx;
-        }
-      }
-      // le pas : une oscillation a peine sensible quand on marche, et le bruit des pas
-      const allure = Math.min(1, vit.length() / 5);
-      const avantPas = Math.floor(foulee / Math.PI);
-      foulee += dt * (4 + allure * 4) * allure;
-      if (allure > 0.25 && Math.floor(foulee / Math.PI) !== avantPas) bruitage('pas');
-      pos.y = OEIL + Math.sin(foulee * 2) * 0.012 * allure;
+    // l'arret courant : la chasse, le studio, la voiture, le bureau
+    const ia = Math.round(s), a = arrets[ia];
+    if (Math.abs(s - ia) < 0.12 && ia !== arretPrec) {
+      arretPrec = ia;
+      a.ids.forEach(vue);
+      if (a.studio) setTimeout(declencher, 400);
+      if (a.voiture) setTimeout(devoiler, 300);
+      if (a.fin) setTimeout(montrerBillet, 1500);
     }
-
-    if (!verrou) {
-      lacet   -= sx * 1.35 * dt;              // on tourne tant que le curseur est au bord
-      tangage += ((-sy * 0.42) - tangage) * 0.07;
+    placerProjecteurs(s);
+    // le lieu ou l'on est
+    if (a.nom !== lieuPrec) {
+      lieuPrec = a.nom;
+      const k = STATIONS.findIndex(st => st.nom === a.nom);
+      elZN.textContent = 'Station ' + String(k + 1).padStart(2, '0'); elZT.textContent = a.nom;
+      elZT.animate && elZT.animate([{ opacity: 0, transform: 'translateY(6px)' }, { opacity: 1, transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.22,1,.36,1)' });
+      document.querySelectorAll('[data-zone]').forEach(b => b.classList.toggle('ici', +b.dataset.zone === k));
+      if (ia > 0) bruitage('page');
     }
+    elX.textContent = String(ia + 1).padStart(2, '0'); elZ.textContent = String(N).padStart(2, '0');
+    if (railC) railC.style.top = (4 + (s / (N - 1)) * (railH - 8)) + 'px';
 
-    // le souffle suit le deplacement reel : a l'arret il retombe
-    if (SON && SON.estActif()) SON.flux(Math.min(1.3, vit.length() / 5.5));
-
-    cam.position.copy(pos);
-    cam.rotation.set(0, 0, 0, 'YXZ');
-    cam.rotation.y = lacet; cam.rotation.x = tangage;
-
-    // une oeuvre est « vue » quand on passe tout pres, face a elle
-    for (const o of oeuvres) if (Math.abs(o.z - pos.z) < 3.2 && !vues.has(o.tab.userData.i)) vue(o.tab.userData.i);
-    // au fond de la salle, le billet de fin, meme si tout n'a pas ete vu
-    if (pos.z < Z_FOND + 9 && !billetMontre) montrerBillet(vues.size === cibles.length);
-    // les gardiens suivent le visiteur des yeux, et lui parlent quand il approche
-    for (const gd of gardiens) {
-      const dx = pos.x - gd.g.position.x, dz = pos.z - gd.g.position.z, d = Math.hypot(dx, dz);
-      const vise = d < 9 ? Math.atan2(dx, dz) - gd.g.rotation.y : 0;
-      const cible = Math.max(-1.1, Math.min(1.1, Math.atan2(Math.sin(vise), Math.cos(vise))));
-      gd.tete.rotation.y += (cible - gd.tete.rotation.y) * Math.min(1, dt * 3);
-      if (dz > -1 && dz < 7 && d < 10 && !gd.proche) { gd.proche = true; dire('Le gardien', gd.repliques[gd.k++ % gd.repliques.length]); }
-      else if (Math.abs(dz) > 9) gd.proche = false;
+    // le flash retombe, la 991 se devoile, les epreuves tombent
+    for (const fl of flashs) { fl.k *= Math.pow(0.0015, dt); fl.lum.intensity = fl.k * 260; fl.face.material.color.setScalar(0.16 + fl.k * 3); }
+    if (voiture.devoile && voiture.tDrap >= 0 && voiture.tDrap < 1) {
+      voiture.tDrap = Math.min(1, voiture.tDrap + dt / 1.6); const u = voiture.tDrap, ee = u * u;
+      voiture.drap.position.set(ee * 4.2, Math.sin(u * Math.PI) * 1.1, 0); voiture.drap.rotation.z = -ee * 0.5; voiture.drap.material.opacity = 1 - Math.max(0, (u - 0.55) / 0.45);
+      if (u >= 1) voiture.drap.visible = false;
     }
-
-    // les projecteurs suivent le visiteur : les quatre oeuvres les plus proches
-    // (un peu devant soi de preference) recoivent la vraie lumiere
-    const proches = oeuvres.slice().sort((a, b) => Math.abs(a.z - pos.z + 4) - Math.abs(b.z - pos.z + 4));
-    for (let i = 0; i < projecteurs.length; i++) {
-      const o = proches[i], sp = projecteurs[i];
-      if (!o) { sp.visible = false; continue; }
-      sp.position.copy(o.P); sp.target.position.copy(o.T);
+    for (let k = chutes.length - 1; k >= 0; k--) {
+      const ep = chutes[k], d = ep.userData.tombe; d.t += dt;
+      if (d.t < 1.1) { ep.position.y = ep.userData.repos.pos.y - d.t * d.t * 2.6; ep.position.z = ep.userData.repos.pos.z + d.t * 0.5; ep.rotation.z += d.vr * dt; ep.rotation.x = -d.t * 1.1; }
+      else if (d.t > 5) { ep.position.copy(ep.userData.repos.pos); ep.rotation.copy(ep.userData.repos.rot); ep.userData.tombe = null; chutes.splice(k, 1); bruitage('punaise'); }
     }
+    // le neon et les ampoules battent avec la musique, et le neon gresille parfois
+    pouls *= Math.pow(0.02, dt);
+    const gres = Math.random() < 0.004 ? 0.4 : 1;
+    neon.material.color.setScalar((0.9 + pouls * 0.25) * gres); lumNeon.intensity = (6 + pouls * 3) * gres;
+    for (const amp of ampoules) amp.material.color.setRGB(1 * (0.85 + pouls * 0.3), 0.83 * (0.85 + pouls * 0.3), 0.6 * (0.85 + pouls * 0.3));
 
-
-    // les lampes suivent
-    // une lumiere douce qui accompagne le visiteur, a hauteur d'oeil : elle
-    // eclaire les murs sans faire de tache au plafond ni au sol
-    lampes[0].position.set(pos.x * 0.4, 3.2, pos.z + 2);
-    lampes[1].position.set(pos.x * 0.4, 3.2, pos.z - 10);
-    lampes[2].position.set(pos.x * 0.4, 3.2, pos.z - 22);
-
-    // visée
-    rayon.setFromCamera(verrou ? centre : souris, cam);
-    const touche = rayon.intersectObjects(cliquables, false);
-    const n = (touche.length && touche[0].distance < 26) ? touche[0].object : null;
-    if (n !== vise) {
-      const avant = vise;
-      vise = n;
-      cliquables.forEach(c => c.userData.cible = (c === vise ? 1 : 0));
-      document.body.classList.toggle('vise', !!vise);
-      // une plaque du fond se rallume : le cadre passe au rouge, le texte blanchit
-      if (avant && avant.userData.chaud) avant.userData.chaud(false);
-      if (vise && vise.userData.chaud) vise.userData.chaud(true);
-      if (vise) {
-        const u = vise.userData;
-        elCT.textContent = u.p ? (u.p.titre || '') : u.val;
-        elCC.textContent = u.p ? (u.p.cat || '') : u.indice;
-        // la plaque dit deja ce qu'elle fait : pas de "clic pour ouvrir" en plus
-        if (elCA) elCA.style.display = u.p ? '' : 'none';
-        bruitage('tic');
+    // ce que la souris designe (au doigt, on tape directement : pas de survol)
+    if (!doigt && !TACTILE) {
+      rayon.setFromCamera(souris, cam);
+      const touche = rayon.intersectObjects(cliquables, false);
+      const n = touche.length && touche[0].distance < 14 ? touche[0].object : null;
+      if (n !== survole) {
+        survole = n; document.body.classList.toggle('vise', !!n); cv.style.cursor = n ? 'pointer' : '';
+        if (n) { elCT.textContent = n.userData.clic.nom; elCC.textContent = n.userData.clic.cat || ''; if (elCA) elCA.style.display = n.userData.oeuvre !== undefined ? '' : 'none'; bruitage('tic'); }
       }
     }
-    // l'oeuvre visee s'eclaire, son halo s'intensifie
-    for (const c of cibles) {
-      const u = c.userData;
-      u.k += (u.cible - u.k) * Math.min(1, dt * 7);
-      u.mat.emissiveIntensity = 0.06 + u.k * 0.2;
-      u.halo.material.opacity = 0.3 + u.k * 0.22 + pouls * 0.07;
-    }
-    pouls *= Math.pow(0.02, dt);      // le battement retombe en un demi-temps
 
-    // instruments
-    const vz = -pos.z;
-    elX.textContent = (pos.x >= 0 ? '+' : '−') + Math.abs(pos.x).toFixed(1).padStart(4, '0');
-    elZ.textContent = (vz >= 0 ? '' : '−') + Math.abs(vz).toFixed(1).padStart(5, '0') + ' m';
-    let zi = 0;
-    for (let i = 0; i < ZONES.length; i++) if (pos.z <= ZONES[i].z + 6) zi = i;
-    if (elZT.textContent !== ZONES[zi].t) {
-      elZN.textContent = 'Zone ' + ZONES[zi].n;
-      elZT.textContent = ZONES[zi].t;
-      elZT.animate([{opacity:0,transform:'translateY(6px)'},{opacity:1,transform:'none'}],
-                   {duration:420,easing:'cubic-bezier(.22,1,.36,1)'});
-      if (!vol) majHash(zi);
-    }
-    document.querySelectorAll('[data-zone]').forEach(b => b.classList.toggle('ici', +b.dataset.zone === zi));
-    // le curseur du rail glisse selon l'avancee reelle dans le hall
-    if (railC) {
-      const k = Math.max(0, Math.min(1, (ZONES[0].z - pos.z) / (ZONES[0].z - ZONES[3].z)));
-      railC.style.top = (4 + k * (railH - 8)) + 'px';
-    }
-
-    renderer.render(monde, cam);
+    if (composer) composer.render(); else renderer.render(monde, cam);
   }
+  placerProjecteurs(s);
   requestAnimationFrame(boucle);
-
-  return { pieces: pieces.length };
+  return { arrets: N, oeuvres: oeuvres.length };
 }

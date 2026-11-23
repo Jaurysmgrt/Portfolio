@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Jaurys Maigret — La Soufflerie</title>
-<meta name="description" content="Le portfolio de Jaurys Maigret, direction artistique, comme une galerie que l'on parcourt.">
+<title>Jaurys Maigret — L'Atelier</title>
+<meta name="description" content="L'atelier de Jaurys Maigret, directeur artistique : affiches, photos, vidéos et la 991, à parcourir en 3D.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -302,6 +302,7 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
 .billet-act a,.billet-act button{font-family:'IBM Plex Mono',monospace;font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;padding:.7rem 1rem;border:1px solid #121214;background:none;color:#121214;cursor:pointer;text-decoration:none}
 .billet-act a.fort{background:var(--red);border-color:var(--red);color:#fff}
 @media(max-width:760px){.chasse{top:3.3rem}.cases i{width:8px;height:8px}.bulle{bottom:30%}}
+.manette{display:none!important}
 </style>
 </head>
 <body>
@@ -311,7 +312,7 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
 <div class="hud">
   <div class="coord mono">
     <div>J<span class="pt">.</span>M &nbsp;&nbsp; <b id="coordX">00.0</b> / <b id="coordZ">00.0</b></div>
-    <div>Soufflerie &middot; Paris</div>
+    <div>Atelier &middot; Paris</div>
   </div>
 
   <div class="zone">
@@ -328,9 +329,9 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
   </nav>
 
   <div class="cmd mono">
-    <span><b>Z</b><b>Q</b><b>S</b><b>D</b> se d&eacute;placer</span>
-    <span><b>Souris</b> d&eacute;signer &middot; bords pour tourner</span>
-    <span><b>Clic</b> ouvrir</span>
+    <span><b>Molette</b> avancer</span>
+    <span><b>&darr;</b><b>&uarr;</b> arr&ecirc;t suivant</span>
+    <span><b>Clic</b> ouvrir &middot; d&eacute;clencher</span>
     <span><b>R</b> revenir &agrave; l'entr&eacute;e</span>
   </div>
 
@@ -367,7 +368,7 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
 
   <!-- le fl&eacute;chage du d&eacute;part -->
   <div class="guide" id="guide">
-    <span class="guide-t">Maintenez <b>Z</b> pour avancer</span>
+    <span class="guide-t">Faites d&eacute;filer pour avancer dans l'atelier</span>
     <span class="guide-f"></span>
   </div>
 </div>
@@ -390,7 +391,7 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
 <div class="billet" id="billet" aria-hidden="true">
   <div class="billet-in">
     <span class="tampon">Visite compl&egrave;te</span>
-    <small>Soufflerie &middot; billet n&deg; <span id="billetN">0001</span></small>
+    <small>L'Atelier &middot; billet n&deg; <span id="billetN">0001</span></small>
     <h2>Vous avez tout vu.</h2>
     <p id="billetP">Merci de la visite. Le directeur artistique cherche son alternance, et il est disponible d&egrave;s maintenant.</p>
     <div class="billet-act">
@@ -405,20 +406,20 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
 
 <div id="intro">
   <div class="in-stage">
-    <span class="in-hud in-tl mono">Soufflerie</span>
+    <span class="in-hud in-tl mono">L'Atelier</span>
     <span class="in-hud in-tr mono">Paris &middot; FR</span>
     <span class="in-hud in-bl mono">Direction artistique</span>
-    <span class="in-hud in-br mono">Mise sous tension</span>
+    <span class="in-hud in-br mono">Ouvert la nuit</span>
     <div class="in-trait"></div>
     <div class="in-nom"><span>JAURYS</span><span>MAIGRET</span></div>
-    <button class="in-entrer mono" id="entrer">Entrer dans la soufflerie</button>
+    <button class="in-entrer mono" id="entrer">Entrer dans l'atelier</button>
     <button class="in-passer mono" id="passer">Passer &rarr; version classique</button>
   </div>
 </div>
 
 <div id="repli">
   <div class="in">
-    <h1>La soufflerie a besoin d'un peu plus de machine</h1>
+    <h1>L'atelier a besoin d'un peu plus de machine</h1>
     <p>Cette exp&eacute;rience demande la 3D temps r&eacute;el et un &eacute;cran assez large.
        Tout mon travail reste accessible, enti&egrave;rement, dans la version classique.</p>
     <a href="index.html">Voir le portfolio &rarr;</a>
@@ -442,7 +443,7 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
     intro.classList.add('parti');
     document.body.classList.add('dedans');
     setTimeout(function(){ intro.remove(); }, 1000);
-    import('./js/monde.js?v=7').then(function(m){ m.demarrer(); })
+    import('./js/monde.js?v=9').then(function(m){ m.demarrer(); })
       .catch(function(e){ console.error(e); document.getElementById('repli').classList.add('on'); });
   }
   document.getElementById('entrer').addEventListener('click', entrer);
