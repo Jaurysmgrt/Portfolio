@@ -150,8 +150,9 @@ export async function demarrer() {
     return t;
   }
   // le beton cire du sol
-  const nB = bruitFractal(512, 512, 6, 3.1);
-  const texSol = texPixels(512, 512, (d, w) => {
+  const RES = PETIT ? 512 : 1024;
+  const nB = bruitFractal(RES, RES, 7, 3.1);
+  const texSol = texPixels(RES, RES, (d, w) => {
     for (let k = 0; k < w * w; k++) {
       const x = k % w, y = (k / w) | 0;
       let v = 22 + nB[k] * 24 + Math.abs((Math.sin(k * 91.7) * 43758.5) % 1) * 5;
@@ -159,18 +160,18 @@ export async function demarrer() {
       d[k * 4] = v * 1.03; d[k * 4 + 1] = v; d[k * 4 + 2] = v * 0.96; d[k * 4 + 3] = 255;
     }
   });
-  const texSolR = texPixels(512, 512, (d, w) => {
+  const texSolR = texPixels(RES, RES, (d, w) => {
     for (let k = 0; k < w * w; k++) { const v = 90 + nB[(k * 7) % (w * w)] * 70; d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255; }
   }, true);
   // le beton brut des murs : banches, joints, trous de tiges
-  const nM = bruitFractal(512, 512, 6, 9.3);
-  const texMur = texPixels(512, 512, (d, w) => {
+  const nM = bruitFractal(RES, RES, 7, 9.3);
+  const texMur = texPixels(RES, RES, (d, w) => {
     for (let k = 0; k < w * w; k++) {
       const x = k % w, y = (k / w) | 0;
       let v = 46 + nM[k] * 34 + ((Math.sin(k * 12.7) * 43758.5) % 1) * 6;
-      if (x < 2 || y < 2) v *= 0.62;                                       // joint de banche
-      const tx = (x % 128) - 64, ty = (y % 170) - 85;                       // trous de tiges
-      if (tx * tx + ty * ty < 18 && (x / 128 | 0) % 2 === 0) v *= 0.45;
+      if (x < 2 * (w / 512) || y < 2 * (w / 512)) v *= 0.62;               // joint de banche
+      const q = w / 512, tx = (x % (128 * q)) - 64 * q, ty = (y % (170 * q)) - 85 * q;   // trous de tiges
+      if (tx * tx + ty * ty < 18 * q * q && (x / (128 * q) | 0) % 2 === 0) v *= 0.45;
       d[k * 4] = v; d[k * 4 + 1] = v * 0.98; d[k * 4 + 2] = v * 0.95; d[k * 4 + 3] = 255;
     }
   });
@@ -185,7 +186,7 @@ export async function demarrer() {
   // le bois du bureau
   const texBois = texPixels(512, 128, (d, w, h) => {
     for (let k = 0; k < w * h; k++) { const x = k % w, y = (k / w) | 0;
-      const veine = Math.sin(y * 0.35 + Math.sin(x * 0.012) * 5 + nB[(y * 4 % 512) * 512 + (x % 512)] * 6) * 0.5 + 0.5;
+      const veine = Math.sin(y * 0.35 + Math.sin(x * 0.012) * 5 + nB[((y * 4) % RES) * RES + (x % RES)] * 6) * 0.5 + 0.5;
       const v = 0.55 + veine * 0.25 + nB[k % nB.length] * 0.2;
       d[k * 4] = 92 * v; d[k * 4 + 1] = 60 * v; d[k * 4 + 2] = 40 * v; d[k * 4 + 3] = 255; }
   });
@@ -285,6 +286,22 @@ export async function demarrer() {
   function oeuvre(p, mesh) { const id = oeuvres.length; oeuvres.push({ p, mesh }); mesh.userData.oeuvre = id;
     cliquable(mesh, p.titre, p.cat, () => ouvrirFiche(id)); return id; }
 
+  // une feuille de papier n'est jamais plate : elle ondule un peu
+  function papierGeo(W, H) {
+    const g = new THREE.PlaneGeometry(W, H, 16, 20); const p = g.attributes.position;
+    for (let i = 0; i < p.count; i++) { const x = p.getX(i), y = p.getY(i);
+      p.setZ(i, Math.sin(x * 5.1 + y * 1.3) * 0.006 + Math.sin(y * 7.3) * 0.004 + (Math.abs(x) / W) * 0.012); }
+    g.computeVertexNormals(); return g;
+  }
+  // l'ombre douce qu'un objet pose laisse au sol
+  const matOmbre = new THREE.MeshBasicMaterial({ map: texHalo, color: 0x000000, transparent: true, opacity: 0.6, depthWrite: false });
+  function ombreSol(x, z, w, d, op) { const o = new THREE.Mesh(new THREE.PlaneGeometry(w, d), matOmbre.clone()); o.material.opacity = op || 0.6;
+    o.rotation.x = -Math.PI / 2; o.position.set(x, 0.006, z); monde.add(o); return o; }
+  // un cable qui court au sol
+  const matCable = mat(0x070708, 0.55);
+  function cable(points) { const c = new THREE.CatmullRomCurve3(points.map(p => new THREE.Vector3(p[0], p[1] === undefined ? 0.012 : p[1], p[2])));
+    const m = new THREE.Mesh(new THREE.TubeGeometry(c, 60, 0.011, 6), matCable); m.castShadow = true; monde.add(m); return m; }
+
   // ── station 1 : le mur d'affiches (mur gauche) ──
   const DA = ['hermes', 'atol', 'fiveguys', 'halloween', 'uber', 'voss'];
   const matScotch = new THREE.MeshStandardMaterial({ color: 0xb9b09a, roughness: 0.7, transparent: true, opacity: 0.55 });
@@ -303,8 +320,15 @@ export async function demarrer() {
     const H = prim.h > prim.w ? 1.75 : 1.25, W = H * prim.w / prim.h;
     const zc = zA - W / 2;
     const grp = new THREE.Group(); grp.position.set(-DEMI + 0.03, 0, zc); grp.rotation.y = Math.PI / 2; monde.add(grp);
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(W, H), new THREE.MeshStandardMaterial({ map: texture(prim.src), roughness: 0.75 }));
-    m.position.set(0, 1.95, 0.01); m.receiveShadow = true; grp.add(m); scotcher(m, W, H, 0);
+    const m = new THREE.Mesh(papierGeo(W, H), new THREE.MeshStandardMaterial({ map: texture(prim.src), roughness: 0.75 }));
+    m.position.set(0, 1.95, 0.025); m.receiveShadow = true; m.castShadow = true; grp.add(m); scotcher(m, W, H, 0.012);
+    // dessous, des restes d'anciennes affiches arrachees
+    for (let r = 0; r < 5; r++) {
+      const lam = new THREE.Mesh(papierGeo(0.18 + Math.random() * 0.32, 0.1 + Math.random() * 0.28),
+        new THREE.MeshStandardMaterial({ color: [0x8f8a7e, 0x7a7468, 0x6e2a22, 0x9a958a][r % 4], roughness: 0.95 }));
+      lam.position.set((Math.random() - 0.5) * (W + 0.5), 1.95 + (Math.random() - 0.5) * (H + 0.3), 0.004 + r * 0.0008);
+      lam.rotation.z = (Math.random() - 0.5) * 0.5; lam.receiveShadow = true; grp.add(lam);
+    }
     const id = oeuvre(prim, m);
     // les epreuves du meme projet, punaisees en dessus, plus petites
     const secs = pieces.filter(p => p.groupe === g && p.secondaire).slice(0, 3);
@@ -523,8 +547,8 @@ export async function demarrer() {
   // le mur du fond : le titre peint, le tableau de liege du parcours, la porte
   const texTitre = toile(1400, 520, (g, w, h) => { g.font = '500 32px "IBM Plex Mono", monospace'; g.letterSpacing = '12px'; g.fillStyle = '#ff4433'; g.fillText('LE BUREAU · ALTERNANCE DÈS MAINTENANT', 10, 60);
     g.letterSpacing = '2px'; g.font = '190px Anton, sans-serif'; g.fillStyle = '#ece8e1'; g.fillText('Parlons de', 0, 260); g.fillText('votre projet.', 0, 450); });
-  const titre = new THREE.Mesh(new THREE.PlaneGeometry(3.7, 1.37), new THREE.MeshStandardMaterial({ map: texTitre, transparent: true, roughness: 0.9, emissive: 0xffffff, emissiveMap: texTitre, emissiveIntensity: 0.22 }));
-  titre.position.set(-0.4, 2.45, Z_FOND + 0.02); monde.add(titre);
+  const titre = new THREE.Mesh(new THREE.PlaneGeometry(1.35, 0.5), new THREE.MeshStandardMaterial({ map: texTitre, transparent: true, roughness: 0.9, emissive: 0xffffff, emissiveMap: texTitre, emissiveIntensity: 0.22 }));
+  titre.position.set(0.3, 1.62, Z_FOND + 0.02); monde.add(titre);
   // le parcours, sur le liege
   const liege = boite(2.1, 1.25, 0.03, new THREE.MeshStandardMaterial({ map: texLiege, roughness: 0.95 }), -5.2, 1.85, Z_FOND + 0.03);
   function feuille(lignes, x, y, rz) {
@@ -550,6 +574,78 @@ export async function demarrer() {
   cliquable(porte, 'Sortie', 'Clic · revenir au portfolio', () => { location.href = 'index.html#portfolio'; });
   cliquable(plaque, 'Sortie', 'Clic · revenir au portfolio', () => { location.href = 'index.html#portfolio'; });
   const stationBureau = { cam: new THREE.Vector3(0.15, 1.5, zD + 2.05), vise: new THREE.Vector3(0, 0.95, zD - 0.2), ids: [], nom: 'Le bureau', fin: true };
+
+  // ═══════════ les details : l'atelier vit ═══════════
+  // le batiment : gaines au plafond, tableau electrique, extincteur, sortie de secours
+  for (const x of [-6.2, 6.2]) {
+    const gaine = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, LONG, 10), acier); gaine.rotation.x = Math.PI / 2; gaine.position.set(x, HAUT - 0.45, MIL); monde.add(gaine);
+    for (let z = Z_ENTREE - 2; z > Z_FOND; z -= 3) { boite(0.1, 0.06, 0.06, acier, x, HAUT - 0.45, z); }
+  }
+  const gaine2 = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, LONG, 16), mat(0x2a2b2e, 0.45, 0.7)); gaine2.rotation.x = Math.PI / 2; gaine2.position.set(3.2, HAUT - 0.6, MIL); monde.add(gaine2);
+  boite(0.12, 0.7, 0.5, mat(0x3a3d42, 0.5, 0.6), DEMI - 0.06, 1.6, 6.2);
+  const ext = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.5, 18), mat(0xb3130c, 0.35, 0.2)); ext.position.set(DEMI - 0.14, 0.75, 4.6); ext.castShadow = true; monde.add(ext);
+  const extT = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 0.08, 10), noirMat); extT.position.set(DEMI - 0.14, 1.03, 4.6); monde.add(extT);
+  const texSortie = toile(256, 96, (g, w, h) => { g.fillStyle = '#0a7a3a'; g.fillRect(0, 0, w, h); g.fillStyle = '#e9fff2'; g.font = '600 44px "IBM Plex Sans", sans-serif'; g.textAlign = 'center'; g.fillText('SORTIE', w / 2 + 18, 64);
+    g.beginPath(); g.arc(34, 46, 16, 0, 7); g.fill(); });
+  const sortie = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.16), new THREE.MeshBasicMaterial({ map: texSortie, toneMapped: false })); sortie.position.set(5.4, 2.55, Z_FOND + 0.05); monde.add(sortie);
+  sortie.material.color.setScalar(1.6);
+
+  // le mur d'affiches : une palette avec des tubes, un chariot de tirages
+  const zPal = zA + 0.6;
+  boite(1.2, 0.14, 0.8, mat(0x6e5236, 0.85, 0, { map: texBois }), -DEMI + 0.9, 0.07, zPal); ombreSol(-DEMI + 0.9, zPal, 1.6, 1.2);
+  for (let k = 0; k < 7; k++) { const t = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.9 + (k % 3) * 0.12, 14), mat([0xd9d4c7, 0x1a1a1c, 0xb0a993][k % 3], 0.8));
+    t.rotation.z = Math.PI / 2; t.rotation.y = 0.1 * (k % 2); t.position.set(-DEMI + 0.9, 0.19 + Math.floor(k / 4) * 0.09, zPal - 0.3 + (k % 4) * 0.1); t.castShadow = true; monde.add(t); }
+  // sur le mur, un nuancier punaise et des croquis
+  const texNuancier = toile(256, 128, (g, w, h) => { const cs = ['#d42a1b', '#f2efe9', '#121214', '#e0b347', '#2a4b7c', '#7c8a96']; cs.forEach((c, i) => { g.fillStyle = c; g.fillRect(i * w / 6, 0, w / 6 - 3, h * 0.72); });
+    g.fillStyle = '#eee'; g.fillRect(0, h * 0.72, w, h * 0.28); g.fillStyle = '#333'; g.font = '500 14px monospace'; g.fillText('PALETTE · CAMPAGNES', 8, h - 12); });
+  const nuancier = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.25), new THREE.MeshStandardMaterial({ map: texNuancier, roughness: 0.8 })); nuancier.rotation.y = Math.PI / 2; nuancier.position.set(-DEMI + 0.04, 1.0, zA + 0.4); monde.add(nuancier);
+
+  // le studio : marques de scotch au sol, sacs de sable, reflecteur, cables
+  const matGaffer = mat(0xe8e2cf, 0.7);
+  for (const [x, z, r] of [[-DEMI + 1.9, zS, 0.6], [-4.9, zS - 2.7, 0.2], [-4.9, zS + 2.7, -0.3], [-4.3, zS - 0.2, 0.9]]) for (const a of [0.78, -0.78]) {
+    const t = new THREE.Mesh(new THREE.PlaneGeometry(0.26, 0.045), matGaffer); t.rotation.x = -Math.PI / 2; t.rotation.z = a + r; t.position.set(x, 0.008, z); monde.add(t); }
+  for (const c of [-1, 1]) { const sac = new THREE.Mesh(new THREE.CapsuleGeometry(0.09, 0.28, 4, 10), mat(0x2c2a26, 0.95)); sac.rotation.z = Math.PI / 2; sac.position.set(-4.9, 0.09, zS + c * 2.7 + 0.18); sac.castShadow = true; monde.add(sac);
+    ombreSol(-4.9, zS + c * 2.7, 1.0, 1.0, 0.5);
+    cable([[-4.9, , zS + c * 2.7], [-4.0, , zS + c * 2.2], [-3.0, , zS + c * 3.4], [-DEMI + 0.3, , zS + c * 3.9]]); }
+  const refl = new THREE.Mesh(new THREE.CircleGeometry(0.45, 40), mat(0xe4e6e8, 0.35, 0.55, { side: THREE.DoubleSide }));
+  refl.position.set(-6.6, 0.9, zS - 1.4); refl.rotation.y = -0.9; monde.add(refl); boite(0.02, 0.9, 0.02, acier, -6.6, 0.45, zS - 1.4);
+  ombreSol(-4.3, zS - 0.2, 0.8, 0.8, 0.45);
+
+  // la 991 : l'ombre de contact sous la caisse
+  ombreSol(0.4, zC, 5.2, 2.6, 0.75).rotation.z = -0.32;
+
+  // le poste de montage : chaise, enceintes, tasse, post-it, cables
+  function chaise(x, z, ry) {
+    const c = new THREE.Group(); c.position.set(x, 0, z); c.rotation.y = ry; monde.add(c);
+    const assise = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.08, 0.48), mat(0x161618, 0.7)); assise.position.y = 0.5; assise.castShadow = true; c.add(assise);
+    const dos = new THREE.Mesh(new THREE.BoxGeometry(0.46, 0.55, 0.06), mat(0x161618, 0.7)); dos.position.set(0, 0.85, -0.24); dos.rotation.x = -0.12; dos.castShadow = true; c.add(dos);
+    const fut = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.4, 10), acier); fut.position.y = 0.27; c.add(fut);
+    for (let k = 0; k < 5; k++) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.025, 0.3), acier); b.position.set(Math.sin(k * 1.2566) * 0.15, 0.06, Math.cos(k * 1.2566) * 0.15); b.rotation.y = k * 1.2566; c.add(b);
+      const r = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), noirMat); r.position.set(Math.sin(k * 1.2566) * 0.29, 0.025, Math.cos(k * 1.2566) * 0.29); c.add(r); }
+    ombreSol(x, z, 1.0, 1.0, 0.55);
+  }
+  chaise(-DEMI + 1.55, zM + 0.1, -Math.PI / 2 - 0.25);
+  for (const dz of [-1.25, 1.25]) { boite(0.14, 0.24, 0.16, noirMat, -DEMI + 0.4, 0.9, zM + dz);
+    const hp = new THREE.Mesh(new THREE.CircleGeometry(0.045, 18), mat(0x2a2a2c, 0.5, 0.4)); hp.rotation.y = Math.PI / 2; hp.position.set(-DEMI + 0.475, 0.88, zM + dz); monde.add(hp); }
+  const tasseM = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.036, 0.095, 20), mat(0x15151a, 0.4)); tasseM.position.set(-DEMI + 0.75, 0.83, zM - 0.6); monde.add(tasseM);
+  for (const [dz, dy, c] of [[0.3, 0.02, 0xf2d04a], [0.38, -0.06, 0xf08ab0]]) { const pi = new THREE.Mesh(new THREE.PlaneGeometry(0.07, 0.07), mat(c, 0.9)); pi.rotation.y = Math.PI / 2 + 0.25; pi.position.set(-DEMI + 0.8, 1.48 + dy, zM + 0.95 + dz); monde.add(pi); }
+  cable([[-DEMI + 0.3, 0.78, zM + 0.9], [-DEMI + 0.25, 0.4, zM + 0.6], [-DEMI + 0.2, , zM], [-DEMI + 0.05, , zM - 0.8]]);
+  ombreSol(-DEMI + 0.6, zM, 1.4, 3.2, 0.5);
+
+  // le bureau de Jaurys : livres, stylos, plante, cartes de visite, chaise
+  const livres = [[0x1b1b1f, 0.04], [0x9c2116, 0.03], [0x8f897d, 0.035]];
+  let yL = 0.79; livres.forEach(([c, h], k) => { const l = boite(0.24, h, 0.17, mat(c, 0.75), -0.95 + (k % 2) * 0.01, yL + h / 2, zD + 0.3, null); l.rotation.y = 0.2 - k * 0.08; yL += h; });
+  for (let k = 0; k < 2; k++) { const st = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.14, 8), mat(k ? 0xd42a1b : 0x111111, 0.4)); st.rotation.z = Math.PI / 2; st.rotation.y = 0.3 + k * 0.2; st.position.set(0.0 + k * 0.03, 0.8, zD + 0.32); monde.add(st); }
+  const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.048, 0.11, 18), mat(0xcfc8bb, 0.85)); pot.position.set(0.92, 0.845, zD - 0.3); monde.add(pot);
+  for (let k = 0; k < 9; k++) { const f = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.22 + Math.random() * 0.1, 5), mat(0x2f5a33, 0.8)); const a = k * 0.7;
+    f.position.set(0.92 + Math.cos(a) * 0.03, 0.98, zD - 0.3 + Math.sin(a) * 0.03); f.rotation.set(Math.sin(a) * 0.35, 0, -Math.cos(a) * 0.35); monde.add(f); }
+  const texCarte = toile(256, 150, (g, w, h) => { g.fillStyle = '#0b0c0f'; g.fillRect(0, 0, w, h); g.fillStyle = '#d42a1b'; g.fillRect(0, h - 10, w, 10);
+    g.fillStyle = '#fff'; g.font = '40px Anton, sans-serif'; g.fillText('J.M', 18, 60); g.font = '500 14px "IBM Plex Mono", monospace'; g.fillStyle = '#a9b7c6'; g.fillText('DIRECTION ARTISTIQUE', 18, 92); g.fillText(TEL, 18, 116); });
+  for (let k = 0; k < 4; k++) { const c = new THREE.Mesh(new THREE.BoxGeometry(0.085, 0.002, 0.05), [noirMat, noirMat, new THREE.MeshStandardMaterial({ map: texCarte, roughness: 0.7 }), noirMat, noirMat, noirMat]);
+    c.position.set(0.32, 0.79 + k * 0.002, zD + 0.38); c.rotation.y = 0.15 + k * 0.05; monde.add(c); }
+  chaise(0.05, zD - 0.85, Math.PI);
+  ombreSol(0, zD, 3.0, 1.6, 0.55);
+  cable([[0.6, 0.78, zD - 0.3], [0.7, 0.5, zD - 0.45], [0.9, , zD - 0.5], [3.0, , Z_FOND + 0.2]]);
 
   // ═══════════ le rail : les arrets de la camera ═══════════
   const arrets = [{ cam: new THREE.Vector3(0, 1.7, 7.6), vise: new THREE.Vector3(0, 2.6, -6), ids: [], nom: "L'entrée" }]
@@ -620,6 +716,27 @@ export async function demarrer() {
       const j = new THREE.Mesh(new THREE.CircleGeometry(0.25, 40), jante); j.position.set(p.x, p.y, c * 0.916); if (c < 0) j.rotation.y = Math.PI; g.add(j);
       const e = boite(0.09, 0.12, 0.03, etrier, p.x - 0.12 * (x < 300 ? -1 : 1), p.y + 0.08, c * 0.9, g);
     }
+    // les details : disques de frein, retroviseurs, poignees, aileron, echappements, plaque
+    for (const x of [151, 477]) for (const c of [-1, 1]) {
+      const p = P(x, 165);
+      const disque = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.02, 32), mat(0x55595f, 0.35, 0.9)); disque.rotation.x = Math.PI / 2; disque.position.set(p.x, p.y, c * 0.885); g.add(disque);
+    }
+    const chrome = mat(0x111214, 0.25, 0.8);
+    for (const c of [-1, 1]) {
+      const pm = P(262, 92);
+      const tige = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.03, 0.1), chrome); tige.position.set(pm.x, pm.y, c * 0.98); g.add(tige);
+      const retro = new THREE.Mesh(new THREE.SphereGeometry(0.075, 18, 12), peinture); retro.scale.set(1.1, 0.7, 0.55); retro.position.set(pm.x - 0.02, pm.y + 0.03, c * 1.06); g.add(retro);
+      const ph = P(366, 110);
+      boite(0.13, 0.025, 0.012, chrome, ph.x, ph.y, c * 0.955, g);
+      const ps = P(320, 178);
+      boite(2.3, 0.03, 0.012, mat(0x050506, 0.5), ps.x, ps.y, c * 0.95, g);     // le bas de caisse
+    }
+    const pa = P(585, 84);
+    const aileron = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.025, 1.35), peinture); aileron.position.set(pa.x, pa.y + 0.035, 0); aileron.rotation.z = 0.12; g.add(aileron);
+    for (const c of [-0.35, -0.22, 0.22, 0.35]) { const pe = P(612, 180); const e = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 0.1, 18), mat(0x8c9198, 0.2, 0.95)); e.rotation.z = Math.PI / 2; e.position.set(pe.x + 0.04, pe.y, c); g.add(e); }
+    const texPlaque = toile(256, 56, (cx, w, h) => { cx.fillStyle = '#f3f3f1'; cx.fillRect(0, 0, w, h); cx.fillStyle = '#1a3fa0'; cx.fillRect(0, 0, 22, h); cx.fillStyle = '#111'; cx.font = '600 34px "IBM Plex Mono", monospace'; cx.fillText('TP-991-JM', 30, 40); });
+    const plaque2 = new THREE.Mesh(new THREE.PlaneGeometry(0.42, 0.095), new THREE.MeshStandardMaterial({ map: texPlaque, roughness: 0.5 }));
+    const pp2 = P(622, 145); plaque2.position.set(pp2.x + 0.012, pp2.y, 0); plaque2.rotation.y = Math.PI / 2; g.add(plaque2);
     // les feux : le bandeau arriere rouge, les phares ronds
     const feu = new THREE.Mesh(new THREE.BoxGeometry(0.03, 0.035, LARG + 0.2), new THREE.MeshBasicMaterial({ color: 0xff2414, toneMapped: false }));
     const pf2 = P(616, 100); feu.position.set(pf2.x + 0.02, pf2.y, 0); g.add(feu);
