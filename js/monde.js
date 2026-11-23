@@ -13,6 +13,7 @@ import { EffectComposer } from '../vendor/addons/postprocessing/EffectComposer.j
 import { RenderPass } from '../vendor/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from '../vendor/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from '../vendor/addons/postprocessing/OutputPass.js';
+import { ShaderPass } from '../vendor/addons/postprocessing/ShaderPass.js';
 
 const ROUGE = 0xd42a1b;
 const DEMI = 9;          // demi-largeur de l'atelier
@@ -91,13 +92,30 @@ export async function demarrer() {
   monde.environmentIntensity = 0.18;
 
   // les neons et les ampoules diffusent leur lumiere dans l'image (ordinateur)
-  let composer = null, bloom = null;
+  let composer = null, bloom = null, pellicule = null;
   if (!PETIT) {
     composer = new EffectComposer(renderer);
     composer.addPass(new RenderPass(monde, cam));
     bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.42, 0.45, 0.93);
     composer.addPass(bloom);
     composer.addPass(new OutputPass());
+    // la pellicule : grain, vignettage, un soupcon d'aberration de l'objectif sur les bords
+    pellicule = new ShaderPass({
+      uniforms: { tDiffuse: { value: null }, t: { value: 0 } },
+      vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: `uniform sampler2D tDiffuse; uniform float t; varying vec2 vUv;
+        float h(vec2 p){ return fract(sin(dot(p, vec2(12.9898, 78.233))) * 43758.5453); }
+        void main(){
+          vec2 d = vUv - 0.5; float r = dot(d, d);
+          vec2 o = d * r * 0.012;
+          vec3 c = vec3(texture2D(tDiffuse, vUv + o).r, texture2D(tDiffuse, vUv).g, texture2D(tDiffuse, vUv - o).b);
+          c *= 1.0 - smoothstep(0.12, 0.62, r) * 0.42;
+          float l = dot(c, vec3(0.299, 0.587, 0.114));
+          c += (h(gl_FragCoord.xy + fract(t) * 91.7) - 0.5) * (0.055 - l * 0.03);
+          gl_FragColor = vec4(c, 1.0);
+        }`
+    });
+    composer.addPass(pellicule);
   }
 
   // ═══════════ les donnees ═══════════
@@ -140,56 +158,140 @@ export async function demarrer() {
     for (let k = 0; k < out.length; k++) out[k] /= total;
     return out;
   }
-  function texPixels(w, h, peindre, lin) {
+  function texPixels(w, h, peindre, lin, apres) {
     const c = document.createElement('canvas'); c.width = w; c.height = h;
     const g = c.getContext('2d'); const img = g.createImageData(w, h);
     peindre(img.data, w, h); g.putImageData(img, 0, 0);
+    if (apres) apres(g, w, h);
     const t = new THREE.CanvasTexture(c);
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
     if (!lin) t.colorSpace = THREE.SRGBColorSpace;
     return t;
   }
-  // le beton cire du sol
+  const hasard = k => { const s = Math.sin(k * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
+  // des rayures fines, tracees au hasard (sol, metal, plastique)
+  function rayures(g, w, n, couleur, graine) {
+    g.strokeStyle = couleur; g.lineCap = 'round';
+    for (let i = 0; i < n; i++) {
+      const x = hasard(graine + i) * w, y = hasard(graine + i * 3.1) * w, a = hasard(graine + i * 7.7) * Math.PI, l = (0.02 + hasard(i * 1.3 + graine) * 0.12) * w;
+      g.lineWidth = 0.5 + hasard(i * 9.1) * (w / 700); g.globalAlpha = 0.25 + hasard(i * 4.4) * 0.5;
+      g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + Math.cos(a) * l * 0.5 + l * 0.08, y + Math.sin(a) * l * 0.5, x + Math.cos(a) * l, y + Math.sin(a) * l); g.stroke();
+    }
+    g.globalAlpha = 1;
+  }
+  // le beton cire du sol : joints de sciage, taches, rayures, brillance irreguliere
   const RES = PETIT ? 512 : 1024;
   const nB = bruitFractal(RES, RES, 7, 3.1);
+  const nM = bruitFractal(RES, RES, 7, 9.3);
+  const Q = RES / 512;
+  const tache = (x, y) => nM[y * RES + (RES - 1 - x)];        // un bruit decorrele du grain
   const texSol = texPixels(RES, RES, (d, w) => {
     for (let k = 0; k < w * w; k++) {
       const x = k % w, y = (k / w) | 0;
-      let v = 22 + nB[k] * 24 + Math.abs((Math.sin(k * 91.7) * 43758.5) % 1) * 5;
-      if (x < 1 || y < 1) v *= 0.7;
-      d[k * 4] = v * 1.03; d[k * 4 + 1] = v; d[k * 4 + 2] = v * 0.96; d[k * 4 + 3] = 255;
+      let v = 30 + nB[k] * 30 + hasard(k) * 6;
+      v *= 0.72 + tache(x, y) * 0.5;                              // nuages du cirage
+      if (x < 2.5 * Q || y < 2.5 * Q) v *= 0.3; else if (x < 5 * Q || y < 5 * Q) v *= 0.82;
+      d[k * 4] = v * 1.04; d[k * 4 + 1] = v; d[k * 4 + 2] = v * 0.94; d[k * 4 + 3] = 255;
+    }
+  }, false, (g, w) => {
+    rayures(g, w, 70, 'rgba(120,114,104,1)', 4.2);
+    for (let i = 0; i < 5; i++) {                                 // auréoles de liquide seche
+      const x = hasard(i * 2.3) * w, y = hasard(i * 5.9) * w, r = (0.04 + hasard(i) * 0.08) * w;
+      const gr = g.createRadialGradient(x, y, r * 0.75, x, y, r);
+      gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(0.85, 'rgba(0,0,0,.18)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+      g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2);
     }
   });
   const texSolR = texPixels(RES, RES, (d, w) => {
-    for (let k = 0; k < w * w; k++) { const v = 90 + nB[(k * 7) % (w * w)] * 70; d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255; }
+    for (let k = 0; k < w * w; k++) { const x = k % w, y = (k / w) | 0;
+      let v = 70 + tache(x, y) * 110 + nB[k] * 30;                // cire usee par endroits
+      if (x < 5 * Q || y < 5 * Q) v = 235;
+      d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255; }
+  }, true, (g, w) => rayures(g, w, 70, 'rgba(255,255,255,1)', 4.2));
+  const texSolB = texPixels(RES, RES, (d, w) => {
+    for (let k = 0; k < w * w; k++) { const x = k % w, y = (k / w) | 0;
+      let v = 150 + (nB[k] - 0.5) * 60 + (hasard(k * 1.7) - 0.5) * 14;
+      if (x < 2.5 * Q || y < 2.5 * Q) v = 40;
+      d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255; }
   }, true);
-  // le beton brut des murs : banches, joints, trous de tiges
-  const nM = bruitFractal(RES, RES, 7, 9.3);
+  // le beton brut des murs : empreinte des planches de coffrage, joints, trous de tiges, coulures
+  const PL = 21 * Q;                                              // hauteur d'une planche
   const texMur = texPixels(RES, RES, (d, w) => {
     for (let k = 0; k < w * w; k++) {
-      const x = k % w, y = (k / w) | 0;
-      let v = 46 + nM[k] * 34 + ((Math.sin(k * 12.7) * 43758.5) % 1) * 6;
-      if (x < 2 * (w / 512) || y < 2 * (w / 512)) v *= 0.62;               // joint de banche
-      const q = w / 512, tx = (x % (128 * q)) - 64 * q, ty = (y % (170 * q)) - 85 * q;   // trous de tiges
-      if (tx * tx + ty * ty < 18 * q * q && (x / (128 * q) | 0) % 2 === 0) v *= 0.45;
+      const x = k % w, y = (k / w) | 0, pl = (y / PL) | 0, fy = (y % PL) / PL;
+      let v = 46 + nM[k] * 34 + hasard(k) * 7;
+      v *= 0.9 + hasard(pl * 3.3 + ((x / (160 * Q)) | 0) * 0.71) * 0.2;      // chaque planche sa teinte
+      v += Math.sin(x * 0.11 / Q + nB[k] * 9 + pl * 4.1) * 2.6;               // le fil du bois imprime
+      if (fy < 0.06) v *= 0.78;                                                // arete entre planches
+      const col = (x / (6 * Q)) | 0, h = hasard(col * 5.31);                   // coulures depuis le haut
+      if (h > 0.9) v *= 1 - (1 - y / w) * (h - 0.9) * 5 * (0.6 + nB[k] * 0.6);
+      if (x < 2 * Q || y < 2 * Q) v *= 0.55;                                    // joint de banche
+      const tx = (x % (128 * Q)) - 64 * Q, ty = (y % (170 * Q)) - 85 * Q, r2 = tx * tx + ty * ty;
+      if ((x / (128 * Q) | 0) % 2 === 0) { if (r2 < 18 * Q * Q) v *= 0.4; else if (r2 < 40 * Q * Q) v *= 0.85; }
+      v *= 1 - Math.pow(y / w, 6) * 0.35;                                       // remontee d'humidite en bas
       d[k * 4] = v; d[k * 4 + 1] = v * 0.98; d[k * 4 + 2] = v * 0.95; d[k * 4 + 3] = 255;
     }
   });
-  const texMurB = texPixels(256, 256, (d, w) => {
-    for (let k = 0; k < w * w; k++) { const v = 100 + nM[k * 2 % nM.length] * 120; d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255; }
+  const texMurB = texPixels(RES, RES, (d, w) => {
+    for (let k = 0; k < w * w; k++) { const x = k % w, y = (k / w) | 0, fy = (y % PL) / PL;
+      let v = 120 + (nM[k] - 0.5) * 110 + (hasard(k * 3.1) - 0.5) * 40;
+      if (hasard(k * 0.37) > 0.985) v -= 90;                                    // bulles d'air du beton
+      if (fy < 0.06) v -= 50;
+      if (x < 2 * Q || y < 2 * Q) v = 20;
+      const tx = (x % (128 * Q)) - 64 * Q, ty = (y % (170 * Q)) - 85 * Q;
+      if ((x / (128 * Q) | 0) % 2 === 0 && tx * tx + ty * ty < 18 * Q * Q) v = 0;
+      d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255; }
   }, true);
   // le liege du tableau
   const texLiege = texPixels(256, 256, (d, w) => {
     for (let k = 0; k < w * w; k++) { const r = Math.random(); const v = 0.55 + nM[k] * 0.3 + r * 0.25;
       d[k * 4] = 150 * v; d[k * 4 + 1] = 104 * v; d[k * 4 + 2] = 64 * v; d[k * 4 + 3] = 255; }
   });
-  // le bois du bureau
-  const texBois = texPixels(512, 128, (d, w, h) => {
-    for (let k = 0; k < w * h; k++) { const x = k % w, y = (k / w) | 0;
-      const veine = Math.sin(y * 0.35 + Math.sin(x * 0.012) * 5 + nB[((y * 4) % RES) * RES + (x % RES)] * 6) * 0.5 + 0.5;
-      const v = 0.55 + veine * 0.25 + nB[k % nB.length] * 0.2;
-      d[k * 4] = 92 * v; d[k * 4 + 1] = 60 * v; d[k * 4 + 2] = 40 * v; d[k * 4 + 3] = 255; }
+  // le noyer du bureau : lames, cernes, pores
+  const texBois = texPixels(1024, 256, (d, w, h) => {
+    for (let k = 0; k < w * h; k++) { const x = k % w, y = (k / w) | 0, lame = (y / 64) | 0;
+      const o = hasard(lame * 7.1) * 40, fy = y + o + nB[((y * 3) % RES) * RES + (x % RES)] * 10;
+      const cerne = Math.pow(Math.sin(fy * 0.21 + Math.sin(x * 0.006 + lame) * 4 + nB[(y % RES) * RES + ((x * 2) % RES)] * 5) * 0.5 + 0.5, 3);
+      let v = 0.7 + cerne * 0.13 + nB[k % nB.length] * 0.2 + (hasard(k) > 0.97 ? -0.12 : 0);
+      v *= 0.88 + hasard(lame * 2.9) * 0.2;
+      if (y % 64 < 1) v *= 0.45;
+      d[k * 4] = 104 * v; d[k * 4 + 1] = 74 * v; d[k * 4 + 2] = 52 * v; d[k * 4 + 3] = 255; }
   });
+  const texBoisR = texPixels(512, 128, (d, w, h) => {
+    for (let k = 0; k < w * h; k++) { const v = 120 + nB[k % nB.length] * 80 + hasard(k) * 20; d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255; }
+  }, true, (g, w) => rayures(g, w, 30, 'rgba(255,255,255,1)', 8.8));
+  // le grain de toute chose : un rien de relief et de brillance irreguliere
+  const texGrainR = texPixels(256, 256, (d, w) => {
+    for (let k = 0; k < w * w; k++) { const v = 200 + nB[k * 3 % nB.length] * 45 + hasard(k) * 10; d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255; }
+  }, true, (g, w) => rayures(g, w, 25, 'rgba(255,255,255,1)', 2.5));
+  const texGrainB = texPixels(256, 256, (d, w) => {
+    for (let k = 0; k < w * w; k++) { const v = 128 + (hasard(k * 2.3) - 0.5) * 50 + (nM[k * 5 % nM.length] - 0.5) * 60; d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255; }
+  }, true);
+  // le metal brosse
+  const texBrosse = texPixels(256, 256, (d, w) => {
+    for (let k = 0; k < w * w; k++) { const y = (k / w) | 0; const v = 150 + hasard(y * 1.7) * 60 + hasard(k) * 25 + nB[k % nB.length] * 30; d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255; }
+  }, true, (g, w) => rayures(g, w, 40, 'rgba(255,255,255,1)', 6.6));
+  // le beton du plafond, plus sombre et plus doux
+  const texPlafond = texPixels(256, 256, (d, w) => {
+    for (let k = 0; k < w * w; k++) { const v = 14 + nM[k * 4 % nM.length] * 14 + hasard(k) * 3; d[k * 4] = v; d[k * 4 + 1] = v; d[k * 4 + 2] = v * 1.02; d[k * 4 + 3] = 255; }
+  });
+  // la toile de coton de la housse : trame, fils irreguliers, salissures
+  const texToile = texPixels(256, 256, (d, w) => {
+    for (let k = 0; k < w * w; k++) { const x = k % w, y = (k / w) | 0;
+      const trame = (Math.sin(x * Math.PI / 2) * Math.sin(y * Math.PI / 2) > 0 ? 1 : 0.86) * (0.93 + hasard(((y / 2) | 0) * 1.9) * 0.1);
+      const v = trame * (0.78 + nM[(k * 3) % nM.length] * 0.3);
+      d[k * 4] = 255 * v; d[k * 4 + 1] = 248 * v; d[k * 4 + 2] = 236 * v; d[k * 4 + 3] = 255; }
+  });
+  const texToileB = texPixels(256, 256, (d, w) => {
+    for (let k = 0; k < w * w; k++) { const x = k % w, y = (k / w) | 0;
+      const v = 128 + Math.sin(x * Math.PI / 2) * Math.sin(y * Math.PI / 2) * 70 + (hasard(k) - 0.5) * 30; d[k * 4] = d[k * 4 + 1] = d[k * 4 + 2] = v; d[k * 4 + 3] = 255; }
+  }, true);
+  texToile.repeat.set(5, 5); texToileB.repeat.set(5, 5);
+  // le papier de fond studio : fibres et legeres marbrures
+  const texPapier = texPixels(256, 256, (d, w) => {
+    for (let k = 0; k < w * w; k++) { const v = 0.93 + (nB[(k * 5) % nB.length] - 0.5) * 0.1 + (hasard(k) - 0.5) * 0.04;
+      d[k * 4] = 255 * v; d[k * 4 + 1] = 254 * v; d[k * 4 + 2] = 250 * v; d[k * 4 + 3] = 255; }
+  }, false, (g, w) => rayures(g, w, 18, 'rgba(150,146,138,.6)', 3.3));
   const texHalo = toile(256, 256, (g, w) => {
     const r = g.createRadialGradient(w / 2, w / 2, 0, w / 2, w / 2, w / 2);
     r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.35, 'rgba(255,255,255,.5)'); r.addColorStop(1, 'rgba(255,255,255,0)');
@@ -201,16 +303,19 @@ export async function demarrer() {
     g.fillStyle = l; g.fillRect(0, 0, w, h);
   });
   const additif = (map, color, opacity) => new THREE.MeshBasicMaterial({ map, color, transparent: true, opacity, blending: THREE.AdditiveBlending, depthWrite: false });
-  const mat = (color, roughness = 0.8, metalness = 0, extra = {}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness, metalness }, extra));
+  // chaque matiere recoit un grain : metal brosse pour le metal, micro-relief pour le reste
+  texGrainR.repeat.set(2, 2); texGrainB.repeat.set(2, 2); texBrosse.repeat.set(1, 3);
+  const mat = (color, roughness = 0.8, metalness = 0, extra = {}) => new THREE.MeshStandardMaterial(Object.assign({ color, roughness, metalness,
+    roughnessMap: metalness > 0.5 ? texBrosse : texGrainR, bumpMap: texGrainB, bumpScale: metalness > 0.5 ? 0.15 : 0.35 }, extra));
   const acier = mat(0x1d1e21, 0.35, 0.85);
   const noirMat = mat(0x0b0b0c, 0.6, 0.2);
   function boite(w, h, d, m, x, y, z, parent) { const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), m); b.position.set(x, y, z); b.castShadow = true; b.receiveShadow = true; (parent || monde).add(b); return b; }
 
   // ═══════════ le lieu ═══════════
   const LONG = Z_ENTREE - Z_FOND, MIL = (Z_ENTREE + Z_FOND) / 2;
-  texSol.repeat.set(DEMI * 2 / 4, LONG / 4); texSolR.repeat.copy(texSol.repeat);
+  texSol.repeat.set(DEMI * 2 / 4, LONG / 4); texSolR.repeat.copy(texSol.repeat); texSolB.repeat.copy(texSol.repeat);
   const sol = new THREE.Mesh(new THREE.PlaneGeometry(DEMI * 2, LONG),
-    new THREE.MeshStandardMaterial({ map: texSol, roughnessMap: texSolR, roughness: 1, metalness: 0 }));
+    new THREE.MeshStandardMaterial({ map: texSol, roughnessMap: texSolR, roughness: 1, metalness: 0, bumpMap: texSolB, bumpScale: 0.45 }));
   sol.rotation.x = -Math.PI / 2; sol.position.z = MIL; sol.receiveShadow = true; monde.add(sol);
 
   texMur.repeat.set(LONG / 5, HAUT / 5); texMurB.repeat.copy(texMur.repeat);
@@ -230,7 +335,8 @@ export async function demarrer() {
     const f = new THREE.Mesh(new THREE.PlaneGeometry(DEMI * 2, HAUT), matMurF);
     f.position.set(0, HAUT / 2, z); f.rotation.y = ry; f.receiveShadow = true; monde.add(f);
   }
-  const pf = new THREE.Mesh(new THREE.PlaneGeometry(DEMI * 2, LONG), mat(0x0a0a0b, 0.95));
+  texPlafond.repeat.set(DEMI * 2 / 3, LONG / 3);
+  const pf = new THREE.Mesh(new THREE.PlaneGeometry(DEMI * 2, LONG), mat(0xffffff, 0.95, 0, { map: texPlafond, bumpMap: texPlafond, bumpScale: 0.6 }));
   pf.rotation.x = Math.PI / 2; pf.position.set(0, HAUT, MIL); monde.add(pf);
   // les poutres metalliques, et les suspensions industrielles
   const ampoules = [];
@@ -400,7 +506,8 @@ export async function demarrer() {
   profil.moveTo(0, 3.6); profil.lineTo(0, 0.9); profil.absarc(0.9, 0.9, 0.9, Math.PI, Math.PI * 1.5, false); profil.lineTo(2.6, 0);
   profil.lineTo(2.6, 0.015); profil.lineTo(0.9, 0.015); profil.absarc(0.9, 0.9, 0.885, Math.PI * 1.5, Math.PI, true); profil.lineTo(0.015, 3.6); profil.closePath();
   const geoFond = new THREE.ExtrudeGeometry(profil, { depth: 4.4, bevelEnabled: false, curveSegments: 24 }); geoFond.translate(0, 0, -2.2);
-  const fond = new THREE.Mesh(geoFond, mat(0xbdbcb7, 0.93)); fond.position.set(-DEMI + 0.25, 0.004, zS); fond.receiveShadow = true; monde.add(fond);
+  texPapier.repeat.set(0.6, 0.6);
+  const fond = new THREE.Mesh(geoFond, mat(0xbdbcb7, 0.93, 0, { map: texPapier, bumpMap: texPapier, bumpScale: 0.4 })); fond.position.set(-DEMI + 0.25, 0.004, zS); fond.receiveShadow = true; monde.add(fond);
   for (const dz of [-2.25, 2.25]) boite(0.03, 3.7, 0.03, acier, -DEMI + 0.25, 1.85, zS + dz);
   const rouleau = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 4.6, 16), mat(0xa9a8a3, 0.9)); rouleau.rotation.x = Math.PI / 2; rouleau.position.set(-DEMI + 0.3, 3.68, zS); monde.add(rouleau);
   // la bouteille
@@ -469,7 +576,7 @@ export async function demarrer() {
 
   // ── station 4 : le poste de montage (mur gauche) ──
   const zM = zC - 8;
-  boite(2.8, 0.05, 0.85, mat(0x241a12, 0.6, 0, { map: texBois }), -DEMI + 0.6, 0.76, zM).rotation.y = Math.PI / 2;
+  boite(2.8, 0.05, 0.85, mat(0xa89684, 0.55, 0, { map: texBois, roughnessMap: texBoisR }), -DEMI + 0.6, 0.76, zM).rotation.y = Math.PI / 2;
   for (const dz of [-1.3, 1.3]) for (const dx of [-0.35, 0.35]) boite(0.04, 0.74, 0.04, acier, -DEMI + 0.6 + dx, 0.37, zM + dz);
   const idsVideos = [];
   const posEcrans = [[-DEMI + 0.85, 1.2, zM + 0.95, 0.78], [-DEMI + 0.75, 1.24, zM, 0.95], [-DEMI + 0.85, 1.2, zM - 0.95, 0.78], [-DEMI + 0.06, 2.45, zM + 0.8, 1.25], [-DEMI + 0.06, 2.45, zM - 0.8, 1.25]];
@@ -500,7 +607,7 @@ export async function demarrer() {
 
   // ── station 5 : le bureau de Jaurys, au fond ──
   const zD = Z_FOND + 2.4;
-  boite(2.2, 0.06, 0.95, mat(0x2a1d14, 0.55, 0, { map: texBois }), 0, 0.76, zD);
+  boite(2.2, 0.06, 0.95, mat(0xb8a594, 0.5, 0, { map: texBois, roughnessMap: texBoisR }), 0, 0.76, zD);
   for (const dx of [-1, 1]) for (const dz of [-0.4, 0.4]) boite(0.05, 0.74, 0.05, acier, dx, 0.37, zD + dz);
   // le CV pose sur le bureau
   const cvPapier = new THREE.Mesh(new THREE.PlaneGeometry(0.34, 0.48), new THREE.MeshStandardMaterial({ map: texture('images/cv-apercu.jpg'), roughness: 0.85 }));
@@ -592,7 +699,7 @@ export async function demarrer() {
 
   // le mur d'affiches : une palette avec des tubes, un chariot de tirages
   const zPal = zA + 0.6;
-  boite(1.2, 0.14, 0.8, mat(0x6e5236, 0.85, 0, { map: texBois }), -DEMI + 0.9, 0.07, zPal); ombreSol(-DEMI + 0.9, zPal, 1.6, 1.2);
+  boite(1.2, 0.14, 0.8, mat(0xf0dcc0, 0.85, 0, { map: texBois, roughnessMap: texBoisR }), -DEMI + 0.9, 0.07, zPal); ombreSol(-DEMI + 0.9, zPal, 1.6, 1.2);
   for (let k = 0; k < 7; k++) { const t = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.045, 0.9 + (k % 3) * 0.12, 14), mat([0xd9d4c7, 0x1a1a1c, 0xb0a993][k % 3], 0.8));
     t.rotation.z = Math.PI / 2; t.rotation.y = 0.1 * (k % 2); t.position.set(-DEMI + 0.9, 0.19 + Math.floor(k / 4) * 0.09, zPal - 0.3 + (k % 4) * 0.1); t.castShadow = true; monde.add(t); }
   // sur le mur, un nuancier punaise et des croquis
@@ -752,7 +859,7 @@ export async function demarrer() {
       pos.setXYZ(i, x, y + pli, z + pli);
     }
     gd.computeVertexNormals();
-    const drap = new THREE.Mesh(gd, new THREE.MeshStandardMaterial({ color: 0x5f5b56, roughness: 0.97, side: THREE.DoubleSide, transparent: true, opacity: 1 }));
+    const drap = new THREE.Mesh(gd, new THREE.MeshStandardMaterial({ color: 0x5f5b56, roughness: 0.97, side: THREE.DoubleSide, transparent: true, opacity: 1, map: texToile, bumpMap: texToileB, bumpScale: 0.6 }));
     drap.castShadow = true; drap.receiveShadow = true; g.add(drap);
     return { groupe: g, corps, drap, devoile: false, tDrap: -1 };
   }
@@ -981,6 +1088,7 @@ export async function demarrer() {
       }
     }
 
+    if (pellicule) pellicule.uniforms.t.value = performance.now() * 0.001;
     if (composer) composer.render(); else renderer.render(monde, cam);
   }
   placerProjecteurs(s);
