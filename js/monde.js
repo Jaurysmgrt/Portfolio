@@ -724,9 +724,11 @@ export async function demarrer() {
 
   // le salon : canape de velours face a la cheminee, poufs, lampadaire, plantes
   tapis(-0.6, zCh, 2.3, 3.1, 0, ['#7c3a2c', '#d8c7a4', '#283247', '#a9763f']);
-  poser('GlamVelvetSofa', 1.35, 0, zCh, -Math.PI / 2, 1.05);
-  poser('SpecularSilkPouf', -0.35, 0, zCh + 0.75, 0.4, 1.0);
-  poser('SpecularSilkPouf', -0.45, 0, zCh - 0.7, -0.3, 0.9);
+  poser('Sofa_01', 1.25, 0, zCh, -Math.PI / 2, 1.18);                               // canape Louis XV
+  poser('ArmChair_01', -1.3, 0, zCh + 1.3, -2.78, 1.0);                               // deux fauteuils medaillon
+  poser('ArmChair_01', -1.3, 0, zCh - 1.3, -0.36, 1.0);
+  poser('antique_ceramic_vase_01', XG + 0.32, 0, zCh + 1.2, 0.4, 1.6);
+  poser('Chandelier_01', 0, HAUT - 0.02, zCh, 0, 1.2, () => lampeChaude(0, HAUT - 0.9, zCh, 2.2, 7));
   poser('LightsPunctualLamp', 2.45, 0, -6.35, -0.7, 1.0, () => lampeChaude(2.0, 1.75, -6.0, 3.2, 6));
   poser('DiffuseTransmissionPlant', -2.45, 0, -0.45, 0.6, 1.5);
   poser('DiffuseTransmissionPlant', 2.45, 0, -6.45, 2.0, 1.4);
@@ -739,6 +741,7 @@ export async function demarrer() {
     o.traverse(m => { if (m.isMesh) cliquable(m, 'La 991 de Talon Pointe', 'Clic · démarrer le moteur', () => { demarrage(); ouvrirFiche(idVoiture); }); });
   });
   poser('GlassVaseFlowers', XG + 0.18, 1.08, zCh - 0.55, 0.3, 1.7);
+  poser('mantel_clock_01', XG + 0.16, 1.078, zCh - 0.08, Math.PI / 2, 1.35);
   for (const dz of [-0.78, 0.78]) { const b = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.035, 0.03, 16), matLaiton); b.position.set(XG + 0.14, 1.095, zCh + dz); monde.add(b);
     const c = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, 0.2, 12), mat(0xf3eee2, 0.6)); c.position.set(XG + 0.14, 1.21, zCh + dz); monde.add(c);
     const fl = new THREE.Mesh(new THREE.PlaneGeometry(0.03, 0.06), additif(texFlamme, 0xffffff, 0.9)); fl.material.toneMapped = false; fl.position.set(XG + 0.14, 1.34, zCh + dz); fl.rotation.y = Math.PI / 2; monde.add(fl); flammes.push({ f: fl, ph: dz * 3, bougie: true }); }
@@ -758,19 +761,31 @@ export async function demarrer() {
   poser('DiffuseTransmissionPlant', -2.45, 0, -12.0, 1.1, 1.3);
   // une suspension de verre opalin dans chaque piece
   const matOpalin = new THREE.MeshStandardMaterial({ color: 0xfff4e2, emissive: 0xffd9a0, emissiveIntensity: 1.6, roughness: 0.4 });
-  for (const zc of [-9.75, -15.25]) {
+  poser('Chandelier_02', 0, HAUT - 0.98, -9.75, 0, 1.08, () => lampeChaude(0, HAUT - 0.75, -9.75, 2.6, 7));
+  poser('ClassicConsole_01', XD - 0.3, 0, -9.75, -Math.PI / 2, 1.0);
+  poser('marble_bust_01', XD - 0.3, 0.95, -10.25, -Math.PI / 2 - 0.35, 1.0);
+  poser('Camera_01', XD - 0.32, 0.95, -9.45, -Math.PI / 2 + 0.5, 1.15);
+  poser('potted_plant_04', XD - 0.3, 0.95, -9.05, 0, 1.0);
+  poser('vintage_grandfather_clock_01', -2.35, 0, Z2 - EP / 2 - 0.26, Math.PI, 1.0);
+  for (const zc of [-15.25]) {
     const fil = new THREE.Mesh(new THREE.CylinderGeometry(0.005, 0.005, 0.9, 6), matLaiton); fil.position.set(0, HAUT - 0.45, zc); monde.add(fil);
     const globe = new THREE.Mesh(new THREE.SphereGeometry(0.17, 32, 20), matOpalin); globe.position.set(0, HAUT - 1.05, zc); monde.add(globe);
     lampeChaude(0, HAUT - 1.25, zc, 2.6, 7);
   }
   // le bureau : le fauteuil, la tasse, le vase, les bibliotheques, le lampadaire
-  poser('ChairDamaskPurplegold', xD, 0, zD - 0.7, 0, 1.25);
+  poser('GreenChair_01', xD, 0, zD - 0.72, 0, 1.0);
   poser('DiffuseTransmissionTeacup', xD + 0.02, 0.787, zD - 0.22, 0.8, 1.15);
-  poser('GlassVaseFlowers', xD - 0.66, 0.787, zD - 0.25, -0.5, 1.5);
+  poser('GlassVaseFlowers', xD - 0.72, 0.787, zD - 0.28, -0.5, 1.5);
+  poser('standing_picture_frame_01', xD - 0.45, 0.787, zD - 0.26, 0.35, 1.0);
+  poser('round_spectacles', xD - 0.02, 0.795, zD + 0.3, 0.5, 1.0);
+  poser('vintage_video_camera', XG + 0.24, 0.695, zTV - 0.55, Math.PI / 2 - 0.3, 1.7);
+  poser('filmstrip_projector_8mm', XG + 0.26, 0.695, zTV + 0.5, Math.PI / 2 + 0.4, 0.9);
+  poser('book_encyclopedia_set_01', -2.85, 2.78, Z4 + 0.2, 0, 1.0);
+  poser('book_encyclopedia_set_01', -1.75, 2.78, Z4 + 0.2, 0, 1.0);
   bibliotheque(-1.95, Z4 + 0.2, 0, 1.9, 2.75);
   bibliotheque(2.3, Z4 + 0.2, 0, 1.3, 2.75);
   poser('LightsPunctualLamp', 1.55, 0, zD - 0.5, Math.PI - 0.25, 1.0, () => lampeChaude(1.0, 1.65, zD - 0.2, 3.4, 6));
-  poser('SheenChair', 2.2, 0, -13.6, -2.4, 1.2);
+  poser('ArmChair_01', 2.25, 0, -13.55, -2.4, 1.0);
   poser('DiffuseTransmissionPlant', 2.45, 0, -16.4, 2.6, 1.4);
   tapis(xD, zD + 0.25, 2.0, 2.8, Math.PI / 2, ['#6b3a2a', '#dccaa6', '#2a2f3c', '#9c7840']);
 
