@@ -42,7 +42,7 @@ export async function demarrer() {
     let on = false;
     const etat = v => { on = v; btn.setAttribute('aria-pressed', v ? 'true' : 'false');
       try { localStorage.setItem('jm-son', v ? '1' : '0'); } catch (e) {} };
-    const charger = () => import('./son.js?v=8').then(m => { SON = m; m.allumer(); etat(true); m.son.tension(); });
+    const charger = () => import('./son.js?v=9').then(m => { SON = m; m.allumer(); etat(true); m.son.tension(); });
     btn.addEventListener('click', () => {
       if (!SON) return charger();
       if (on) { SON.eteindre(); etat(false); } else { SON.allumer(); etat(true); SON.son.tic(); }
@@ -52,7 +52,7 @@ export async function demarrer() {
     if (voulu) {
       const reveil = () => { document.removeEventListener('pointerdown', reveil);
         document.removeEventListener('keydown', reveil);
-        import('./son.js?v=8').then(m => { SON = m; m.allumer(); etat(true); }); };
+        import('./son.js?v=9').then(m => { SON = m; m.allumer(); etat(true); }); };
       document.addEventListener('pointerdown', reveil, { once: true });
       document.addEventListener('keydown', reveil, { once: true });
     }
@@ -797,7 +797,10 @@ export async function demarrer() {
   let demarre = 0;
   function demarrage() {
     if (!SON || !SON.estActif() || !SON.moteur) { bruitage('klaxon'); return; }
-    if (demarre) return; const t0 = performance.now(); demarre = 1;
+    if (demarre) return;
+    // la vraie 991 : son demarrage a froid et ses coups de gaz, enregistres
+    if (SON.moteurReel && SON.moteurReel('demarrage', { pan: -0.3 })) { demarre = 1; setTimeout(() => { demarre = 0; }, 9300); return; }
+    const t0 = performance.now(); demarre = 1;
     (function pas() {
       const t = (performance.now() - t0) / 1000;
       let r = 900; if (t < 0.25) r = 900 + t * 2400; else if (t < 0.9) r = 1500 + Math.sin((t - 0.25) / 0.65 * Math.PI) * 5200; else if (t < 1.4) r = 1500 + Math.sin((t - 0.9) / 0.5 * Math.PI) * 3600; else r = 900;

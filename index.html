@@ -3834,6 +3834,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
   window.__jmAttenuer=function(v){ if(S&&S.attenuer) S.attenuer(v); };
   window.__jmMoteur=function(o){ if(on&&S&&S.moteur) S.moteur(o); };
   window.__jmMoteurCoupe=function(){ if(S&&S.moteurCoupe) S.moteurCoupe(); };
+  window.__jmMoteurReel=function(m,o){ return !!(on&&S&&S.moteurReel&&S.moteurReel(m,o)); };
 
   // ── la page bat avec la musique ──
   // Chaque temps du morceau arrive ici : le point « disponible », le pouls
@@ -3857,7 +3858,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
   btn.addEventListener('click',function(){
     if(!S){
       window.__sonLance=true;
-      import('./js/son.js?v=7').then(function(m){
+      import('./js/son.js?v=9').then(function(m){
         S=m; m.allumer(); etat(true); if(!charge) brancher(); m.son.tension();
       }).catch(function(){ btn.remove(); });
       return;
@@ -3882,7 +3883,7 @@ document.querySelectorAll('.gal-astro').forEach(function(el){
       document.removeEventListener('pointerdown',reveiller);
       document.removeEventListener('keydown',reveiller);
       if(S || window.__sonLance) return; window.__sonLance=true;
-      import('./js/son.js?v=7').then(function(m){ if(S) return; S=m; m.allumer(); etat(true); if(!charge) brancher(); });
+      import('./js/son.js?v=9').then(function(m){ if(S) return; S=m; m.allumer(); etat(true); if(!charge) brancher(); });
     };
     document.addEventListener('pointerdown',reveiller,{once:true});
     document.addEventListener('touchstart',reveiller,{once:true,passive:true});
@@ -4370,7 +4371,9 @@ document.querySelectorAll('#gallery .fam').forEach(function(f){
     g.globalAlpha=1;
     if(etat==='arrive'||etat==='repart'||parts.length) raf=requestAnimationFrame(boucle);
   }
-  function lancer(e){ etat=e; t0=performance.now(); derniere=0; taille(); if(!raf) raf=requestAnimationFrame(boucle); }
+  function lancer(e){ etat=e; t0=performance.now(); derniere=0; taille(); if(!raf) raf=requestAnimationFrame(boucle);
+    // la vraie 991 : les coups de gaz du retrogradage a l'arrivee, l'envolee au depart
+    if(window.__jmMoteurReel) window.__jmMoteurReel(e==='arrive'?'arrivee':'depart',{pan:e==='arrive'?.45:-.1}); }
   new MutationObserver(function(){
     var on=ch.classList.contains('on'), sort=ch.classList.contains('sort');
     if(on && (etat==='attente'||etat==='repart')){ parts=[]; x=innerWidth*1.25; lancer('arrive'); }

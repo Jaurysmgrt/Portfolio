@@ -20,3 +20,5 @@ filmstrip_projector_8mm, round_spectacles, standing_picture_frame_01, book_encyc
 antique_ceramic_vase_01, potted_plant_04.
 
 Texture (dossier `textures/`) : lames de chêne « hardwood2 » des exemples de three.js (github.com/mrdoob/three.js, examples/textures), recoupées en point de Hongrie.
+
+Son (dossier `sons/`) : « Porsche 991 - engine and exhaust sound », ThePetrolHeart (YouTube), via Wikimedia Commons, licence CC BY 3.0 — extraits recoupés et normalisés.

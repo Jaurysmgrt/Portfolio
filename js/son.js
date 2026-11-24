@@ -630,6 +630,46 @@ function petarade(pan) {
   src.start(t, Math.random() * 1.5); src.stop(t + 0.1);
   ton({ f0: 75, f1: 42, dur: 0.06, vol: 0.09 });
 }
+// ── la vraie 991 : des enregistrements de la voiture (Wikimedia Commons,
+// « Porsche 991 - engine and exhaust sound », ThePetrolHeart, CC BY 3.0) ──
+// une seule planche : demarrage 0-9.3 s, envolee 9.7-13.1, ralenti 13.5-18.5,
+// coups de gaz du retrogradage 18.9-23.5
+let reel = null, reelPret = false, ralentiEnCours = null;
+function chargerReel() {
+  if (reel || !ctx) return; reel = {};
+  const base = new URL('../sons/moteur-991.mp3', import.meta.url);
+  fetch(base).then(r => r.arrayBuffer()).then(a => new Promise((ok, ko) => ctx.decodeAudioData(a, ok, ko)))
+    .then(b => { reel.buf = b; reelPret = true; }).catch(() => { reel = null; });
+}
+function segment(de, a, { vol = 1, pan = 0, rate = 1, quand = 0, boucle = false, entree = 0.03 } = {}) {
+  const t = ctx.currentTime + quand;
+  const src = ctx.createBufferSource(); src.buffer = reel.buf; src.playbackRate.value = rate;
+  const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + entree);
+  const p = ctx.createStereoPanner ? ctx.createStereoPanner() : ctx.createGain(); if (p.pan) p.pan.value = Math.max(-1, Math.min(1, pan));
+  src.connect(g); g.connect(p); p.connect(sec);
+  const r = ctx.createGain(); r.gain.value = 0.18; p.connect(r); r.connect(versEcho);
+  if (boucle) { src.loop = true; src.loopStart = de; src.loopEnd = a; src.start(t, de); }
+  else src.start(t, de, a - de);
+  return { src, g, p, fin: (d = 0.4) => { const n = ctx.currentTime; g.gain.cancelScheduledValues(n); g.gain.setValueAtTime(g.gain.value, n); g.gain.exponentialRampToValueAtTime(0.0001, n + d); try { src.stop(n + d + 0.05); } catch (e) {} } };
+}
+// appele aux moments forts : 'arrivee', 'depart', 'demarrage'
+export function moteurReel(moment, { pan = 0, volume = 1 } = {}) {
+  if (!ctx || !actif) return false;
+  chargerReel(); if (!reelPret) return false;
+  if (ralentiEnCours) { ralentiEnCours.fin(0.15); ralentiEnCours = null; }
+  const V = 0.9 * volume;
+  if (moment === 'arrivee') {
+    // les deux coups de gaz du retrogradage, un peu presses, puis le ralenti
+    segment(19.0, 23.5, { vol: V, pan, rate: 1.2 });
+    ralentiEnCours = segment(13.7, 18.3, { vol: V * 0.75, pan, quand: 2.3, boucle: true, entree: 0.6 });
+  } else if (moment === 'depart') {
+    segment(9.95, 13.1, { vol: V, pan, rate: 1.08 });
+  } else if (moment === 'demarrage') {
+    segment(0, 9.3, { vol: V, pan });
+  }
+  return true;
+}
+
 // appele a chaque image par la voiture
 export function moteur({ regime = 900, charge = 0.3, crisse = 0, pan = 0, volume = 1, pop = false } = {}) {
   if (!ctx || !actif) return;
@@ -641,12 +681,13 @@ export function moteur({ regime = 900, charge = 0.3, crisse = 0, pan = 0, volume
   mot.filtre.frequency.setTargetAtTime(700 + regime * (0.35 + charge * 0.6), t, 0.05);
   mot.airF.frequency.setTargetAtTime(500 + regime * 0.25, t, 0.06);
   mot.airG.gain.setTargetAtTime(charge * charge * 0.05 * (regime / 7000), t, 0.06);
-  mot.sortie.gain.setTargetAtTime(0.32 * volume, t, 0.03);
+  mot.sortie.gain.setTargetAtTime(0.32 * volume * (reelPret ? 0.22 : 1), t, 0.03);
   mot.criG.gain.setTargetAtTime(crisse * 0.09 * volume, t, crisse > 0 ? 0.015 : 0.09);
   if (mot.pan.pan) mot.pan.pan.setTargetAtTime(Math.max(-1, Math.min(1, pan)), t, 0.05);
   if (pop) petarade(pan);
 }
 export function moteurCoupe() {
+  if (ralentiEnCours) { ralentiEnCours.fin(1.2); ralentiEnCours = null; }
   if (!mot || !ctx) return;
   const t = ctx.currentTime;
   mot.sortie.gain.setTargetAtTime(0, t, 0.25);
@@ -668,6 +709,7 @@ export function allumer() {
   // le moteur de la 991 se prepare des maintenant : quand la voiture
   // arrive, il doit demarrer a la meme image, pas une demi-seconde apres
   creerMoteur();
+  chargerReel();
   return true;
 }
 
