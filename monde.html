@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Jaurys Maigret — L'Atelier</title>
-<meta name="description" content="L'atelier de Jaurys Maigret, directeur artistique : affiches, photos, vidéos et la 991, à parcourir en 3D.">
+<title>Jaurys Maigret — L'Appartement</title>
+<meta name="description" content="L'appartement parisien de Jaurys Maigret, directeur artistique : affiches et photos encadrées, vidéos, à parcourir en 3D.">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -312,7 +312,7 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
 <div class="hud">
   <div class="coord mono">
     <div>J<span class="pt">.</span>M &nbsp;&nbsp; <b id="coordX">00.0</b> / <b id="coordZ">00.0</b></div>
-    <div>Atelier &middot; Paris</div>
+    <div>Appartement &middot; Paris</div>
   </div>
 
   <div class="zone">
@@ -368,7 +368,7 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
 
   <!-- le fl&eacute;chage du d&eacute;part -->
   <div class="guide" id="guide">
-    <span class="guide-t">Faites d&eacute;filer pour avancer dans l'atelier</span>
+    <span class="guide-t">Faites d&eacute;filer pour avancer dans l'appartement</span>
     <span class="guide-f"></span>
   </div>
 </div>
@@ -391,7 +391,7 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
 <div class="billet" id="billet" aria-hidden="true">
   <div class="billet-in">
     <span class="tampon">Visite compl&egrave;te</span>
-    <small>L'Atelier &middot; billet n&deg; <span id="billetN">0001</span></small>
+    <small>L'Appartement &middot; billet n&deg; <span id="billetN">0001</span></small>
     <h2>Vous avez tout vu.</h2>
     <p id="billetP">Merci de la visite. Le directeur artistique cherche son alternance, et il est disponible d&egrave;s maintenant.</p>
     <div class="billet-act">
@@ -406,20 +406,20 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
 
 <div id="intro">
   <div class="in-stage">
-    <span class="in-hud in-tl mono">L'Atelier</span>
+    <span class="in-hud in-tl mono">L'Appartement</span>
     <span class="in-hud in-tr mono">Paris &middot; FR</span>
     <span class="in-hud in-bl mono">Direction artistique</span>
     <span class="in-hud in-br mono">Ouvert la nuit</span>
     <div class="in-trait"></div>
     <div class="in-nom"><span>JAURYS</span><span>MAIGRET</span></div>
-    <button class="in-entrer mono" id="entrer">Entrer dans l'atelier</button>
+    <button class="in-entrer mono" id="entrer">Entrer dans l'appartement</button>
     <button class="in-passer mono" id="passer">Passer &rarr; version classique</button>
   </div>
 </div>
 
 <div id="repli">
   <div class="in">
-    <h1>L'atelier a besoin d'un peu plus de machine</h1>
+    <h1>L'appartement a besoin d'un peu plus de machine</h1>
     <p>Cette exp&eacute;rience demande la 3D temps r&eacute;el et un &eacute;cran assez large.
        Tout mon travail reste accessible, enti&egrave;rement, dans la version classique.</p>
     <a href="index.html">Voir le portfolio &rarr;</a>
@@ -443,7 +443,7 @@ body.fiche-ouverte .menu,body.fiche-ouverte .rail{opacity:0;pointer-events:none;
     intro.classList.add('parti');
     document.body.classList.add('dedans');
     setTimeout(function(){ intro.remove(); }, 1000);
-    import('./js/monde.js?v=16').then(function(m){ m.demarrer(); })
+    import('./js/monde.js?v=25').then(function(m){ m.demarrer(); })
       .catch(function(e){ console.error(e); document.getElementById('repli').classList.add('on'); });
   }
   document.getElementById('entrer').addEventListener('click', entrer);
