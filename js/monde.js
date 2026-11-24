@@ -80,12 +80,15 @@ export async function demarrer() {
 
   // ═══════════ le rendu ═══════════
   const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, PETIT ? 1.5 : 1.8));
+  let densite = Math.min(devicePixelRatio || 1, PETIT ? 1.5 : 1.5);
+  renderer.setPixelRatio(densite);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 1.0;
   renderer.shadowMap.enabled = !PETIT;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.autoUpdate = false;           // rien ne bouge : les ombres sont calculees une fois
+  const majOmbres = () => { renderer.shadowMap.needsUpdate = true; };
 
   const monde = new THREE.Scene();
   monde.background = new THREE.Color(0x030304);
@@ -95,14 +98,14 @@ export async function demarrer() {
   monde.environmentIntensity = 0.18;
 
   // les neons et les ampoules diffusent leur lumiere dans l'image (ordinateur)
-  let composer = null, bloom = null, pellicule = null;
+  let composer = null, bloom = null, pellicule = null, passeAO = null;
   if (!PETIT) {
     // un rendu anticrenele, et l'occlusion ambiante : les ombres de contact des angles et des objets
     composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(innerWidth, innerHeight, { type: THREE.HalfFloatType, samples: 4 }));
     composer.addPass(new RenderPass(monde, cam));
     const ao = new GTAOPass(monde, cam, innerWidth, innerHeight);
     ao.updateGtaoMaterial({ radius: 0.45, distanceExponent: 1.4, thickness: 1.2, scale: 1.0, samples: 12 });
-    ao.blendIntensity = 0.9; composer.addPass(ao);
+    ao.blendIntensity = 0.9; composer.addPass(ao); passeAO = ao;
     bloom = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.28, 0.5, 0.95);
     composer.addPass(bloom);
     composer.addPass(new OutputPass());
@@ -455,7 +458,6 @@ export async function demarrer() {
   const lune = new THREE.DirectionalLight(0xa9bfe6, PETIT ? 0.5 : 1.3); lune.position.set(XD + 9, 6.5, -6); lune.target.position.set(0, 0, -9);
   if (!PETIT) { lune.castShadow = true; lune.shadow.mapSize.set(2048, 2048); Object.assign(lune.shadow.camera, { left: -12, right: 12, top: 8, bottom: -8, near: 1, far: 30 }); lune.shadow.bias = -0.0005; lune.shadow.normalBias = 0.03; }
   monde.add(lune); monde.add(lune.target);
-  const suit = new THREE.PointLight(0xffe6cc, 1.2, 6, 2); monde.add(suit);
   const lumieres = [];                              // les lampes de la maison, qui battent avec la musique
   function lampeChaude(x, y, z, i, d) { const l = new THREE.PointLight(0xffc98e, i, d || 7, 2); l.position.set(x, y, z); monde.add(l); lumieres.push({ l, i }); return l; }
 
@@ -553,8 +555,9 @@ export async function demarrer() {
     f.position.set(-0.28 + k * 0.14, 0.3, 0.13 + (k % 2) * 0.04); ch.add(f); flammes.push({ f, ph: k * 1.7 }); }
   const feu = new THREE.PointLight(0xff8a3a, 2.4, 6, 2); feu.position.set(XG + 0.45, 0.45, zCh); monde.add(feu);
   // le miroir au-dessus, dans son cadre dore
+  let miroir = null;
   if (!PETIT) {
-    const miroir = new Reflector(new THREE.PlaneGeometry(1.36, 1.5), { textureWidth: 1024, textureHeight: 1024, color: 0xa8a49c, clipBias: 0.003 });
+    miroir = new Reflector(new THREE.PlaneGeometry(1.36, 1.5), { textureWidth: 768, textureHeight: 768, color: 0xa8a49c, clipBias: 0.003 });
     miroir.position.set(0, 1.92, 0.012); ch.add(miroir);
   } else { const m = new THREE.Mesh(new THREE.PlaneGeometry(1.36, 1.5), mat(0x30343a, 0.05, 1)); m.position.set(0, 1.92, 0.012); ch.add(m); }
   for (const [cu, cv, ww, hh] of [[0, 2.7, 1.52, 0.08], [0, 1.14, 1.52, 0.08], [-0.72, 1.92, 0.08, 1.64], [0.72, 1.92, 0.08, 1.64]]) boite(ww, hh, 0.05, matOr, cu, cv, 0.03, ch);
@@ -643,15 +646,19 @@ export async function demarrer() {
   // ═══════════ le mobilier : de vrais objets, modelises et photographies ═══════════
   // (modeles glTF d'exemple du Khronos Group, CC0 et CC-BY 4.0 : voir modeles/CREDITS.md)
   const gltf = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
-  const modeles = {};
+  const modeles = {}, chargements = [];
   function modele(nom) {
     return modeles[nom] || (modeles[nom] = gltf.loadAsync('modeles/' + nom + '.glb').then(g => {
       const lum = []; g.scene.traverse(o => { if (o.isLight) lum.push(o); if (o.isMesh) { o.castShadow = !PETIT; o.receiveShadow = true; } });
+      g.scene.traverse(o => { if (!o.isMesh) return; for (const m of [].concat(o.material)) {
+        if (m.transmission > 0) { m.transmission = 0; m.transparent = true; m.opacity = 0.28; m.roughness = Math.min(m.roughness, 0.08); m.depthWrite = false; m.thickness = 0; }
+        if (m.diffuseTransmission) m.diffuseTransmission = 0; } });
       lum.forEach(l => l.removeFromParent()); return g.scene; }));
   }
   function poser(nom, x, y, z, ry, ech, apres) {
-    return modele(nom).then(sc => { const o = sc.clone(true); o.position.set(x, y, z); o.rotation.y = ry || 0; o.scale.setScalar(ech || 1);
-      monde.add(o); if (apres) apres(o); return o; }).catch(e => { console.warn('modele', nom, e && e.message); return null; });
+    const pr = modele(nom).then(sc => { const o = sc.clone(true); o.position.set(x, y, z); o.rotation.y = ry || 0; o.scale.setScalar(ech || 1);
+      monde.add(o); if (apres) apres(o); majOmbres(); return o; }).catch(e => { console.warn('modele', nom, e && e.message); return null; });
+    chargements.push(pr); return pr;
   }
   // un tapis de laine : motif tisse, franges, fibres
   function tapis(x, z, w, d, ry, c) {
@@ -806,6 +813,12 @@ export async function demarrer() {
   arrets.forEach((a, i) => { if (!STATIONS.length || STATIONS[STATIONS.length - 1].nom !== a.nom) STATIONS.push({ nom: a.nom, i }); });
   const rail = new THREE.CatmullRomCurve3(arrets.map(a => a.cam), false, 'centripetal', 0.5);
   const N = arrets.length;
+  // quand tout est la, on prepare tous les materiaux d'un coup : plus d'a-coups
+  // pendant le travelling quand un meuble entre dans le champ
+  setTimeout(() => Promise.all(chargements).then(() => {
+    const fin = () => majOmbres();
+    if (renderer.compileAsync) renderer.compileAsync(monde, cam).then(fin, fin); else { renderer.compile(monde, cam); fin(); }
+  }), 0);
 
   // ═══════════ ce qui bouge : le feu, les flashs, l'ecran, la musique ═══════════
   let tEcran = 0;
@@ -905,8 +918,12 @@ export async function demarrer() {
   const zoneDepart = location.hash === '#fin' || location.hash === '#contact' ? N - 1 : 0;
   s = sCible = zoneDepart;
   function compris() { if (aBouge) return; aBouge = true; if (elGuide) { elGuide.classList.add('parti'); setTimeout(() => elGuide.remove(), 800); } }
-  function pousser(d) { sCible = Math.max(0, Math.min(N - 1, sCible + d)); dernierGeste = performance.now(); compris(); if (ouverte !== null) fermerFiche(); }
-  function allerA(i) { sCible = Math.max(0, Math.min(N - 1, i)); dernierGeste = 0; compris(); fermerFiche(); bruitage('balai'); }
+  let trajet = null;
+  function allerA(i) {
+    const c = Math.max(0, Math.min(N - 1, i)); if (c === sCible && trajet) return;
+    sCible = c; dernierGeste = 0; compris(); fermerFiche(); bruitage('balai');
+    const d = Math.abs(sCible - s); trajet = { de: s, vers: sCible, t0: performance.now(), duree: 1000 * (1.9 + Math.min(2.2, (d - 1) * 0.6)) };
+  }
   // un geste = un arret : on cumule la molette, on avance d'un cran, puis on
   // ignore l'elan du geste (pave tactile, molette libre) tant qu'il dure
   let cumul = 0, verrou = 0, derniereMolette = 0;
@@ -962,7 +979,7 @@ export async function demarrer() {
   }
 
   // ═══════════ la boucle ═══════════
-  const rayon = new THREE.Raycaster(), souris = new THREE.Vector2(), pointeur = new THREE.Vector2();
+  const rayon = new THREE.Raycaster(), souris = new THREE.Vector2(), sourisL = new THREE.Vector2(), pointeur = new THREE.Vector2();
   let survole = null;
   function dimensionner() {
     const w = innerWidth, h = innerHeight;
@@ -980,25 +997,32 @@ export async function demarrer() {
 
   const pCam = new THREE.Vector3(), pVise = new THREE.Vector3(), vTmp = new THREE.Vector3();
   let dernier = performance.now(), arretPrec = -1, lieuPrec = '';
+  const mesure = { n: 0, t: 0 }; let niveau = 0;
+  function alleger(n) {
+    if (n === 1 && passeAO) passeAO.enabled = false;                                   // l'occlusion ambiante
+    if (n === 2) { densite = Math.min(densite, 1.1); renderer.setPixelRatio(densite); if (composer) composer.setPixelRatio(densite); dimensionner(); }
+    if (n === 3) { if (bloom) bloom.enabled = false; if (miroir) { miroir.removeFromParent(); miroir = null; } }
+    if (n === 4) { densite = 0.85; renderer.setPixelRatio(densite); if (composer) composer.setPixelRatio(densite); dimensionner(); }
+  }
   function boucle(t) {
     requestAnimationFrame(boucle);
     const dt = Math.min((t - dernier) / 1000, 0.05); dernier = t;
 
     // quand on ne fait plus defiler, la camera se pose sur l'arret le plus proche
-    if (performance.now() - dernierGeste > 260) sCible += (Math.round(sCible) - sCible) * Math.min(1, dt * 6);
-    // un travelling lent, de cinema : environ deux secondes et demie d'un arret a l'autre
-    const ecart = sCible - s; s += Math.sign(ecart) * Math.min(Math.abs(ecart), Math.max(0.0, Math.abs(ecart) * (1 - Math.exp(-dt * 1.7)), dt * 0.08));
-    const i0 = Math.min(N - 2, Math.floor(s)), f = s - i0;
-    const e = f * f * (3 - 2 * f);                     // on ralentit pres de chaque arret
+    // un travelling de cinema : une seule courbe douce, qui demarre et se pose lentement
+    if (trajet) { const u = Math.min(1, (performance.now() - trajet.t0) / trajet.duree);
+      const k = u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+      s = trajet.de + (trajet.vers - trajet.de) * k; if (u >= 1) { s = trajet.vers; trajet = null; } }
+    const i0 = Math.min(N - 2, Math.floor(s)), e = s - i0;
     rail.getPoint((i0 + e) / (N - 1), pCam);
     pVise.copy(arrets[i0].vise).lerp(arrets[i0 + 1].vise, e);
     // un leger mouvement de tete : la camera respire, et suit un peu la souris
     pCam.x += Math.sin(t * 0.00031) * 0.03; pCam.y += Math.sin(t * 0.00047) * 0.02;
     vTmp.copy(pVise).sub(pCam).normalize();
     const lat = new THREE.Vector3(-vTmp.z, 0, vTmp.x);
-    pVise.addScaledVector(lat, souris.x * 0.35).y += souris.y * 0.22;
+    sourisL.lerp(souris, 1 - Math.exp(-dt * 3));
+    pVise.addScaledVector(lat, sourisL.x * 0.3).y += sourisL.y * 0.18;
     cam.position.copy(pCam); cam.lookAt(pVise);
-    suit.position.set(pCam.x, 2.4, pCam.z - 0.6);
 
     // l'arret courant : la chasse, le studio, la voiture, le bureau
     const ia = Math.round(s), a = arrets[ia];
@@ -1035,6 +1059,11 @@ export async function demarrer() {
       }
     }
 
+    if (miroir) miroir.visible = pCam.z > Z2 - 0.3;
+    // la qualite s'adapte a la machine : si les images tardent, on allege
+    mesure.n++; mesure.t += dt;
+    if (mesure.t > 2.5) { const fps = mesure.n / mesure.t; mesure.n = 0; mesure.t = 0;
+      if (performance.now() > 6000 && fps < 45 && niveau < 4) { niveau++; alleger(niveau); } }
     if (pellicule) pellicule.uniforms.t.value = performance.now() * 0.001;
     if (composer) composer.render(); else renderer.render(monde, cam);
   }
